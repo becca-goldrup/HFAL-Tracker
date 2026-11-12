@@ -196,8 +196,10 @@ The site appears at `https://becca-goldrup.github.io/HFAL-Tracker/`.
 
 ## Questions for CSS (judgment calls built into the tool)
 
-1. **FPL year.** The column says "2025 FPL Guidelines", but it's now late 2026. Should hospitals be on the
-   2026 guidelines? Change `FPL_YEAR` in `config.py`.
+1. **FPL year (answered).** CSS confirmed that hospitals are compared against the current, 2026 NYS Uniform
+   Application, which uses 2026 FPL figures. `FPL_YEAR = 2026` in `config.py`; the official form's text is in
+   `data/reference/` and is given to the grader as the reference. Documents CSS identified as current go in
+   `EXTRA_DOCUMENTS` in `config.py`.
 2. **Automatic F.** The rubric lists "no policy statement posted" as an automatic F, but the spreadsheet formula
    (and the published "14 of 212 compliant") doesn't use it. The tool matches the spreadsheet by default; set
    `POLICY_STATEMENT_AUTO_FAIL = True` in `config.py` to follow the rubric table instead (17 hospitals would drop to F).

@@ -10,6 +10,18 @@ INPUT_DIR = ROOT / "data" / "input"     # put the CSS spreadsheet here
 OUTPUT_DIR = ROOT / "data" / "output"   # updated spreadsheets + CSV land here
 CACHE_DIR = ROOT / "data" / "cache"     # downloaded documents + AI answers
 MANUAL_DIR = ROOT / "data" / "manual"   # documents a person saved for sites that block the tool
+# Current documents CSS pointed to that the crawler might miss (or that live on
+# another site after a rebrand). They are added to that site's documents.
+EXTRA_DOCUMENTS = {
+    "https://www.northwell.edu/billing-and-insurance/financial-assistance-programs-policies/financial-assistance-program": [
+        "https://www.northwell.edu/sites/northwell.edu/files/2026-06/doh-nys-uniform-hospital-financial-assistance-application.pdf",
+    ],
+    # Arnot is now Centralus Health; its 2024 application is still on the old site.
+    "https://www.arnothealth.org/financial-assistance": [
+        "https://centralushealth.org/wp-content/uploads/2026_uniform_financial_assistance_application.pdf",
+    ],
+}
+
 # HFA links in the spreadsheet that moved. The original spreadsheet is never
 # edited; the tool uses the new link and records the change in the AI Change Log.
 HFA_LINK_FIXES = {
@@ -20,9 +32,12 @@ SHEET_NAME = "Hospital Tracker"
 FIRST_DATA_ROW = 3                      # row 1 = section titles, row 2 = headers
 
 # ---- The law -----------------------------------------------------------------
-# The sheet's column is titled "2025 FPL Guidelines". For an audit run in 2026,
-# CSS may want hospitals on the 2026 guidelines instead. Ask CSS, then set this.
-FPL_YEAR = 2025
+# NY Public Health Law Section 2807-K:
+#   https://newyork.public.law/laws/n.y._public_health_law_section_2807-k
+# Hospitals are compared against the current NYS DOH Uniform Financial Assistance
+# Application (CSS, Nov 2026: use the 2026 version, which uses 2026 FPL figures).
+FPL_YEAR = 2026
+REFERENCE_APPLICATION = ROOT / "data" / "reference" / "nys-uniform-application-2026.txt"
 
 # The rubric table lists "no policy statement posted" as an automatic F, but CSS's
 # spreadsheet formula (and its published "14 of 212 compliant") doesn't apply it.

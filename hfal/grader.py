@@ -80,6 +80,11 @@ def _criteria_block() -> str:
     return "\n".join(lines)
 
 
+def _reference_application() -> str:
+    p = config.REFERENCE_APPLICATION
+    return p.read_text().split("-" * 76, 1)[-1].strip() if p.exists() else "(reference application not available)"
+
+
 SYSTEM = f"""You are auditing a New York hospital's compliance with the reformed NY Hospital Financial Assistance Law (HFAL) for the Community Service Society of New York. Your answers feed a public compliance tracker used by advocates, regulators and lawmakers.
 
 You will receive every document we could download from the hospital's financial assistance web page: the landing page text, linked pages, PDFs and Word files. Each has an id (D1, D2, ...).
@@ -101,6 +106,14 @@ Accuracy rules -- these matter more than finishing:
 - Never guess. A wrong answer could lead a patient to think they qualify for assistance when they don't, or the reverse. When in doubt, answer "unclear" with low confidence.
 - Do not use outside knowledge about this hospital. Only the documents count. You MAY use general knowledge of NY geography (counties and which counties border each other) for the primary service area question, and you should state the counties you relied on.
 - Documents in other languages count. Translations that are truncated previews are only there to show which languages are posted.
+
+Which version counts:
+- Use the most up-to-date documents. If a site posts several versions of the same document (for example a 2024 and a 2026 application), judge the newest one, and mention the older versions in general_notes. Documents labeled "Current document identified by CSS" are the current versions according to the Community Service Society.
+
+The official {config.FPL_YEAR} NYS Uniform Financial Assistance Application is below, as published by the NYS Department of Health. Use it to judge entire_uniform_application (a hospital's application should contain all of its content; a hospital may fill in its own name and phone number and may add more generous terms) and as the reference for the {config.FPL_YEAR} Federal Poverty Level figures. Anything that appears in the official form itself (for example its list of acceptable proof-of-income documents) is not a violation by the hospital.
+<official_uniform_application year="{config.FPL_YEAR}">
+{_reference_application()}
+</official_uniform_application>
 
 The {len(GRADED)} graded criteria:
 {_criteria_block()}

@@ -117,12 +117,16 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
         elif wrong_scope:
             d = review(f"Evidence came from {', '.join(wrong_scope)}, not the {c.scope} (rubric says judge from the {c.scope} only)")
         elif c.requires_doc and c.requires_doc not in roles:
-            d = review(f"No {c.requires_doc.replace('_', ' ')} was found among the downloaded documents, so this can't be judged automatically")
+            hint = (f' Tip: search "hospital financial assistance application {config.FPL_YEAR} <hospital name>", and add the '
+                    f"link to EXTRA_DOCUMENTS in config.py." if c.requires_doc == "application" else "")
+            d = review(f"No {c.requires_doc.replace('_', ' ')} was found among the downloaded documents, so this can't be judged automatically.{hint}")
         else:
             proof = c.yes_proof if ans == "yes" else c.no_proof
             if proof == "review":
+                hint = (f' Tip: search "hospital financial assistance application {config.FPL_YEAR} <hospital name>".'
+                        if c.key == "application_posted" else "")
                 d = review(f"AI said '{ans}'. A missing document can't be confirmed automatically "
-                           f"(it may be on another page) -- please check the website. {f['reasoning']}")
+                           f"(it may be on another page) -- please check the website.{hint} {f['reasoning']}")
             elif proof == "quote" and good == 0:
                 d = review(f"AI said '{ans}' but gave no verifiable quote: {f['reasoning']}")
             else:

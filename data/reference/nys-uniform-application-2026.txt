@@ -1,0 +1,91 @@
+SOURCE: NYS Department of Health, 2026 Uniform Hospital Financial Assistance Application (English)
+https://www.health.ny.gov/facilities/hospital/financial_assist/hosp_info/docs/2026_uniform_financial_assistance_application.docx
+Text extracted from the Word file (paragraphs and table cells, in order).
+----------------------------------------------------------------------------
+NYS Uniform Hospital Financial Assistance Application
+You may be eligible for hospital financial assistance to pay your bills if you are uninsured, if your insurance is exhausted, or if you have health insurance but have proof of paid medical expenses totaling more than 10% of your income. Completing this form will start your request for hospital financial assistance. This form is used by all hospitals in New York State.
+This application must be printed in the primary languages spoken by patients served by the hospital.
+Patient Name (complete information that is applicable)
+Patient Name (First, Middle, Last)
+Date of Birth (mm/dd/yyyy)
+Address
+Apartment/Unit #
+City
+State
+Zip
+Contact Phone #
+Parent/Guardian or Lawful Representative Name (if patient is a minor child or an incapacitated adult)
+Email Address (if any)
+Family Information:
+Please list below all family members in your household. Your household includes yourself, your spouse or domestic partner, and any children or other dependents. For example, this would include everyone listed on the same tax return.
+Gross income means your income before taxes are deducted.
+Gross income can consist of work earnings (wages, salaries, tips, earnings from self-employment), unearned income (social security, disability, and unemployment benefits), contributions (funds from family or friends), and other sources of income (temporary assistance and supplemental security income).
+Full Name
+Relationship
+Total Gross Income (Current)
+Self
+The hospital may request you submit documentation as proof of income; examples of documentation might include a pay stub, a letter from your employer if applicable, or Form 1040.
+Health Insurance Status
+Do you have any form of health insurance, including Medicaid, Medicare, or private insurance through your employer or purchased on your own? ☐ Yes     ☐ No
+If you answered "No," would you like assistance in applying for any of these programs?
+ ☐ Yes     ☐ No
+Underinsured patients: people with insurance and high medical expenses. If you have insurance, please provide an estimate of the medical bills you paid in the past 12 months.
+$
+The hospital may request you submit documentation as proof of paid medical expenses.
+Patient/Responsible Party:  If not the patient, list the name of the person signing the form and their authority to sign on behalf of the patient (e.g., spouse, parent, legal representative).
+I understand that the information I submit may be subject to verification from external sources. I certify that the information is true and complete to the best of my knowledge.
+Print Name
+Relationship to Patient
+Date
+Signature
+Minimum Eligibility and Guidelines
+Application Timeline, Patient Rights, and Confidentiality
+You can apply for financial assistance at any point during the collection process.
+You do not have to make any payment to this hospital until you receive a decision on your application for financial assistance. Hospitals may not forward accounts to collection while your application is pending.
+If you are denied financial assistance, you have the right to appeal. Information on how to do so will be included in the hospital's notice you receive. You may have the right to appeal the amount of your financial assistance. The hospital will include information about how to appeal in their decision letter.
+Hospitals cannot send unpaid bills to a collection agency for at least 180 days after your first bill.
+Hospitals are prohibited from taking legal action, including filing lawsuits, to recover unpaid medical bills for patients below 400% of the federal poverty level. Poverty guidelines can be found here: https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines
+Any information provided in this application will only be used by the hospital to determine your eligibility for financial assistance and will remain confidential to the extent permitted by law.
+A hospital cannot deny you medically necessary services because you have an outstanding medical bill.
+If you need assistance with this application, please contact (HOSPITAL NAME)'s financial assistance office at (PHONE NUMBER).
+If you need additional assistance with this application or help appealing a decision, you can reach out to Community Health Advocates:  888-614-5400.
+Eligibility
+Nothing limits a hospital's ability to establish patient eligibility for payment discounts at income levels higher than those specified below and/or to provide greater payment discounts for eligible patients than those required by Public Health Law. Additionally, immigration status shall not be an eligibility criterion for the purpose of determining financial assistance.
+The following individuals are eligible:
+Low-income individuals without health insurance; or
+underinsured individuals (out-of-pocket medical costs accumulated in the past twelve months that amount to more than ten percent of such individual's gross annual income); or
+those who have exhausted their health insurance benefits, and who can demonstrate an inability to pay full charges; or
+at the hospital's discretion, individuals who can demonstrate an inability to pay their co-pay and/or deductible can request a reduced or discounted payment.
+Individuals up to 400% of the federal poverty level are eligible for financial assistance. Federal Poverty Levels (2026)
+Household Size | 200% | 300% | 400%
+1 Person | $31,920 | $47,880 | $63,840
+2 Persons | $43,280 | $64,920 | $86,560
+3 Persons | $54,640 | $81,960 | $109,280
+4 Persons | $66,000 | $99,000 | $132,000
+5 Persons | $77,360 | $116,040 | $154,720
+6 Persons | $88,720 | $133,880 | $177,440
+7 Persons | $100,080 | $150,120 | $200,160
+Updated annually: https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines
+Minimum Discount Rates
+If you qualify for financial assistance, your charges will be reduced according to your income on a sliding fee scale as follows:
+Income Level | Payment
+Below 200% FPL | Waive all charges
+200% - 300% FPL | Uninsured patients: Sliding scale up to 10% of the amount that would have been paid for the service(s) by Medicaid. Underinsured patients: Up to a maximum of 10% of the amount that would have been paid pursuant to such patient's insurance cost sharing.
+301% - 400% FPL | Uninsured patients: Sliding scale up to 20% of the amount that would have been paid for the service(s) by Medicaid. Underinsured patients: Up to a maximum of 20% of the amount that would have been paid pursuant to such patient's insurance cost sharing.
+Hospitals may choose to provide greater discounts for eligible patients and/or offer payment discounts for patients at higher income levels.
+Installment Plans
+Installment plans are available to patients who are unable to pay the reduced rate all at one time. Monthly payments cannot exceed 5% of your gross monthly income and the rate of interest charged to the patient on the unpaid balance, if any, shall not exceed 2%.
+Request for Proof of Household Income
+Please include the income information for the patient, their spouse, and any dependents (such as children). For example, this would include everyone on the same tax return (tax filer, spouse, and tax dependents) in the calculation of household income.
+The following is a list of documents you can use to prove your income. You do not have to provide all these documents.  You can also provide a statement of no household income if you have no income.
+You may also provide the Eligibility determination page from the NY State of Health Marketplace.  If you have this document, you do not have to provide any other income information listed below to the hospital.
+If Household Receives: | Amount per Month: | Applicant May Provide:
+Wages | $ | Please provide one Paycheck Stub, or Letter from Employer on company letterhead, signed and dated, or most recently filed income tax return.
+Social Security Payment | $ | Copy of award letter/certificate, or correspondence from the U.S. Social Security Administration, or annual benefit letter. To request a copy of your Social Security benefit letter, call 1-800-772-1213 or visit www.ssa.gov.
+Unemployment Compensation | $ | Copy of award letter/certificate, or monthly benefit statement from NYS Department of Labor, or Copy of Direct Payment Card with printout, or Correspondence from the NYS Department of Labor, or Printout of recipient's account information from the NYS Department of Labor's website (www.labor.state.ny.us).
+Disability Payment | $ | Copy of award letter/certificate, or correspondence from Social Security Administration, or copy of annual benefit letter. To request a copy of your benefit letter, call 1-800-772-1213 or visit www.ssa.gov.
+Workers Compensation | $ | Copy of Award Letter or Check stub.
+Alimony/Child Support | $ | Copy of court order, or 3 months of cashed checks/receipts.
+Dividends/Interest | $ | Quarterly dividend statements or 1 month statements.
+Other | $ | Letter stating the amount of non-wage earnings (if any), such as rental income, cash for odd jobs, etc.
+No Income | $0 | Signed statement of no income.

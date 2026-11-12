@@ -56,7 +56,7 @@ roles = [{"doc_id": "D1", "roles": ["landing_page"]}, {"doc_id": summ, "roles": 
 for r in roles:
     r.update(language="English", is_nys_uniform_application=r["doc_id"] == app, fpl_year=None)
 graded = {"fingerprint": site.fingerprint(), "usage": {}, "warnings": [], "result": {
-    "documents": roles, "findings": findings, "max_fpl_percent": 400, "fpl_year_used": 2026,
+    "documents": roles, "findings": findings, "max_fpl_percent": 400, "fpl_year_used": config.FPL_YEAR - 1,
     "contact_phone": "607-547-3093", "languages_available": ["English", "Spanish"],
     "psa_definition_quote": None, "psa_counties": [], "timeframe_notes": "N/A",
     "inconsistency_notes": "N/A", "application_notes": "N/A", "summary_notes": "N/A",

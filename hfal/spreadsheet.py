@@ -96,6 +96,16 @@ class Tracker:
                 if table.autoFilter is not None:
                     table.autoFilter.ref = table.ref
         self.new_col = {n: headers[n] for n in NEW_COLUMNS}
+        # The FPL column is titled with the year being checked (e.g. "2026 FPL Guidelines").
+        fpl_cell = ws.cell(2, _col(BY_KEY["fpl_current_year"].column))
+        want = f"{config.FPL_YEAR} FPL Guidelines"
+        if fpl_cell.value != want:
+            old = fpl_cell.value
+            fpl_cell.value = want
+            if table is not None:
+                for tc in table.tableColumns:
+                    if tc.name == old:
+                        tc.name = want
 
     # ------------------------------------------------------------ writing
     def _set(self, row: int, col: int, value, label: str, hospital: str, review_reason: Optional[str],

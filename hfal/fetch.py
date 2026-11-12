@@ -350,8 +350,27 @@ class Fetcher:
     def fetch_site(self, hfa_url: str) -> SiteFetch:
         self._plain = False
         site = self._fetch_site(hfa_url)
+        self._add_extra_documents(site)
         add_manual_documents(site)
         return site
+
+    def _add_extra_documents(self, site: SiteFetch) -> None:
+        """Documents CSS named as current for this site (config.EXTRA_DOCUMENTS)."""
+        wanted = config.EXTRA_DOCUMENTS.get(site.hfa_url, [])
+        for d in site.documents:  # already found by the crawler: just label it
+            if d.url in wanted and "identified by CSS" not in d.link_text:
+                d.link_text += " (current document identified by CSS)"
+        extra = [u for u in wanted if u not in {d.url for d in site.documents}]
+        if not extra:
+            return
+        save_dir = config.CACHE_DIR / site_slug(site.hfa_url) / "files"
+        save_dir.mkdir(parents=True, exist_ok=True)
+        for u in extra:
+            site.documents.append(self._file_document(f"D{len(site.documents)+1}", u,
+                                                      "Current document identified by CSS", save_dir))
+        if not site.landing_ok and any(not d.error for d in site.documents):
+            site.notes.append(f"The website could not be opened ({site.error}); graded from documents CSS identified.")
+            site.landing_ok, site.error = True, None
 
     def _page(self, url: str) -> tuple[str, list[dict], str]:
         return _plain_render(url) if self._plain else self._render(url)
