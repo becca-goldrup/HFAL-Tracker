@@ -165,6 +165,17 @@ h1 em { font-style: italic; }
 .rubric dt { margin: 0; }
 .rubric dd { margin: 0; font-size: 0.92rem; color: var(--ink-2); }
 
+/* ---------- requirements guide ---------- */
+.guide-group { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  margin: 26px 0 0; padding-bottom: 8px; border-bottom: 2px solid var(--rule-strong); }
+.guide-group:first-child { margin-top: 4px; }
+.guide-note { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
+.guide-list { margin: 0; }
+.guide-row { display: grid; grid-template-columns: minmax(180px, 38%) 1fr; gap: 18px; padding: 10px 4px; border-bottom: 1px solid var(--rule); }
+.guide-row dt { font-weight: 600; font-size: 0.92rem; color: var(--ink); }
+.guide-row dd { margin: 0; font-size: 0.92rem; color: var(--ink-2); }
+@media (max-width: 600px) { .guide-row { grid-template-columns: 1fr; gap: 2px; } }
+
 /* ---------- feed ---------- */
 .feed { font-size: 0.92rem; border-top: 1px solid var(--rule); max-height: 360px; overflow: auto; }
 .feed .item { padding: 10px 0; border-bottom: 1px solid var(--rule); }

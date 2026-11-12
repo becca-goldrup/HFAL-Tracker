@@ -40,6 +40,7 @@ function init() {
   document.querySelectorAll(".src-name").forEach((el) => (el.textContent = d.source));
   buildFilters();
   renderRubric();
+  renderCriteriaGuide();
   bindEvents();
   showTab((location.hash || "#overview").slice(1));
   render();
@@ -208,6 +209,22 @@ function renderRubric() {
     `<div class="rubric-row"><dt><span class="badge g-${g}">${g}</span></dt><dd>${text}</dd></div>`).join("") +
     (state.data.hospitals.some(isRange) ? `<div class="rubric-row"><dt><span class="badge g-R">?</span></dt>
       <dd>Grade pending review: some items couldn't be confirmed automatically, so the grade is shown as a range until a person checks them.</dd></div>` : "");
+}
+
+function renderCriteriaGuide() {
+  // Grouped the way CSS's spreadsheet groups them; each group says which document is judged.
+  const groups = [
+    ["MATERIALS ON WEBSITE", "Website materials", "Judged from everything the hospital posts."],
+    ["APPLICATION", "The application", "Judged from the financial assistance application only."],
+    ["PLAIN LANGUAGE SUMMARY", "The plain language summary", "Judged from the plain language summary only."],
+  ];
+  $("#criteria-guide").innerHTML = groups.map(([key, title, note]) => {
+    const items = state.data.criteria.filter((c) => c.section === key);
+    if (!items.length) return "";
+    return `<h3 class="guide-group">${title} <span class="guide-note">${note}</span></h3>
+      <dl class="guide-list">${items.map((c) => `<div class="guide-row">
+        <dt>${esc(c.label)}</dt><dd>${esc(c.law)}</dd></div>`).join("")}</dl>`;
+  }).join("");
 }
 
 function tile(label, value, note, small = false) {
