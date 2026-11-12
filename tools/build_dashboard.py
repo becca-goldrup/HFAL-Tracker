@@ -169,6 +169,7 @@ def build(src: Path) -> dict:
         "source": (f"AI-assisted check ({src.stem.replace('hfal-tracker-', '')})" if is_ai
                    else "CSS manual review, September 2025"),
         "fpl_year": config.FPL_YEAR,
+        "policy_statement_auto_fail": config.POLICY_STATEMENT_AUTO_FAIL,
         "criteria": [{"key": c.key, "label": LABELS[c.key], "section": c.section,
                       "law": c.plain_language} for c in GRADED],
         "hospitals": out,

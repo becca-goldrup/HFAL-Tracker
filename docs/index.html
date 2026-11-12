@@ -41,21 +41,21 @@
   <main class="wrap">
     <!-- ======================== OVERVIEW ======================== -->
     <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" class="panel">
-      <p class="lede" id="lede"></p>
       <div class="stats" id="tiles"></div>
 
       <figure class="fig">
-        <h2 class="fig-title" id="grade-title">Grades</h2>
-        <p class="fig-sub">Share of hospitals receiving each grade. A means a hospital meets every requirement;
-          F means 10 or more gaps, or no application, or not the full NYS Uniform Application.</p>
+        <h2 class="fig-title">Grade distribution</h2>
         <div id="grade-chart" class="hbars"></div>
         <figcaption class="src">Source: <span class="src-name"></span>. Grades follow the Community Service Society of New York rubric.</figcaption>
       </figure>
 
+      <section class="fig">
+        <h2 class="fig-title">What each grade means</h2>
+        <dl id="rubric" class="rubric"></dl>
+      </section>
+
       <figure class="fig">
-        <h2 class="fig-title" id="criteria-title">Compliance by requirement</h2>
-        <p class="fig-sub">Share of hospitals meeting each of the law's 17 requirements, lowest first.
-          Select a requirement to see the hospitals that fall short.</p>
+        <h2 class="fig-title">Compliance by requirement</h2>
         <div id="criteria-chart" class="hbars criteria"></div>
         <figcaption class="src">Source: <span class="src-name"></span>. Hospitals with items still under review are left out of that requirement's share.</figcaption>
       </figure>

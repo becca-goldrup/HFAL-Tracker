@@ -39,6 +39,7 @@ function init() {
   $("#source-line").textContent = `Data: ${d.source} · Updated ${d.generated}`;
   document.querySelectorAll(".src-name").forEach((el) => (el.textContent = d.source));
   buildFilters();
+  renderRubric();
   bindEvents();
   showTab((location.hash || "#overview").slice(1));
   render();
@@ -149,10 +150,6 @@ function renderOverview(list) {
   const stats = criteriaStats(list);
   const worst = stats.filter((s) => s.yes + s.no > 0).sort((a, b) => a.rate - b.rate)[0];
   const filteredView = n !== state.data.hospitals.length;
-  const where = filteredView ? "in this view" : "in New York";
-  $("#lede").innerHTML = n === 0 ? "No hospitals match these filters."
-    : `Only <strong>${countA} of ${n}</strong> hospitals ${where} (${pct(countA, n)}%) meet every requirement of the
-       financial assistance law. <strong>${countF}</strong> (${pct(countF, n)}%) receive an F.`;
   $("#tiles").innerHTML = [
     tile("Hospitals", n, list.some(isRange) ? `${list.filter(isRange).length} with grades pending review` : (filteredView ? "in this view" : "statewide")),
     tile("Meet every requirement", countA, `${pct(countA, n)}% of hospitals`),
@@ -162,9 +159,6 @@ function renderOverview(list) {
 
   // Grades
   const rows = GRADES.map((g) => ({ g, count: graded.filter((h) => h.grade === g).length }));
-  const top = [...rows].sort((a, b) => b.count - a.count)[0];
-  $("#grade-title").textContent = n && top.count
-    ? `${pct(top.count, n)}% of hospitals get a ${top.g}, the most common grade` : "Grades";
   const ranges = list.filter(isRange).length;
   const max = Math.max(1, ...rows.map((r) => r.count), ranges);
   $("#grade-chart").innerHTML = rows.map((r) => `
@@ -181,8 +175,6 @@ function renderOverview(list) {
 
   // Requirements
   const sorted = [...stats].sort((a, b) => a.rate - b.rate);
-  $("#criteria-title").textContent = worst
-    ? `The biggest gap: only ${worst.rate}% of hospitals meet "${worst.label.toLowerCase()}"` : "Compliance by requirement";
   $("#criteria-chart").innerHTML = sorted.map((s) => `
       <button class="hbar clickable" data-goto-criterion="${s.key}"
         title="${s.yes} meet it · ${s.no} fall short${s.review ? ` · ${s.review} need review` : ""}. Select to list hospitals that fall short.">
@@ -199,6 +191,23 @@ function renderOverview(list) {
         ${c.old ? `from "${esc(c.old)}" ` : ""}to "${esc(c.new)}"</div>`).join("")
     : `<p class="empty-feed">None yet. This tracker currently shows the baseline from ${esc(state.data.source)};
        changes will appear here after each automated check.</p>`;
+}
+
+function renderRubric() {
+  const total = state.data.criteria.length;
+  const autoF = ["no financial assistance application is posted", "the application is not the full NYS Uniform Application"];
+  if (state.data.policy_statement_auto_fail) autoF.push("the full financial assistance policy is not posted");
+  const rows = [
+    ["A", `Meets all ${total} requirements.`],
+    ["B", "Falls short on 1 to 3 requirements."],
+    ["C", "Falls short on 4 to 6 requirements."],
+    ["D", "Falls short on 7 to 9 requirements."],
+    ["F", `Falls short on 10 or more requirements, or automatically if ${autoF.join(", or ")}.`],
+  ];
+  $("#rubric").innerHTML = rows.map(([g, text]) =>
+    `<div class="rubric-row"><dt><span class="badge g-${g}">${g}</span></dt><dd>${text}</dd></div>`).join("") +
+    (state.data.hospitals.some(isRange) ? `<div class="rubric-row"><dt><span class="badge g-R">?</span></dt>
+      <dd>Grade pending review: some items couldn't be confirmed automatically, so the grade is shown as a range until a person checks them.</dd></div>` : "");
 }
 
 function tile(label, value, note, small = false) {
