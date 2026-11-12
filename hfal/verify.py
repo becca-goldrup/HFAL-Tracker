@@ -77,6 +77,8 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
     warnings = list(graded.get("warnings", []))
     if not site.landing_ok:
         warnings.append(f"HFA page could not be opened: {site.error}")
+    elif site.error:
+        warnings.append(f"Some documents may be missing: {site.error}")
 
     out: dict[str, Decision] = {}
     for c in GRADED:

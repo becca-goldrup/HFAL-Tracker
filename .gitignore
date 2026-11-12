@@ -10,7 +10,11 @@ __pycache__/
 # The spreadsheets in data/input and data/output ARE committed, so the
 # Part 2 dashboard can read data/output/hospitals.csv.
 data/cache/
+data/*.log
 ~$*.xlsx
 
 # macOS
 .DS_Store
+
+# Local Claude Code settings
+.claude/

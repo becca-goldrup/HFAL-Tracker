@@ -14,6 +14,7 @@ import argparse
 import logging
 import os
 import sys
+import threading
 from collections import Counter, OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -100,21 +101,40 @@ def main():
     # ------------------------------------------------------------ 1. fetch
     from hfal.grader import load_result
     sites, status = {}, {}
-    print("Step 1/3: downloading documents")
-    with Fetcher() as f:
-        for i, url in enumerate(groups, 1):
-            site = f.fetch_site(url)
-            save_site(site)
-            sites[url] = site
-            ok_docs = [d for d in site.documents if not d.error]
-            prev = load_result(url)
-            if not site.landing_ok:
-                status[url] = f"error: {site.error}"
-            elif prev and prev["fingerprint"] == site.fingerprint() and not args.force:
-                status[url] = "unchanged"
-            else:
-                status[url] = "grade"
-            print(f"  [{i}/{len(groups)}] {len(ok_docs):2d} docs  {status[url][:60]:12}  {url}")
+    print(f"Step 1/3: downloading documents ({config.FETCH_WORKERS} websites at a time)", flush=True)
+    lock, done = threading.Lock(), [0]
+    urls = list(groups)
+    n_workers = max(1, min(config.FETCH_WORKERS, len(urls)))
+
+    def fetch_worker(chunk):
+        # Each worker runs its own browser (Playwright browsers can't be shared across threads).
+        with Fetcher() as f:
+            for url in chunk:
+                try:
+                    site = f.fetch_site(url)
+                except Exception as e:  # never let one odd site stop the run
+                    from hfal.fetch import SiteFetch
+                    site = SiteFetch(hfa_url=url, fetched_at="", landing_ok=False,
+                                     error=f"{type(e).__name__}: {str(e)[:200]}")
+                if site.landing_ok or load_site(url) is None:
+                    save_site(site)  # a failed attempt doesn't overwrite the last good download
+                ok_docs = [d for d in site.documents if not d.error]
+                prev = load_result(url)
+                if not site.landing_ok:
+                    st = f"error: {site.error}"
+                elif prev and prev["fingerprint"] == site.fingerprint() and not args.force:
+                    st = "unchanged"
+                else:
+                    st = "grade"
+                with lock:
+                    sites[url], status[url] = site, st
+                    done[0] += 1
+                    print(f"  [{done[0]}/{len(urls)}] {len(ok_docs):2d} docs  {st[:60]:12}  {url}", flush=True)
+
+    chunks = [urls[i::n_workers] for i in range(n_workers)]
+    with ThreadPoolExecutor(n_workers) as ex:
+        for fut in [ex.submit(fetch_worker, c) for c in chunks]:
+            fut.result()
 
     if args.fetch_only:
         print(f"\nDone (fetch only). Documents are in {config.CACHE_DIR}/")

@@ -17,6 +17,11 @@ FIRST_DATA_ROW = 3                      # row 1 = section titles, row 2 = header
 # CSS may want hospitals on the 2026 guidelines instead. Ask CSS, then set this.
 FPL_YEAR = 2025
 
+# The rubric table lists "no policy statement posted" as an automatic F, but CSS's
+# spreadsheet formula (and its published "14 of 212 compliant") doesn't apply it.
+# False = match the spreadsheet (17 hospitals would drop to F if True). Ask CSS.
+POLICY_STATEMENT_AUTO_FAIL = False
+
 # ---- Where Claude runs -------------------------------------------------------
 # "bedrock"   -> the sprint's AWS sandbox (Amazon Bedrock). Sign in first with
 #                `aws sso login --profile hackathon` (see README).
@@ -44,7 +49,10 @@ MAX_SPEND_PER_RUN = 15.00
 # ---- Website crawling --------------------------------------------------------
 MAX_DOCUMENTS_PER_SITE = 30       # PDFs + sub-pages followed from each HFA page
 FOLLOW_SUBPAGES = True            # also open relevant same-site pages one click away
-PAGE_TIMEOUT_SECONDS = 45
+PAGE_TIMEOUT_SECONDS = 45        # opening one web page
+FILE_TIMEOUT_SECONDS = 60        # downloading one PDF / Word file
+SITE_TIME_BUDGET_SECONDS = 300   # stop collecting more documents from a site after this
+FETCH_WORKERS = 6                # websites downloaded at the same time
 # Translated copies of the same document mostly repeat the English version, so
 # we only send the first part of them to the AI (enough to confirm the language).
 TRANSLATION_PREVIEW_CHARS = 3000

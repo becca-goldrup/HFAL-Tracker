@@ -17,6 +17,7 @@ import hashlib
 import io
 import json
 import re
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -160,6 +161,9 @@ class Fetcher:
         self._ctx = self._browser.new_context(user_agent=UA, ignore_https_errors=True,
                                               accept_downloads=False)
         self._ctx.set_default_timeout(config.PAGE_TIMEOUT_SECONDS * 1000)
+        # We only need text and links: skip images, fonts and video (faster, fewer stalls).
+        self._ctx.route("**/*", lambda route: route.abort()
+                        if route.request.resource_type in ("image", "media", "font") else route.continue_())
         return self
 
     def __exit__(self, *exc):
@@ -168,7 +172,14 @@ class Fetcher:
 
     # -------------------------------------------------------------- low level
     def _get_file(self, url: str) -> tuple[Optional[bytes], str]:
-        r = self._ctx.request.get(url, timeout=config.PAGE_TIMEOUT_SECONDS * 1000)
+        for attempt in (1, 2):  # one retry: slow servers often succeed the second time
+            try:
+                r = self._ctx.request.get(url, timeout=config.FILE_TIMEOUT_SECONDS * 1000)
+                break
+            except Exception:
+                if attempt == 2:
+                    raise
+                time.sleep(3)
         if not r.ok:
             raise RuntimeError(f"HTTP {r.status}")
         return r.body(), r.headers.get("content-type", "")
@@ -177,20 +188,27 @@ class Fetcher:
         """Open a web page like a person would; return (text, links, final_url)."""
         page = self._ctx.new_page()
         try:
-            resp = page.goto(url, wait_until="domcontentloaded")
+            resp = page.goto(url, wait_until="commit")
             if resp is not None and resp.status >= 400:
                 raise RuntimeError(f"HTTP {resp.status}")
-            try:
-                page.wait_for_load_state("networkidle", timeout=10_000)
-            except Exception:
-                pass  # some sites never go fully idle; what we have is fine
+            # Some pages never finish "loading" because of a slow script even though their
+            # text is already there, so wait a reasonable time and then read what we have.
+            for state, ms in (("domcontentloaded", 20_000), ("networkidle", 8_000)):
+                try:
+                    page.wait_for_load_state(state, timeout=ms)
+                except Exception:
+                    pass
             # expand accordions / "read more" sections so their text is captured
             page.evaluate("""() => document.querySelectorAll('details').forEach(d => d.open = true)""")
-            text = page.inner_text("body")
-            links = page.eval_on_selector_all(
-                "a[href]",
-                "els => els.map(e => ({href: e.href, text: (e.innerText || e.getAttribute('aria-label') || e.title || '').trim()}))",
-            )
+            JS = ("els => els.map(e => ({href: e.href, text: (e.innerText || e.getAttribute('aria-label')"
+                  " || e.title || '').trim()}))")
+            links = page.eval_on_selector_all("a[href]", JS)
+            if sum(1 for l in links if _score(l["href"], l["text"]) >= 3) < 3:
+                page.wait_for_timeout(6_000)  # links sometimes appear late; look again
+                links = page.eval_on_selector_all("a[href]", JS)
+            text = page.inner_text("body", timeout=15_000)
+            if len(text.strip()) < 50:
+                raise RuntimeError("page loaded but had no readable text")
             return text, links, page.url
         finally:
             page.close()
@@ -221,26 +239,42 @@ class Fetcher:
 
     # -------------------------------------------------------------- main entry
     def fetch_site(self, hfa_url: str) -> SiteFetch:
+        start = time.monotonic()
+
+        def out_of_time() -> bool:
+            # Slow servers can't hold up the whole run: each site gets a time budget.
+            return time.monotonic() - start > config.SITE_TIME_BUDGET_SECONDS
+
         save_dir = config.CACHE_DIR / site_slug(hfa_url) / "files"
         save_dir.mkdir(parents=True, exist_ok=True)
-        for old in save_dir.iterdir():
-            old.unlink()
+
+        def clear_old_files():
+            # Only once we know the site is reachable, so a failed attempt keeps the last good copy.
+            for old in save_dir.iterdir():
+                old.unlink()
+
         site = SiteFetch(hfa_url=hfa_url, fetched_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                          landing_ok=False)
 
         # The HFA link itself may point straight at a PDF.
         if _is_file(hfa_url):
+            clear_old_files()
             d = self._file_document("D1", hfa_url, "HFA link (file)", save_dir)
             site.documents.append(d)
             site.landing_ok = d.error is None
             site.error = d.error
             return site
 
-        try:
-            text, links, final_url = self._render(hfa_url)
-        except Exception as e:
-            site.error = f"Could not open HFA page: {type(e).__name__}: {str(e)[:200]}"
-            return site
+        for attempt in (1, 2):  # websites are sometimes just slow; try twice
+            try:
+                text, links, final_url = self._render(hfa_url)
+                break
+            except Exception as e:
+                if attempt == 2:
+                    site.error = f"Could not open HFA page: {type(e).__name__}: {str(e)[:200]}"
+                    return site
+                time.sleep(5)
+        clear_old_files()
         site.landing_ok = True
         site.documents.append(Document("D1", final_url, "HFA landing page", "html", text=text,
                                        sha256=_norm_hash(text)))
@@ -269,8 +303,23 @@ class Fetcher:
 
         consider(links)
 
-        # Open relevant sub-pages and collect the files they link to.
+        def download_files():
+            files = sorted([c for c in candidates if c[3] == "file" and c[1] not in done], reverse=True)
+            for score, url, t, _ in files:
+                done.add(url)
+                if out_of_time() or len(site.documents) >= config.MAX_DOCUMENTS_PER_SITE:
+                    site.skipped_links.append(url)
+                    continue
+                site.documents.append(self._file_document(f"D{len(site.documents)+1}", url, t, save_dir))
+
+        done: set = set()
+        # 1) files linked straight from the HFA page (usually the application/policy/summary)
+        download_files()
+        # 2) relevant same-site pages one click away, then the files they link to
         for score, url, t, kind in sorted([c for c in candidates if c[3] == "page"], reverse=True)[:6]:
+            if out_of_time() or len(site.documents) >= config.MAX_DOCUMENTS_PER_SITE:
+                site.skipped_links.append(url)
+                continue
             try:
                 sub_text, sub_links, _ = self._render(url)
             except Exception as e:
@@ -279,12 +328,10 @@ class Fetcher:
             site.documents.append(Document(f"D{len(site.documents)+1}", url, t, "html", text=sub_text,
                                            sha256=_norm_hash(sub_text)))
             consider(sub_links, from_subpage=True)
-
-        files = sorted([c for c in candidates if c[3] == "file"], reverse=True)
-        room = max(0, config.MAX_DOCUMENTS_PER_SITE - len(site.documents))
-        for score, url, t, _ in files[:room]:
-            site.documents.append(self._file_document(f"D{len(site.documents)+1}", url, t, save_dir))
-        site.skipped_links = [u for _, u, _, _ in files[room:]]
+        download_files()
+        if site.skipped_links and out_of_time():
+            site.error = (f"Time budget ({config.SITE_TIME_BUDGET_SECONDS}s) ran out: "
+                          f"{len(site.skipped_links)} relevant link(s) not downloaded")
 
         return site
 

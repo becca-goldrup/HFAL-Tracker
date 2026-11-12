@@ -205,6 +205,28 @@ YES, NO, REVIEW = "yes", "no", "REVIEW"
 
 BY_KEY = {c.key: c for c in GRADED}
 
+# Short, readable names for the dashboard (the Excel headers stay as they are).
+LABELS = {
+    "application_posted": "Application posted",
+    "policy_summary_posted": "Plain language summary posted",
+    "policy_statement_posted": "Full policy posted",
+    "consistent_across_documents": "Documents consistent with each other",
+    "psa_compliant_2007": "Service area defined correctly",
+    "no_time_limit": "No deadline to apply",
+    "no_asset_checks": "No asset checks",
+    "no_immigration_barrier": "No immigration status barrier",
+    "entire_uniform_application": "Uses the full NYS Uniform Application",
+    "contact_info_in_application": "Application lists who to contact",
+    "income_tables_in_application": "Application shows income & discount tables",
+    "fpl_current_year": "Application uses current FPL guidelines",
+    "max_fpl_400": "Application covers incomes up to 400% FPL",
+    "installments_capped_5pct": "Application caps payment plans at 5% of income",
+    "psa_in_summary": "Summary describes the service area",
+    "how_to_apply_in_summary": "Summary explains how to apply",
+    "income_levels_in_summary": "Summary lists income levels",
+}
+assert set(LABELS) == set(BY_KEY)
+
 
 def grade(answers: dict[str, str], auto_fail: bool) -> str:
     """CSS grading rubric. `answers` maps criterion key -> yes/no/REVIEW."""
@@ -225,12 +247,13 @@ def grade(answers: dict[str, str], auto_fail: bool) -> str:
 def is_auto_fail(answers: dict[str, str]) -> bool:
     """Automatic F: no application posted, or not the (entire) Uniform Application.
 
-    The rubric also lists 'no policy statement posted' as an automatic F, but the
-    CSS spreadsheet formula only checks the two application conditions. We follow
-    the rubric table here; flag this to CSS if the numbers differ from the sheet.
+    The rubric table also lists 'no policy statement posted' as an automatic F, but
+    the CSS spreadsheet formula (and the published "14 of 212" result) doesn't use
+    it. config.POLICY_STATEMENT_AUTO_FAIL chooses; default False matches CSS's sheet.
     """
+    import config
     return (
         answers.get("application_posted") == NO
         or answers.get("entire_uniform_application") == NO
-        or answers.get("policy_statement_posted") == NO
+        or (config.POLICY_STATEMENT_AUTO_FAIL and answers.get("policy_statement_posted") == NO)
     )
