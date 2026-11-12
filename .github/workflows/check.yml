@@ -1,0 +1,92 @@
+# Runs the HFAL compliance check on GitHub's computers, then updates the
+# spreadsheet in data/output/ and the dashboard (docs/).
+#
+#   * "Run workflow" button (the dashboard's "Run a full check" link opens it)
+#   * automatically on the 1st of every month
+#   * when someone uploads a reviewer decisions file to data/reviews/
+#     (then it only applies the decisions; no new AI check)
+#
+# One-time setup (repository Settings > Secrets and variables > Actions):
+#   Secrets for the AI service, either
+#     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (+ AWS_SESSION_TOKEN for temporary keys)   -> Amazon Bedrock
+#   or
+#     ANTHROPIC_API_KEY                                                                    -> Claude API
+#   Variable HFAL_PROVIDER: bedrock-nova (default), bedrock, or anthropic
+name: Run compliance check
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Only check the first N websites (leave empty for all)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 9 1 * *"
+  push:
+    branches: [main]
+    paths: ["data/reviews/*.json"]
+
+concurrency:
+  group: hfal-check
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    env:
+      HFAL_PROVIDER: ${{ vars.HFAL_PROVIDER || 'bedrock-nova' }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_REGION: us-east-1
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the tool
+        run: pip install -r requirements.txt
+
+      - name: Install the browser used to read hospital websites
+        if: github.event_name != 'push'
+        run: python -m playwright install --with-deps chromium
+
+      # Downloaded documents and AI answers from earlier runs, so unchanged
+      # websites aren't graded (and paid for) again.
+      - name: Restore saved documents
+        if: github.event_name != 'push'
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: hfal-cache-${{ github.run_id }}
+          restore-keys: hfal-cache-
+
+      - name: Run the compliance check
+        if: github.event_name != 'push'
+        run: python run.py --yes ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
+
+      - name: Apply reviewer decisions
+        run: python tools/apply_reviews.py
+
+      - name: Rebuild the dashboard data
+        run: python tools/build_dashboard.py
+
+      - name: Save the results to the repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/output data/reviews docs/data data/geocode.json
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "Update compliance data (${{ github.event_name }})"
+            git push
+          fi
