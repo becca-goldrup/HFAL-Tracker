@@ -319,11 +319,7 @@ function openDrawer(id) {
       ${fact("Time limit", n.timeframe_notes)}${fact("Inconsistencies", n.inconsistency_notes)}
       ${fact("Application notes", n.application_notes)}${fact("Summary notes", n.summary_notes)}
       ${fact("Notes", n.general_notes)}${fact("Other notes", n.other_notes)}
-      ${fact("Last checked", h.last_checked || state.data.source)}</dl></div>
-    <div class="d-section patient-note"><strong>For patients:</strong> New York law says hospitals must offer financial
-      assistance to patients with incomes up to 400% of the Federal Poverty Level, and there is no deadline to apply.
-      If this hospital's materials say otherwise, the law still applies. Ask the hospital's financial assistance office
-      ${n.contact_phone ? `(${esc(n.contact_phone)})` : ""} for an application.</div>`;
+      ${fact("Last checked", h.last_checked || state.data.source)}</dl></div>`;
   $("#drawer").hidden = false;
   $("#drawer-backdrop").hidden = false;
   $("#d-close").focus();
