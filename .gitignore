@@ -1,0 +1,16 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets -- never commit your API key
+.env
+
+# Downloaded hospital documents (large, and re-created on every run).
+# The spreadsheets in data/input and data/output ARE committed, so the
+# Part 2 dashboard can read data/output/hospitals.csv.
+data/cache/
+~$*.xlsx
+
+# macOS
+.DS_Store
