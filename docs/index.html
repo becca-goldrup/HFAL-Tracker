@@ -12,11 +12,13 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
+  <header class="masthead">
     <div class="wrap">
+      <p class="kicker">Hospital Financial Assistance Law · Compliance tracker</p>
       <h1>NY Hospital <em>Financial Assistance</em> Tracker</h1>
-      <p class="sub">How New York hospitals comply with the reformed Hospital Financial Assistance Law (HFAL).
-        <span id="source-line"></span></p>
+      <p class="dek">How New York hospitals measure up to the state's reformed financial assistance law,
+        which requires hospitals to help patients with incomes up to 400% of the federal poverty level.</p>
+      <p class="byline" id="source-line"></p>
       <nav class="tabs" role="tablist" aria-label="Views">
         <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview">Overview</button>
         <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals">Hospitals</button>
@@ -32,44 +34,54 @@
     <label><span>System</span><select id="f-system"></select></label>
     <label><span>Grade</span><select id="f-grade"></select></label>
     <label><span>Falls short on</span><select id="f-criterion"></select></label>
-    <button id="f-reset" class="ghost" type="button">Reset</button>
+    <button id="f-reset" class="text-btn" type="button">Clear filters</button>
     <p id="f-count" class="count" aria-live="polite"></p>
   </section>
 
   <main class="wrap">
     <!-- ======================== OVERVIEW ======================== -->
     <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" class="panel">
-      <div class="tiles" id="tiles"></div>
-      <div class="grid-2">
-        <article class="card">
-          <h2>Grades</h2>
-          <p class="hint">A = meets every requirement. F = 10+ gaps, or no application / not the full NYS Uniform Application.</p>
-          <div id="grade-chart" class="hbars"></div>
-        </article>
-        <article class="card">
-          <h2>Recent updates</h2>
-          <div id="feed" class="feed"></div>
-        </article>
-      </div>
-      <article class="card">
-        <h2>Compliance by requirement</h2>
-        <p class="hint">Share of hospitals meeting each requirement, lowest first. Select a row to see the hospitals that fall short.</p>
+      <p class="lede" id="lede"></p>
+      <div class="stats" id="tiles"></div>
+
+      <figure class="fig">
+        <h2 class="fig-title" id="grade-title">Grades</h2>
+        <p class="fig-sub">Share of hospitals receiving each grade. A means a hospital meets every requirement;
+          F means 10 or more gaps, or no application, or not the full NYS Uniform Application.</p>
+        <div id="grade-chart" class="hbars"></div>
+        <figcaption class="src">Source: <span class="src-name"></span>. Grades follow the Community Service Society of New York rubric.</figcaption>
+      </figure>
+
+      <figure class="fig">
+        <h2 class="fig-title" id="criteria-title">Compliance by requirement</h2>
+        <p class="fig-sub">Share of hospitals meeting each of the law's 17 requirements, lowest first.
+          Select a requirement to see the hospitals that fall short.</p>
         <div id="criteria-chart" class="hbars criteria"></div>
-      </article>
-      <article class="card about">
-        <h2>About this data</h2>
+        <figcaption class="src">Source: <span class="src-name"></span>. Hospitals with items still under review are left out of that requirement's share.</figcaption>
+      </figure>
+
+      <section class="fig">
+        <h2 class="fig-title">Recent updates</h2>
+        <p class="fig-sub">Changes found in hospitals' financial assistance materials since the last check.</p>
+        <div id="feed" class="feed"></div>
+      </section>
+
+      <section class="fig about">
+        <h2 class="fig-title">About this data</h2>
         <p>Each hospital is checked against 17 requirements drawn from New York's Hospital Financial Assistance Law,
           using the materials on its website: the financial assistance application, the plain language summary, and the full policy.
           Grades follow the Community Service Society of New York (CSS) rubric.</p>
         <p>Items marked <strong>needs review</strong> could not be confirmed automatically and are waiting for a person to check them.
           While any remain, a hospital's grade is shown as a range (for example "B to D").</p>
         <p><a id="download" href="data/hospitals.json" download>Download the data (JSON)</a></p>
-      </article>
+      </section>
     </section>
 
     <!-- ======================== HOSPITALS ======================== -->
     <section id="panel-hospitals" role="tabpanel" aria-labelledby="tab-hospitals" class="panel" hidden>
-      <div class="table-wrap card">
+      <h2 class="fig-title">Every hospital, graded</h2>
+      <p class="fig-sub">Select a hospital to see where it falls short and what the law requires. Select a column heading to sort.</p>
+      <div class="table-wrap">
         <table id="table">
           <thead><tr>
             <th data-sort="name" scope="col">Hospital</th>
@@ -82,21 +94,23 @@
         </table>
         <p id="table-empty" class="empty" hidden>No hospitals match these filters.</p>
       </div>
+      <p class="src">Source: <span class="src-name"></span>.</p>
     </section>
 
     <!-- ======================== MAP ======================== -->
     <section id="panel-map" role="tabpanel" aria-labelledby="tab-map" class="panel" hidden>
-      <div class="card map-card">
-        <div id="map" aria-label="Map of hospitals colored by grade"></div>
-        <div class="legend" id="legend" aria-label="Grade colors"></div>
-      </div>
+      <h2 class="fig-title">Where hospitals fall short</h2>
+      <p class="fig-sub">Each dot is a hospital, colored by grade. Hover over a dot for details; select it for links.</p>
+      <div class="legend" id="legend" aria-label="Grade colors"></div>
+      <div id="map" aria-label="Map of hospitals colored by grade"></div>
+      <p class="src">Source: <span class="src-name"></span>. Locations: US Census Bureau and OpenStreetMap.</p>
     </section>
   </main>
 
   <!-- ======================== HOSPITAL DETAIL ======================== -->
   <div id="drawer-backdrop" hidden></div>
   <aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-name" hidden>
-    <button id="d-close" class="ghost close" type="button" aria-label="Close">✕</button>
+    <button id="d-close" class="close" type="button" aria-label="Close">✕</button>
     <div id="d-body"></div>
   </aside>
 

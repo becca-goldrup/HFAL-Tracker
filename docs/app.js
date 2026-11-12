@@ -36,7 +36,8 @@ fetch("data/hospitals.json")
 
 function init() {
   const d = state.data;
-  $("#source-line").textContent = ` Data: ${d.source}. Updated ${d.generated}.`;
+  $("#source-line").textContent = `Data: ${d.source} · Updated ${d.generated}`;
+  document.querySelectorAll(".src-name").forEach((el) => (el.textContent = d.source));
   buildFilters();
   bindEvents();
   showTab((location.hash || "#overview").slice(1));
@@ -147,37 +148,47 @@ function renderOverview(list) {
   const countF = graded.filter((h) => h.grade === "F").length;
   const stats = criteriaStats(list);
   const worst = stats.filter((s) => s.yes + s.no > 0).sort((a, b) => a.rate - b.rate)[0];
+  const filteredView = n !== state.data.hospitals.length;
+  const where = filteredView ? "in this view" : "in New York";
+  $("#lede").innerHTML = n === 0 ? "No hospitals match these filters."
+    : `Only <strong>${countA} of ${n}</strong> hospitals ${where} (${pct(countA, n)}%) meet every requirement of the
+       financial assistance law. <strong>${countF}</strong> (${pct(countF, n)}%) receive an F.`;
   $("#tiles").innerHTML = [
-    tile("Hospitals", n, list.some(isRange) ? `${list.filter(isRange).length} with grades pending review` : "in this view"),
-    tile("Fully compliant (A)", countA, `${pct(countA, n)}% of hospitals`),
+    tile("Hospitals", n, list.some(isRange) ? `${list.filter(isRange).length} with grades pending review` : (filteredView ? "in this view" : "statewide")),
+    tile("Meet every requirement", countA, `${pct(countA, n)}% of hospitals`),
     tile("Graded F", countF, `${pct(countF, n)}% of hospitals`),
-    worst ? tile("Most common gap", esc(worst.label), `only ${worst.rate}% meet it`, true) : tile("Most common gap", "–", ""),
+    worst ? tile("Biggest gap", esc(worst.label), `only ${worst.rate}% meet it`, true) : tile("Biggest gap", "–", ""),
   ].join("");
 
   // Grades
   const rows = GRADES.map((g) => ({ g, count: graded.filter((h) => h.grade === g).length }));
+  const top = [...rows].sort((a, b) => b.count - a.count)[0];
+  $("#grade-title").textContent = n && top.count
+    ? `${pct(top.count, n)}% of hospitals get a ${top.g}, the most common grade` : "Grades";
   const ranges = list.filter(isRange).length;
   const max = Math.max(1, ...rows.map((r) => r.count), ranges);
   $("#grade-chart").innerHTML = rows.map((r) => `
       <button class="hbar clickable" data-goto-grade="${r.g}" title="${r.count} hospitals graded ${r.g}. Select to list them.">
         <span class="lbl"><span class="badge g-${r.g}">${r.g}</span></span>
         <span class="track"><span class="fill" style="width:${(100 * r.count) / max}%;background:var(--g-${r.g})"></span></span>
-        <span class="val">${r.count} · ${pct(r.count, n)}%</span>
+        <span class="val">${pct(r.count, n)}% <span class="of">(${r.count})</span></span>
       </button>`).join("") + (ranges ? `
       <button class="hbar clickable" data-goto-grade="range" title="Grades that depend on items still under review">
         <span class="lbl"><span class="badge g-R">?</span></span>
         <span class="track"><span class="fill" style="width:${(100 * ranges) / max}%;background:var(--muted)"></span></span>
-        <span class="val">${ranges} · ${pct(ranges, n)}%</span>
+        <span class="val">${pct(ranges, n)}% <span class="of">(${ranges})</span></span>
       </button>` : "");
 
   // Requirements
   const sorted = [...stats].sort((a, b) => a.rate - b.rate);
+  $("#criteria-title").textContent = worst
+    ? `The biggest gap: only ${worst.rate}% of hospitals meet "${worst.label.toLowerCase()}"` : "Compliance by requirement";
   $("#criteria-chart").innerHTML = sorted.map((s) => `
       <button class="hbar clickable" data-goto-criterion="${s.key}"
         title="${s.yes} meet it · ${s.no} fall short${s.review ? ` · ${s.review} need review` : ""}. Select to list hospitals that fall short.">
         <span class="lbl">${esc(s.label)}<span class="sec">${esc(sectionName(s.section))}</span></span>
         <span class="track"><span class="fill" style="width:${s.rate}%"></span></span>
-        <span class="val">${s.rate}% <span style="color:var(--muted)">(${s.yes}/${s.yes + s.no})</span></span>
+        <span class="val">${s.rate}% <span class="of">${s.yes}/${s.yes + s.no}</span></span>
       </button>`).join("");
 
   // Feed
@@ -186,8 +197,8 @@ function renderOverview(list) {
     ? changes.slice(0, 60).map((c) => `<div class="item"><div class="date">${esc(c.date)}</div>
         <strong>${esc(c.hospital)}</strong>: ${esc(c.field)} changed
         ${c.old ? `from "${esc(c.old)}" ` : ""}to "${esc(c.new)}"</div>`).join("")
-    : `<p class="empty-feed">No changes recorded yet. This view shows the baseline from ${esc(state.data.source)}.
-       After each automated check, changes to hospitals' financial assistance materials will be listed here.</p>`;
+    : `<p class="empty-feed">None yet. This tracker currently shows the baseline from ${esc(state.data.source)};
+       changes will appear here after each automated check.</p>`;
 }
 
 function tile(label, value, note, small = false) {
