@@ -54,7 +54,7 @@ AWS_PROFILE = "hackathon"   # the profile name from `aws configure sso`
 AWS_REGION = "us-east-1"
 # Bedrock model id (an inference profile starting with "us.anthropic.").
 # Run `python tools/check_bedrock.py` to list the ones your sandbox allows.
-BEDROCK_MODEL = ""
+BEDROCK_MODEL = "us.anthropic.claude-sonnet-5-5"   # Opus 5.5 needs a Marketplace subscription the sandbox role lacks
 
 # ---- AI model ----------------------------------------------------------------
 MODEL = "claude-opus-5-5"   # used when PROVIDER = "anthropic"

@@ -26,8 +26,9 @@ def session():
 def rank(model_id: str):
     """Most capable first: Opus > Sonnet > Haiku, then newest version."""
     tier = 0 if "opus" in model_id else 1 if "sonnet" in model_id else 2
-    nums = tuple(-int(n) for n in re.findall(r"\d+", model_id.split("claude")[-1].split("-v")[0])[:3])
-    return (tier, nums)
+    nums = [int(n) for n in re.findall(r"\d+", model_id.split("claude")[-1].split("-v")[0])[:2]]
+    nums += [0] * (2 - len(nums))          # "opus-5" -> 5.0, "opus-5-5" -> 5.5
+    return (tier, tuple(-n for n in nums))
 
 
 def main():
