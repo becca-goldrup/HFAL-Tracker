@@ -99,6 +99,16 @@ def _fill_gaps(data: dict, result_cls) -> None:
             f["evidence"] = []
         f["evidence"] = [e for e in f["evidence"] if isinstance(e, dict) and "doc_id" in e and "quote" in e]
         f.setdefault("reasoning", "The model gave no explanation.")
+    # Document list: fill fields the model left out (they only describe documents; they don't grade anything).
+    docs = data.get("documents")
+    data["documents"] = [d for d in docs if isinstance(d, dict) and d.get("doc_id")] if isinstance(docs, list) else []
+    for d in data["documents"]:
+        d.setdefault("roles", [])
+        d["roles"] = [r for r in d["roles"] if r in ("landing_page", "application", "policy_summary",
+                                                     "policy_statement", "supplemental", "not_relevant")]
+        d.setdefault("language", "unknown")
+        d.setdefault("is_nys_uniform_application", False)
+        d.setdefault("fpl_year", None)
     for name, field in result_cls.model_fields.items():
         if name in data or name == "findings":
             continue
@@ -167,7 +177,7 @@ def _grade_text(system: str, blocks: list[dict], result_cls, model: str) -> tupl
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end <= start:
         raise RuntimeError("no JSON in the answer")
-    data = json.loads(text[start:end + 1])
+    data = json.loads(text[start:end + 1], strict=False)  # tolerate raw line breaks inside strings
     for name in optional_top:
         data.setdefault(name, None)
     for doc in data.get("documents") or []:
