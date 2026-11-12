@@ -9,6 +9,13 @@ ROOT = Path(__file__).parent
 INPUT_DIR = ROOT / "data" / "input"     # put the CSS spreadsheet here
 OUTPUT_DIR = ROOT / "data" / "output"   # updated spreadsheets + CSV land here
 CACHE_DIR = ROOT / "data" / "cache"     # downloaded documents + AI answers
+MANUAL_DIR = ROOT / "data" / "manual"   # documents a person saved for sites that block the tool
+# HFA links in the spreadsheet that moved. The original spreadsheet is never
+# edited; the tool uses the new link and records the change in the AI Change Log.
+HFA_LINK_FIXES = {
+    # old link (page not found, Nov 2026) -> new link
+    "https://nfmmc.org/patients-visitors/financial-assistance/": "https://www.nfmmc.org/financial-assistance",
+}
 SHEET_NAME = "Hospital Tracker"
 FIRST_DATA_ROW = 3                      # row 1 = section titles, row 2 = headers
 

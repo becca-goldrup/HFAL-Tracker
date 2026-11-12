@@ -155,6 +155,17 @@ python tests/test_offline.py          # checks the safety rules with a simulated
 python tests/test_spend_cap.py        # checks the spending cap with a fake AI
 ```
 
+## Websites that block the tool
+
+* **Sites that refuse the automated browser** but answer a simple request: the tool switches to simple requests that
+  say plainly what the tool is (`HFAL-Tracker/1.0 ...`). The spreadsheet notes this for those hospitals.
+* **Sites that refuse all automated access** (for example a "verify you are human" check): the tool does **not** try
+  to get around this. Run `python tools/blocked_sites.py`. It creates a folder for each blocked hospital under
+  `data/manual/`, with instructions inside. A person saves that hospital's documents there from a normal browser,
+  and the tool grades from those files and marks the hospital as "graded from saved documents."
+* **Broken links:** add the new address to `HFA_LINK_FIXES` in `config.py`. The original spreadsheet stays
+  untouched; the tool uses the new link and records the change in the AI Change Log.
+
 ## Part 2: the dashboard
 
 The `docs/` folder is a website with three tabs, a shared set of filters (region or county, system, grade,

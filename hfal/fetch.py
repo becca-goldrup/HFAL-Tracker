@@ -22,10 +22,14 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urldefrag, urlparse
+from html.parser import HTMLParser
+from urllib.parse import urldefrag, urljoin, urlparse
 
 import config
 
+# Used for the simple-request fallback: it says plainly what this tool is.
+HONEST_UA = ("HFAL-Tracker/1.0 (hospital financial assistance compliance monitoring; "
+             "+https://github.com/becca-goldrup/HFAL-Tracker)")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/130.0 Safari/537.36")
 
@@ -88,6 +92,7 @@ class SiteFetch:
     error: Optional[str] = None
     documents: list[Document] = field(default_factory=list)
     skipped_links: list[str] = field(default_factory=list)  # relevant links over the cap
+    notes: list[str] = field(default_factory=list)          # how the documents were obtained
 
     def fingerprint(self) -> str:
         """Changes whenever any document's content changes."""
@@ -151,6 +156,102 @@ def _docx_text(data: bytes) -> str:
     return "\n".join(lines)
 
 
+class _PageParser(HTMLParser):
+    """Text and links from a web page, for pages fetched without a browser."""
+    def __init__(self, base: str):
+        super().__init__(convert_charrefs=True)
+        self.base, self.parts, self.links, self._skip, self._a = base, [], [], 0, None
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style", "noscript", "template"):
+            self._skip += 1
+        elif tag == "a":
+            href = dict(attrs).get("href")
+            self._a = {"href": urljoin(self.base, href), "text": ""} if href else None
+        elif tag in ("p", "br", "li", "div", "tr", "h1", "h2", "h3", "h4", "section"):
+            self.parts.append("\n")
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style", "noscript", "template"):
+            self._skip = max(0, self._skip - 1)
+        elif tag == "a" and self._a is not None:
+            self._a["text"] = self._a["text"].strip()
+            self.links.append(self._a)
+            self._a = None
+
+    def handle_data(self, data):
+        if self._skip:
+            return
+        self.parts.append(data)
+        if self._a is not None:
+            self._a["text"] += data
+
+    def text(self) -> str:
+        return re.sub(r"[ \t]+", " ", re.sub(r"\n\s*\n+", "\n\n", "".join(self.parts))).strip()
+
+
+def _plain_get(url: str):
+    """A simple request that identifies this tool honestly (no browser)."""
+    import requests
+    r = requests.get(url, headers={"User-Agent": HONEST_UA, "Accept-Language": "en-US,en;q=0.9"},
+                     timeout=config.FILE_TIMEOUT_SECONDS)
+    if r.status_code >= 400:
+        raise RuntimeError(f"HTTP {r.status_code}")
+    return r
+
+
+def _plain_render(url: str) -> tuple[str, list[dict], str]:
+    r = _plain_get(url)
+    if "html" not in r.headers.get("content-type", "html"):
+        raise RuntimeError("not a web page")
+    p = _PageParser(r.url)
+    p.feed(r.text)
+    text = p.text()
+    if len(text) < 50:
+        raise RuntimeError("page had no readable text")
+    return text, p.links, r.url
+
+
+def add_manual_documents(site: "SiteFetch") -> None:
+    """Add documents a person saved by hand into data/manual/<site>/ (for sites that block tools)."""
+    folder = config.MANUAL_DIR / site_slug(site.hfa_url)
+    files = sorted(f for f in folder.glob("*") if f.suffix.lower() in (".pdf", ".docx", ".html", ".htm", ".txt")
+                   and f.name.lower() != "readme.txt") if folder.exists() else []
+    if not files:
+        return
+    for f in files:
+        data = f.read_bytes()
+        doc = Document(doc_id=f"D{len(site.documents)+1}", url=f"manual:{f.name}",
+                       link_text=f"Saved by a person: {f.name}", kind="pdf", file_path=str(f),
+                       language_hint=_language(f.stem.replace("_", " ").replace("-", " "), ""))
+        try:
+            ext = f.suffix.lower()
+            if ext == ".pdf":
+                doc.text, doc.pages = _pdf_text(data)
+                real_chars = len(re.sub(r"\[page \d+\]|\s", "", doc.text))
+                doc.scanned = doc.pages > 0 and real_chars / doc.pages < 100
+            elif ext == ".docx":
+                doc.kind, doc.text = "docx", _docx_text(data)
+            elif ext in (".html", ".htm"):
+                p = _PageParser("")
+                p.feed(data.decode("utf-8", errors="ignore"))
+                doc.kind, doc.text = "html", p.text()
+            else:
+                doc.kind, doc.text = "html", data.decode("utf-8", errors="ignore")
+            doc.sha256 = hashlib.sha256(data).hexdigest() if doc.scanned else _norm_hash(doc.text)
+        except Exception as e:
+            doc.error = f"{type(e).__name__}: {str(e)[:200]}"
+        site.documents.append(doc)
+    saved = datetime.fromtimestamp(max(f.stat().st_mtime for f in files)).date().isoformat()
+    note = (f"{len(files)} document(s) were saved by a person into data/manual/{folder.name}/ "
+            f"(latest {saved}). They may not reflect the website today.")
+    if not site.landing_ok:
+        note = (f"The website blocks automated access ({site.error}). Graded ONLY from documents a person "
+                f"saved: " + note)
+        site.landing_ok, site.error = True, None
+    site.notes.append(note)
+
+
 class Fetcher:
     """Use as `with Fetcher() as f: f.fetch_site(url)` so the browser closes."""
 
@@ -172,17 +273,25 @@ class Fetcher:
 
     # -------------------------------------------------------------- low level
     def _get_file(self, url: str) -> tuple[Optional[bytes], str]:
+        r, err = None, None
         for attempt in (1, 2):  # one retry: slow servers often succeed the second time
             try:
                 r = self._ctx.request.get(url, timeout=config.FILE_TIMEOUT_SECONDS * 1000)
                 break
-            except Exception:
-                if attempt == 2:
-                    raise
-                time.sleep(3)
-        if not r.ok:
-            raise RuntimeError(f"HTTP {r.status}")
-        return r.body(), r.headers.get("content-type", "")
+            except Exception as e:
+                err = e
+                if attempt == 1:
+                    time.sleep(3)
+        if r is not None and r.ok:
+            return r.body(), r.headers.get("content-type", "")
+        # Some servers refuse automated browsers but answer a simple, honestly labeled request.
+        try:
+            pr = _plain_get(url)
+            return pr.content, pr.headers.get("content-type", "")
+        except Exception:
+            if r is not None:
+                raise RuntimeError(f"HTTP {r.status}")
+            raise err
 
     def _render(self, url: str) -> tuple[str, list[dict], str]:
         """Open a web page like a person would; return (text, links, final_url)."""
@@ -239,6 +348,15 @@ class Fetcher:
 
     # -------------------------------------------------------------- main entry
     def fetch_site(self, hfa_url: str) -> SiteFetch:
+        self._plain = False
+        site = self._fetch_site(hfa_url)
+        add_manual_documents(site)
+        return site
+
+    def _page(self, url: str) -> tuple[str, list[dict], str]:
+        return _plain_render(url) if self._plain else self._render(url)
+
+    def _fetch_site(self, hfa_url: str) -> SiteFetch:
         start = time.monotonic()
 
         def out_of_time() -> bool:
@@ -265,15 +383,22 @@ class Fetcher:
             site.error = d.error
             return site
 
-        for attempt in (1, 2):  # websites are sometimes just slow; try twice
+        for attempt in (1, 2, 3):
             try:
-                text, links, final_url = self._render(hfa_url)
+                if attempt < 3:   # websites are sometimes just slow; try the browser twice
+                    text, links, final_url = self._render(hfa_url)
+                else:             # then a simple request that says what this tool is
+                    text, links, final_url = _plain_render(hfa_url)
+                    self._plain = True
+                    site.notes.append("The website refused the automated browser; pages were fetched with "
+                                      "simple requests that identify this tool (scripts not run).")
                 break
             except Exception as e:
-                if attempt == 2:
+                if attempt == 3:
                     site.error = f"Could not open HFA page: {type(e).__name__}: {str(e)[:200]}"
                     return site
-                time.sleep(5)
+                if attempt == 1:
+                    time.sleep(5)
         clear_old_files()
         site.landing_ok = True
         site.documents.append(Document("D1", final_url, "HFA landing page", "html", text=text,
@@ -321,7 +446,7 @@ class Fetcher:
                 site.skipped_links.append(url)
                 continue
             try:
-                sub_text, sub_links, _ = self._render(url)
+                sub_text, sub_links, _ = self._page(url)
             except Exception as e:
                 site.documents.append(Document(f"D{len(site.documents)+1}", url, t, "html", error=str(e)[:200]))
                 continue

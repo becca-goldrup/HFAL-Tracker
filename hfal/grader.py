@@ -116,6 +116,8 @@ def _documents_content(site: SiteFetch, hospitals: list[dict]) -> tuple[list[dic
     header = (f"Hospital(s) that use this financial assistance page:\n{names}\n\n"
               f"Financial assistance page: {site.hfa_url}\n"
               f"Downloaded: {site.fetched_at}\n\n")
+    for note in site.notes:
+        header += f"Note: {note}\n"
     if site.skipped_links:
         header += f"Note: {len(site.skipped_links)} more relevant-looking links were not downloaded (cap reached).\n"
     blocks: list[dict] = []

@@ -79,6 +79,7 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
         warnings.append(f"HFA page could not be opened: {site.error}")
     elif site.error:
         warnings.append(f"Some documents may be missing: {site.error}")
+    warnings += [n for n in site.notes if "person" in n]  # graded from hand-saved files: say so
 
     out: dict[str, Decision] = {}
     for c in GRADED:

@@ -63,11 +63,14 @@ class Tracker:
             url = link_cell.value if str(link_cell.value or "").startswith("http") else None
             if not url and link_cell.hyperlink is not None:
                 url = link_cell.hyperlink.target  # some cells show the page title, link is embedded
+            url = (url or "").strip()
+            fixed_from = url if url in config.HFA_LINK_FIXES else None
+            url = config.HFA_LINK_FIXES.get(url, url)
             out.append({
-                "row": r, "name": str(name).strip(),
+                "row": r, "name": str(name).strip(), "link_fixed_from": fixed_from,
                 "address": ws.cell(r, _col("C")).value or "", "city": ws.cell(r, _col("D")).value or "",
                 "zip": ws.cell(r, _col("G")).value or "", "system": ws.cell(r, _col("M")).value or "",
-                "hfa_url": (url or "").strip(),
+                "hfa_url": url,
             })
         return out
 
@@ -120,6 +123,11 @@ class Tracker:
     def apply(self, hospital: dict, decisions: dict, text: dict, warnings: list[str], site,
               max_fpl_value) -> None:
         row, name = hospital["row"], hospital["name"]
+        if hospital.get("link_fixed_from"):
+            link = self.ws.cell(row, _col("N"))
+            self._set(row, _col("N"), hospital["hfa_url"], "HFA Link", name, None,
+                      [f"Old link no longer works: {hospital['link_fixed_from']}"])
+            link.hyperlink = hospital["hfa_url"]
         for c in GRADED:
             d = decisions[c.key]
             value = max_fpl_value if c.key == "max_fpl_400" else d.value
