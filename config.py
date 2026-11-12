@@ -1,9 +1,13 @@
 """
 Settings you might want to change. Everything else lives in the hfal/ folder.
 """
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).parent
+
+# ---- GitHub -------------------------------------------------------------------
+GITHUB_REPO = "becca-goldrup/HFAL-Tracker"   # used by the dashboard's "For CSS staff" tab
 
 # ---- Files -------------------------------------------------------------------
 INPUT_DIR = ROOT / "data" / "input"     # put the CSS spreadsheet here
@@ -50,8 +54,9 @@ POLICY_STATEMENT_AUTO_FAIL = False
 #                   sandbox role can't create). Sign in: `aws sso login --profile hackathon`
 # "bedrock"      -> Claude in the AWS sandbox, once Claude access is enabled
 # "anthropic"    -> Claude with your own Anthropic API key in .env (ANTHROPIC_API_KEY=...)
-PROVIDER = "bedrock-nova"
+PROVIDER = os.environ.get("HFAL_PROVIDER") or "bedrock-nova"
 NOVA_MODEL = "us.amazon.nova-pro-v1:0"
+NOVA_FALLBACK_MODEL = "us.amazon.nova-2-lite-v1:0"   # tried once if NOVA_MODEL keeps failing on a site
 NOVA_MAX_TOKENS = 10000
 NOVA_MAX_CHARS_PER_HOSPITAL = 900_000   # Nova Pro reads up to ~300K tokens
 

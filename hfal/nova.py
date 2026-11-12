@@ -82,13 +82,49 @@ def _converse_content(blocks: list[dict]) -> list[dict]:
     return out
 
 
-def _call(messages, system, tool_config):
+def _fill_gaps(data: dict, result_cls) -> None:
+    """A question the model skipped counts as 'unclear' (-> human review), never as an answer."""
+    findings = data.get("findings")
+    if not isinstance(findings, dict):
+        findings = data["findings"] = {}
+    for key in result_cls.model_fields["findings"].annotation.model_fields:
+        f = findings.get(key)
+        if not isinstance(f, dict):
+            f = findings[key] = {}
+        if f.get("answer") not in ("yes", "no", "unclear", "not_found"):
+            f["answer"], f["confidence"] = "unclear", "low"   # no usable answer -> review
+        if f.get("confidence") not in ("high", "medium", "low"):
+            f["confidence"] = "low"
+        if not isinstance(f.get("evidence"), list):
+            f["evidence"] = []
+        f["evidence"] = [e for e in f["evidence"] if isinstance(e, dict) and "doc_id" in e and "quote" in e]
+        f.setdefault("reasoning", "The model gave no explanation.")
+    for name, field in result_cls.model_fields.items():
+        if name in data or name == "findings":
+            continue
+        ann = str(field.annotation)
+        data[name] = [] if ann.startswith(("typing.List", "list")) else (None if "Optional" in ann else "N/A")
+
+
+def _call_plain(messages, system, model):
+    import time
+    for attempt in range(2):
+        try:
+            return _client_rt().converse(modelId=model, system=[{"text": system}], messages=messages,
+                                         inferenceConfig={"maxTokens": config.NOVA_MAX_TOKENS, "temperature": 0})
+        except Exception as e:
+            if type(e).__name__ != "ModelErrorException" or attempt == 1:
+                raise
+            time.sleep(10)
+
+
+def _call(messages, system, tool_config, model):
     """One Converse call, retrying Bedrock's occasional 'unexpected error' (ModelErrorException)."""
     import time
     for attempt in range(3):
         try:
             return _client_rt().converse(
-                modelId=config.NOVA_MODEL,
+                modelId=model,
                 system=[{"text": system}],
                 messages=messages,
                 toolConfig=tool_config,
@@ -101,7 +137,47 @@ def _call(messages, system, tool_config):
 
 
 def grade(system: str, blocks: list[dict], result_cls) -> tuple[object, dict, str]:
-    """Returns (validated result, usage dict, model id)."""
+    """Returns (validated result, usage dict, model id). If the main model keeps failing on a
+    site (e.g. 'invalid sequence as part of ToolUse'), tries the fallback model once."""
+    # Plain JSON first: in testing, Nova Pro's tool-call format broke on ~40% of hospitals.
+    attempts = [(_grade_text, config.NOVA_MODEL), (_grade, config.NOVA_MODEL)]
+    fallback = getattr(config, "NOVA_FALLBACK_MODEL", "")
+    if fallback and fallback != config.NOVA_MODEL:
+        attempts += [(_grade_text, fallback), (_grade, fallback)]
+    errors = []
+    for fn, model in attempts:
+        try:
+            return fn(system, blocks, result_cls, model)
+        except Exception as e:
+            errors.append(f"{model} ({'json' if fn is _grade_text else 'tool'}): {str(e)[:160]}")
+    raise RuntimeError(" | ".join(errors))
+
+
+def _grade_text(system: str, blocks: list[dict], result_cls, model: str) -> tuple[object, dict, str]:
+    """Same request, but the answer comes back as plain JSON text instead of a tool call
+    (avoids Nova's occasional 'invalid sequence as part of ToolUse')."""
+    schema, optional_top = _inline_schema(result_cls)
+    instruction = ("\n\nRespond with ONLY one JSON object, no other text, that follows this JSON schema "
+                   "(include every field of 'findings'):\n" + json.dumps(schema))
+    r = _call_plain([{"role": "user", "content": _converse_content(blocks)}], system + instruction, model)
+    usage = {"input": r["usage"]["inputTokens"], "output": r["usage"]["outputTokens"], "cache_read": 0, "cache_write": 0}
+    if r.get("stopReason") == "max_tokens":
+        raise RuntimeError("answer was cut off (max_tokens)")
+    text = "".join(c.get("text", "") for c in r["output"]["message"].get("content", []))
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end <= start:
+        raise RuntimeError("no JSON in the answer")
+    data = json.loads(text[start:end + 1])
+    for name in optional_top:
+        data.setdefault(name, None)
+    for doc in data.get("documents") or []:
+        if isinstance(doc, dict):
+            doc.setdefault("fpl_year", None)
+    _fill_gaps(data, result_cls)
+    return result_cls.model_validate(data), usage, model + " (json)"
+
+
+def _grade(system: str, blocks: list[dict], result_cls, model: str) -> tuple[object, dict, str]:
     schema, optional_top = _inline_schema(result_cls)
     tool_config = {
         "tools": [{"toolSpec": {"name": TOOL_NAME,
@@ -113,11 +189,13 @@ def grade(system: str, blocks: list[dict], result_cls) -> tuple[object, dict, st
     usage = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
     last_error = None
     for attempt in (1, 2):  # one retry, telling the model what was wrong with its first answer
-        r = _call(messages, system, tool_config)
+        r = _call(messages, system, tool_config, model)
         usage["input"] += r["usage"]["inputTokens"]
         usage["output"] += r["usage"]["outputTokens"]
         if r.get("stopReason") == "max_tokens":
             raise RuntimeError("Nova's answer was cut off (max_tokens); raise NOVA_MAX_TOKENS in config.py")
+        if not r["output"]["message"].get("content"):  # empty answer: keep the conversation valid for the retry
+            r["output"]["message"] = {"role": "assistant", "content": [{"text": "(no answer)"}]}
         content = r["output"]["message"]["content"]
         use = next((c["toolUse"] for c in content if "toolUse" in c), None)
         if use is None:
@@ -131,8 +209,9 @@ def grade(system: str, blocks: list[dict], result_cls) -> tuple[object, dict, st
         for doc in data.get("documents") or []:  # nested optional field
             if isinstance(doc, dict):
                 doc.setdefault("fpl_year", None)
+        _fill_gaps(data, result_cls)
         try:
-            return result_cls.model_validate(data), usage, config.NOVA_MODEL
+            return result_cls.model_validate(data), usage, model
         except Exception as e:  # pydantic ValidationError
             last_error = str(e)[:1500]
             messages += [r["output"]["message"], {"role": "user", "content": [{"toolResult": {

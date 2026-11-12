@@ -27,7 +27,7 @@ from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.worksheet.table import TableColumn
 
 import config
-from hfal.criteria import BY_KEY, GRADED, NO, REVIEW, TEXT_COLUMNS, YES, grade, is_auto_fail
+from hfal.criteria import BY_KEY, GRADED, LABELS, NO, REVIEW, TEXT_COLUMNS, YES, grade, is_auto_fail
 
 ORANGE = PatternFill("solid", fgColor="FFF4B183")
 BLUE = PatternFill("solid", fgColor="FFBDD7EE")
@@ -165,10 +165,11 @@ class Tracker:
         else:
             self._write_status(hospital["row"], None)
 
-    def _write_status(self, row: int, docs: Optional[str]):
+    def _write_status(self, row: int, docs: Optional[str], keep_date: bool = False):
         vals = self.last_values(row)
         n_review = sum(1 for v in vals.values() if v == REVIEW)
-        self.ws.cell(row, self.new_col["AI Last Checked"], self.run_date)
+        if not keep_date:
+            self.ws.cell(row, self.new_col["AI Last Checked"], self.run_date)
         self.ws.cell(row, self.new_col["AI Items Needing Review"], n_review)
         g = grade_row(vals)
         self.ws.cell(row, self.new_col["AI Grade Status"],
@@ -176,6 +177,19 @@ class Tracker:
                      f"{g['grade']} (provisional: {n_review} item(s) need review)")
         if docs is not None:
             self.ws.cell(row, self.new_col["AI Documents Reviewed"], docs[:32000])
+
+    def apply_decision(self, hospital: dict, column: str, value: str, reviewer: str, when: str, note: str = ""):
+        """Record a person's review decision for one REVIEW cell (see tools/apply_reviews.py)."""
+        cell = self.ws.cell(hospital["row"], _col(column))
+        old = cell.value
+        cell.value = value
+        cell.fill = NOFILL
+        cell.comment = Comment(f"Reviewed by {reviewer or 'CSS reviewer'} on {when}: {value}."
+                               + (f" Note: {note}" if note else ""), AUTHOR, width=400, height=120)
+        label = next((LABELS[c.key] for c in GRADED if c.column == column), column)
+        self.changes.append([when, hospital["name"], column, label, old, value,
+                             f"Human review by {reviewer or 'CSS reviewer'}" + (f": {note}" if note else "")])
+        self._write_status(hospital["row"], None, keep_date=True)
 
     def log_run(self, hfa_url: str, status: str, n_hospitals: int, n_docs: int, usage: Optional[dict]):
         u = usage or {}
@@ -196,6 +210,12 @@ class Tracker:
         return self.wb[title]
 
     def save(self) -> Path:
+        # Remember the previous queue so items carried over keep their AI answer and evidence.
+        prev = {}
+        if "AI Review Queue" in self.wb.sheetnames:
+            for row in self.wb["AI Review Queue"].iter_rows(min_row=2, values_only=True):
+                if row and row[1]:
+                    prev[(row[1], row[3])] = list(row)
         q = self._sheet("AI Review Queue",
                         ["Run date", "Hospital", "System", "Column", "Criterion", "AI answer", "AI confidence",
                          "Why it needs review", "Evidence (doc: quote)", "HFA link", "Reviewer decision / notes"],
@@ -206,9 +226,17 @@ class Tracker:
         for h in self.hospitals():
             for c in GRADED:
                 if self.ws.cell(h["row"], _col(c.column)).value == REVIEW and (h["name"], c.column) not in fresh:
+                    if (h["name"], c.column) in prev:
+                        self.review_rows.append(prev[(h["name"], c.column)])
+                        continue
                     cm = self.ws.cell(h["row"], _col(c.column)).comment
                     self.review_rows.append(["earlier run", h["name"], h["system"], c.column, c.header.strip(),
                                              "", "", cm.text if cm else "", "", h["hfa_url"], ""])
+        # Whole-hospital notes (column "-") from earlier runs stay too, unless this run re-checked that hospital.
+        rechecked = {r[1] for r in self.review_rows if r[0] == self.run_date}
+        for (name, column), row in prev.items():
+            if column == "-" and name not in rechecked and row not in self.review_rows:
+                self.review_rows.append(row)
         for r in self.review_rows:
             q.append(r)
         log = self._sheet("AI Change Log", ["Date", "Hospital", "Column", "Field", "Old value", "New value",

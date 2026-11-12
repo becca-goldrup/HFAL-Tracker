@@ -24,6 +24,7 @@
         <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview">Overview</button>
         <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals">Hospitals</button>
         <button role="tab" id="tab-map" aria-controls="panel-map" data-tab="map">Map</button>
+        <button role="tab" id="tab-staff" aria-controls="panel-staff" data-tab="staff" class="tab-staff">For CSS staff</button>
       </nav>
     </div>
   </header>
@@ -110,6 +111,55 @@
       <div class="legend" id="legend" aria-label="Grade colors"></div>
       <div id="map" aria-label="Map of hospitals colored by grade"></div>
       <p class="src">Source: <span class="src-name"></span>. Locations: US Census Bureau and OpenStreetMap.</p>
+    </section>
+
+    <!-- ======================== CSS STAFF ======================== -->
+    <section id="panel-staff" role="tabpanel" aria-labelledby="tab-staff" class="panel" hidden>
+      <h2 class="fig-title">For the CSS team</h2>
+      <p class="fig-sub">Run a new compliance check, and settle the items the AI couldn't confirm on its own.
+        Making changes requires access to the project's GitHub repository.</p>
+
+      <section class="staff-step">
+        <h3 class="step-title"><span class="step-num">1</span>Run a new check</h3>
+        <p id="run-status" class="run-status"></p>
+        <a id="run-btn" class="btn" target="_blank" rel="noopener">Run a full check on GitHub ↗</a>
+        <ol class="steps">
+          <li>On the page that opens, select <strong>Run workflow</strong>, then the green <strong>Run workflow</strong> button.</li>
+          <li>The check takes about 30 to 45 minutes. When it finishes, this dashboard updates on its own.</li>
+        </ol>
+        <p class="hint">A check also runs automatically on the 1st of every month.</p>
+      </section>
+
+      <section class="staff-step">
+        <h3 class="step-title"><span class="step-num">2</span>Review flagged items</h3>
+        <p class="hint">For each item, read why it was flagged and the quoted text, open the document if needed, and decide.
+          A decision applies to every hospital that shares that financial assistance page. Your decisions are saved in this browser as you go.</p>
+        <div class="progress" aria-hidden="true"><span id="progress-fill"></span></div>
+        <p id="progress-text" class="count" aria-live="polite"></p>
+        <div class="filters review-filters">
+          <label><span>Your name</span><input id="rv-name" type="text" placeholder="So others know who reviewed" autocomplete="name"></label>
+          <label><span>System</span><select id="rv-system"></select></label>
+          <label><span>Requirement</span><select id="rv-req"></select></label>
+          <label><span>Show</span><select id="rv-show">
+            <option value="todo">Still to review</option><option value="done">Reviewed</option><option value="all">All</option></select></label>
+        </div>
+        <div id="review-list"></div>
+      </section>
+
+      <section class="staff-step">
+        <h3 class="step-title"><span class="step-num">3</span>Send your decisions</h3>
+        <p id="send-summary"></p>
+        <div class="send-actions">
+          <button id="rv-download" class="btn" type="button">Download decisions file</button>
+          <a id="rv-upload" class="btn btn-secondary" target="_blank" rel="noopener">Open the GitHub upload page ↗</a>
+          <button id="rv-clear" class="text-btn" type="button">Clear my decisions</button>
+        </div>
+        <ol class="steps">
+          <li>Download the decisions file.</li>
+          <li>Open the GitHub upload page, drag the file in, and select <strong>Commit changes</strong>.</li>
+          <li>Within a few minutes, the spreadsheet and this dashboard update with your decisions.</li>
+        </ol>
+      </section>
     </section>
   </main>
 

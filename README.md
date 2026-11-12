@@ -203,6 +203,31 @@ Then open <http://localhost:8765>.
 "Build and deployment", choose **Deploy from a branch**, select branch **main** and folder **/docs**, then select **Save**.
 The site appears at `https://becca-goldrup.github.io/HFAL-Tracker/`.
 
+## For the CSS team: running checks and reviewing flagged items
+
+The dashboard's **For CSS staff** tab has three steps:
+
+1. **Run a new check.** The button opens this repository's *Run compliance check* workflow on GitHub; select
+   **Run workflow**. GitHub downloads every website, grades it, writes a new dated spreadsheet to `data/output/`,
+   and refreshes the dashboard (about 30–45 minutes). It also runs on the 1st of every month.
+2. **Review flagged items.** Every REVIEW item, grouped by hospital website, with the AI's reason, the quoted text,
+   and links to the documents. Choose **Meets requirement** or **Falls short** (plus an optional note). A decision
+   applies to all hospitals sharing that page. Decisions are saved in the reviewer's browser as they go.
+3. **Send decisions.** Download the decisions file and upload it to `data/reviews/` on GitHub. The workflow applies
+   it to the newest spreadsheet (`tools/apply_reviews.py`), records it in the AI Change Log, and refreshes the dashboard.
+
+Anyone can see this tab (the repository is public), but only people with write access to the repository can run
+checks or upload decisions.
+
+**One-time setup for the Run button** (repository **Settings → Secrets and variables → Actions**):
+* Secrets for the AI service: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (and `AWS_SESSION_TOKEN` for temporary
+  keys) for Amazon Bedrock, or `ANTHROPIC_API_KEY` for Claude.
+* Optional variable `HFAL_PROVIDER`: `bedrock-nova` (default), `bedrock`, or `anthropic`.
+
+The sprint's AWS sandbox keys expire within hours and the sandbox is deleted when the lease ends, so for ongoing
+use CSS needs its own AWS account or Anthropic API key. Downloaded documents are cached between runs, so websites
+that haven't changed aren't paid for again.
+
 ## Questions for CSS (judgment calls built into the tool)
 
 1. **FPL year (answered).** CSS confirmed that hospitals are compared against the current, 2026 NYS Uniform

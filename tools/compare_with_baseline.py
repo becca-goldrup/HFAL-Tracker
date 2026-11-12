@@ -18,7 +18,7 @@ from hfal.spreadsheet import Tracker, _col, _normalize  # noqa: E402
 
 
 def newest(folder: Path) -> Path:
-    return max((p for p in folder.glob("*.xlsx") if not p.name.startswith("~$")), key=lambda p: p.stat().st_mtime)
+    return max((p for p in folder.glob("*.xlsx") if not p.name.startswith("~$")), key=lambda p: p.name)
 
 
 def main():

@@ -41,6 +41,7 @@ function init() {
   buildFilters();
   renderRubric();
   renderCriteriaGuide();
+  initStaff();
   bindEvents();
   showTab((location.hash || "#overview").slice(1));
   render();
@@ -125,7 +126,9 @@ function bindEvents() {
 }
 
 function showTab(tab) {
-  if (!["overview", "hospitals", "map"].includes(tab)) tab = "overview";
+  if (!["overview", "hospitals", "map", "staff"].includes(tab)) tab = "overview";
+  // The public filters don't apply to the staff workspace.
+  document.querySelector('section.filters[aria-label="Filters"]').hidden = tab === "staff";
   document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
   document.querySelectorAll(".panel").forEach((p) => (p.hidden = p.id !== `panel-${tab}`));
   window.scrollTo(0, 0);
@@ -346,4 +349,159 @@ function closeDrawer() {
   $("#drawer").hidden = true;
   $("#drawer-backdrop").hidden = true;
   if (state.lastFocus) state.lastFocus.focus();
+}
+
+
+/* ================================================================ CSS staff workspace
+   Decisions are kept in this browser (localStorage) until downloaded and uploaded to
+   GitHub, where a workflow applies them (tools/apply_reviews.py). */
+const staff = { decisions: {}, key: "" };
+
+function storageGet(k, fallback) {
+  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function storageSet(k, v) {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private window: decisions last this visit only */ }
+}
+
+function initStaff() {
+  const d = state.data;
+  const repo = d.repo || "becca-goldrup/HFAL-Tracker";
+  $("#run-btn").href = `https://github.com/${repo}/actions/workflows/check.yml`;
+  $("#rv-upload").href = `https://github.com/${repo}/upload/main/data/reviews`;
+  const lr = d.last_run;
+  $("#run-status").innerHTML = lr
+    ? `Last check: <strong>${esc(lr.date)}</strong> with ${esc(lr.model.replace(/^us\.(amazon|anthropic)\./, "").replace(/-v\d.*$/, ""))}.
+       ${lr.websites} websites: ${lr.graded} graded, ${lr.unchanged} unchanged${lr.problems ? `, ${lr.problems} couldn't be checked` : ""}.
+       Estimated cost about $${Number(lr.cost).toFixed(2)}.`
+    : "No AI check has run yet. The dashboard currently shows CSS's September 2025 review.";
+
+  staff.key = `hfal-review:${d.generated}`;
+  staff.decisions = storageGet(staff.key, {});
+  $("#rv-name").value = storageGet("hfal-reviewer", "");
+  $("#rv-name").addEventListener("input", (e) => storageSet("hfal-reviewer", e.target.value));
+
+  const items = d.review || [];
+  const systems = [...new Set(items.map((i) => i.system))].sort((a, b) => a.localeCompare(b));
+  $("#rv-system").innerHTML = `<option value="">All systems</option>` +
+    systems.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  const reqs = [...new Set(items.map((i) => i.requirement))].sort();
+  $("#rv-req").innerHTML = `<option value="">All requirements</option>` +
+    reqs.map((r) => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+  ["#rv-system", "#rv-req", "#rv-show"].forEach((s) => $(s).addEventListener("change", renderReview));
+
+  $("#review-list").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-decide]");
+    if (!b) return;
+    const id = b.closest("[data-item]").dataset.item;
+    const value = b.dataset.decide;
+    if (value) staff.decisions[id] = { ...(staff.decisions[id] || {}), decision: value };
+    else delete staff.decisions[id];
+    storageSet(staff.key, staff.decisions);
+    renderReview();
+  });
+  $("#review-list").addEventListener("input", (e) => {
+    if (!e.target.matches("textarea[data-note]")) return;
+    const id = e.target.closest("[data-item]").dataset.item;
+    staff.decisions[id] = { ...(staff.decisions[id] || {}), note: e.target.value };
+    storageSet(staff.key, staff.decisions);
+  });
+  $("#rv-download").addEventListener("click", downloadDecisions);
+  $("#rv-clear").addEventListener("click", () => {
+    if (!confirm("Clear all the decisions saved in this browser?")) return;
+    staff.decisions = {};
+    storageSet(staff.key, {});
+    renderReview();
+  });
+  renderReview();
+}
+
+function decided(id) {
+  const x = staff.decisions[id];
+  return x && (x.decision === "yes" || x.decision === "no") ? x.decision : "";
+}
+
+function renderReview() {
+  const items = state.data.review || [];
+  const done = items.filter((i) => decided(i.id)).length;
+  $("#progress-fill").style.width = items.length ? `${(100 * done) / items.length}%` : "0%";
+  $("#progress-text").textContent = items.length ? `${done} of ${items.length} flagged items reviewed` : "";
+  $("#send-summary").textContent = done
+    ? `You've decided ${done} item${done === 1 ? "" : "s"}. Download them and upload the file to apply them.`
+    : "Decide at least one item above, then send your decisions here.";
+  $("#rv-download").disabled = !done;
+
+  if (!state.data.last_run) {
+    $("#review-list").innerHTML = `<p class="empty">Flagged items appear here after the first AI check.</p>`;
+    return;
+  }
+  const sys = $("#rv-system").value, req = $("#rv-req").value, show = $("#rv-show").value;
+  const shown = items.filter((i) => (!sys || i.system === sys) && (!req || i.requirement === req) &&
+    (show === "all" || (show === "todo" ? !decided(i.id) : !!decided(i.id))));
+  if (!shown.length) {
+    $("#review-list").innerHTML = `<p class="empty">${items.length
+      ? (show === "todo" ? "Nothing left to review here. Nice work." : "No items match these filters.")
+      : "No items need review right now."}</p>`;
+    return;
+  }
+  // Group by website, so each hospital page's items sit together.
+  const groups = new Map();
+  shown.forEach((i) => { if (!groups.has(i.hfa_url)) groups.set(i.hfa_url, []); groups.get(i.hfa_url).push(i); });
+  $("#review-list").innerHTML = [...groups.values()].map((group) => {
+    const g = group[0];
+    const more = g.hospitals.length - 1;
+    const url = safeUrl(g.hfa_url);
+    return `<article class="rv-site">
+      <header class="rv-site-head">
+        <h4>${esc(g.hospitals[0])}${more ? ` <span class="rv-more">+ ${more} more hospital${more === 1 ? "" : "s"}</span>` : ""}</h4>
+        <p class="rv-meta">${esc(g.system)}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener">Financial assistance page ↗</a>` : ""}</p>
+        ${more ? `<details class="rv-hosp"><summary>Hospitals on this page</summary><p>${g.hospitals.map(esc).join(", ")}</p></details>` : ""}
+        ${(g.site_notes || []).map((n) => `<p class="rv-site-note">${esc(n)}</p>`).join("")}
+      </header>
+      ${group.map(reviewItem).join("")}
+    </article>`;
+  }).join("");
+}
+
+function reviewItem(i) {
+  const dec = decided(i.id);
+  const note = (staff.decisions[i.id] || {}).note || "";
+  const reason = i.reason.replace(/^NEEDS REVIEW \([^)]*\):\s*/, "");
+  const ev = (i.evidence || []).map((e) => {
+    const url = safeUrl(e.url);
+    return `<li>${e.doc ? `<span class="rv-doc">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(e.doc)} ↗</a>` : esc(e.doc)}</span>` : ""}
+      <q>${esc(e.quote)}</q></li>`;
+  }).join("");
+  return `<div class="rv-item${dec ? " is-done" : ""}" data-item="${esc(i.id)}">
+    <div class="rv-head"><span class="rv-req">${esc(i.requirement)}</span><span class="rv-sec">${esc(sectionName(i.section))}</span></div>
+    <p class="rv-law">${esc(i.law)}</p>
+    <p class="rv-why"><strong>Why it's flagged:</strong> ${esc(reason)}</p>
+    ${ev ? `<details class="rv-ev"><summary>Quoted text (${i.evidence.length})</summary><ul>${ev}</ul></details>` : ""}
+    <div class="rv-actions" role="group" aria-label="Decision for ${esc(i.requirement)}">
+      <button type="button" data-decide="yes" class="rv-btn yes" aria-pressed="${dec === "yes"}">✓ Meets requirement</button>
+      <button type="button" data-decide="no" class="rv-btn no" aria-pressed="${dec === "no"}">✕ Falls short</button>
+      ${dec ? `<button type="button" data-decide="" class="text-btn">Undo</button>` : ""}
+    </div>
+    <textarea data-note rows="1" placeholder="Add a note (optional)">${esc(note)}</textarea>
+  </div>`;
+}
+
+function downloadDecisions() {
+  const items = state.data.review || [];
+  const name = ($("#rv-name").value || "").trim();
+  const decisions = items.filter((i) => decided(i.id)).map((i) => ({
+    id: i.id, hfa_url: i.hfa_url, column: i.column, requirement: i.requirement,
+    decision: decided(i.id), note: (staff.decisions[i.id] || {}).note || "", hospitals: i.hospitals,
+  }));
+  const today = new Date().toISOString().slice(0, 10);
+  const blob = new Blob([JSON.stringify({ reviewer: name, submitted: today, data_generated: state.data.generated,
+    decisions }, null, 1)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  link.download = `reviews-${today}${slug ? "-" + slug : ""}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }

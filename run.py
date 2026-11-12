@@ -62,7 +62,7 @@ def pick_input(arg: str | None) -> Path:
         return Path(arg)
     # Prefer the most recent output, so human REVIEW decisions carry forward.
     for folder in (config.OUTPUT_DIR, config.INPUT_DIR):
-        files = sorted(folder.glob("*.xlsx"), key=lambda p: p.stat().st_mtime, reverse=True)
+        files = sorted(folder.glob("*.xlsx"), key=lambda p: (p.name, p.stat().st_mtime), reverse=True)
         files = [f for f in files if not f.name.startswith("~$")]
         if files:
             return files[0]
