@@ -43,7 +43,7 @@ def credentials_problem() -> str | None:
         if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"):
             return None
         return "No ANTHROPIC_API_KEY found. Add it to .env (see README.md)."
-    if not config.BEDROCK_MODEL:
+    if config.PROVIDER == "bedrock" and not config.BEDROCK_MODEL:
         return "BEDROCK_MODEL is empty in config.py. Run `python tools/check_bedrock.py` to pick one."
     try:
         import boto3
@@ -77,6 +77,8 @@ def main():
     ap.add_argument("--fetch-only", action="store_true", help="download documents but don't call the AI")
     ap.add_argument("--force", action="store_true", help="re-grade even if a website hasn't changed")
     ap.add_argument("--yes", action="store_true", help="don't ask before spending money")
+    ap.add_argument("--reapply", action="store_true",
+                    help="re-check saved AI answers with the current safety rules and rewrite the sheet (no AI calls)")
     args = ap.parse_args()
 
     src = pick_input(args.input)
@@ -155,7 +157,7 @@ def main():
         from hfal.grader import grade_site, save_result
         est = {u: costs.estimate_site(sites[u]) for u in to_grade}
         total = sum(est.values())
-        where = "the AWS sandbox budget" if config.PROVIDER == "bedrock" else "your API key"
+        where = "the AWS sandbox budget" if config.PROVIDER.startswith("bedrock") else "your API key"
         print(f"\nStep 2/3: AI grading of {len(to_grade)} website(s) with {costs.current_model()}")
         print(f"  Estimated cost: ${total:.2f}, charged to {where}. Spending cap for this run: "
               f"${config.MAX_SPEND_PER_RUN:.2f} (MAX_SPEND_PER_RUN in config.py)")
@@ -214,7 +216,7 @@ def main():
             tracker.log_run(url, st, len(hospitals), n_docs, None)
             continue
         already_has_ai = all(tracker.ws.cell(h["row"], tracker.new_col["AI Last Checked"]).value for h in hospitals)
-        if st == "unchanged" and already_has_ai:
+        if st == "unchanged" and already_has_ai and not args.reapply:
             # Nothing changed online: keep the sheet as-is (including human fixes).
             for h in hospitals:
                 tracker.mark_checked(h, "website unchanged")

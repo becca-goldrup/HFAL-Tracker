@@ -67,9 +67,11 @@ got = {k: d.value for k, d in decisions.items()}
 expected = {
     "application_posted": "yes", "policy_summary_posted": "yes", "policy_statement_posted": "REVIEW",
     "consistent_across_documents": "REVIEW", "psa_compliant_2007": "REVIEW", "no_time_limit": "yes",
-    "no_asset_checks": "yes", "no_immigration_barrier": "yes", "entire_uniform_application": "yes",
+    # immigration: Bassett's resource guide describes Medicaid citizenship rules -> red-flag scan sends it to review
+    "no_asset_checks": "yes", "no_immigration_barrier": "REVIEW", "entire_uniform_application": "yes",
     "contact_info_in_application": "REVIEW", "income_tables_in_application": "REVIEW",
-    "fpl_current_year": "REVIEW", "max_fpl_400": "yes", "installments_capped_5pct": "no",
+    # installments: "entire Uniform Application" + "no 5% cap" is a contradiction -> review
+    "fpl_current_year": "REVIEW", "max_fpl_400": "yes", "installments_capped_5pct": "REVIEW",
     "psa_in_summary": "no", "how_to_apply_in_summary": "yes", "income_levels_in_summary": "yes"}
 for k in expected:
     mark = "ok " if got[k] == expected[k] else "BAD"
@@ -84,7 +86,7 @@ t.apply(h, decisions, text, warnings, site, max_fpl_cell(decisions["max_fpl_400"
 out = t.save()
 wb = openpyxl.load_workbook(out); ws = wb[config.SHEET_NAME]
 assert ws["T3"].value == "REVIEW" and ws["T3"].fill.fgColor.rgb == "FFF4B183" and ws["T3"].comment
-assert ws["AJ3"].value == "no" and ws["AJ3"].fill.fgColor.rgb == "FFBDD7EE"   # changed yes -> no
+assert ws["AL3"].value == "no" and ws["AL3"].fill.fgColor.rgb == "FFBDD7EE"   # changed yes -> no
 assert ws["AI3"].value == 4 and ws["R3"].value == "yes"
 assert {"AI Review Queue", "AI Change Log", "AI Run Log"} <= set(wb.sheetnames)
 assert ws.tables["Table1"].ref.endswith("AU5"), ws.tables["Table1"].ref

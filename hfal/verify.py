@@ -64,6 +64,49 @@ def quote_found(quote: str, source: str) -> bool:
     return True
 
 
+MIN_QUOTE_WORDS = 5
+
+# Wording that often signals a violation. Matches only send an item to REVIEW
+# (they never mark a hospital non-compliant on their own), so erring broad is fine.
+_DEADLINE = re.compile(r"\b(\d{2,3}|thirty|sixty|ninety|twelve|six|three)\s*(\(\d+\)\s*)?(calendar\s+)?(days?|months?|years?)\b"
+                       r"[^.]{0,80}?\b(after|from|of|following|before)\b", re.I)
+_DEADLINE_CONTEXT = re.compile(r"\b(apply|applying|application|request|submit|complete)", re.I)
+_DEADLINE_IGNORE = re.compile(r"collection agenc|send you|notify you|decision|respond|we will|will receive|process", re.I)
+_ASSETS = re.compile(r"bank statements?|savings account|checking account|\bassets?\b|real estate|property you own|"
+                     r"stocks|retirement account|401\s*\(?k\)?|\bvehicles?\b|resources you own", re.I)
+_IMMIGRATION = re.compile(r"citizen(ship)?|immigra\w*|green card|\balien\b|undocumented|\bvisa\b|"
+                          r"lawful(ly)? (present|resident)|legal (status|resident)|proof of residency", re.I)
+_IMMIGRATION_OK = re.compile(r"shall not|not be|regardless|does not|doesn.t|not a factor|not required|not an eligibility|"
+                             r"not consider|no matter|national origin|discriminat|medicare|medicaid|age\s+of\s+65", re.I)
+# Common harmless contexts for asset words: "assets may not be considered", Medicare/FSA explanations, car accidents.
+_ASSETS_OK = re.compile(r"not be considered|not considered|may not|will not|cannot|not consider|does not|"
+                        r"spending account|health savings|motor vehicle|third party|liab", re.I)
+
+
+def _snippet(text: str, m) -> str:
+    return re.sub(r"\s+", " ", text[max(0, m.start() - 70):m.end() + 70]).strip()
+
+
+def red_flags(site: SiteFetch) -> dict[str, list[tuple[str, str]]]:
+    """Scan the downloaded documents ourselves for wording the AI may have missed."""
+    out = {"no_time_limit": [], "no_asset_checks": [], "no_immigration_barrier": []}
+    for d in site.documents:
+        if d.error or not d.text:
+            continue
+        t = d.text
+        for m in _DEADLINE.finditer(t):
+            around = t[max(0, m.start() - 150):m.end() + 150]
+            if _DEADLINE_CONTEXT.search(around) and not _DEADLINE_IGNORE.search(around):
+                out["no_time_limit"].append((d.doc_id, _snippet(t, m)))
+        for m in _ASSETS.finditer(t):
+            if not _ASSETS_OK.search(t[max(0, m.start() - 80):m.end() + 80]):
+                out["no_asset_checks"].append((d.doc_id, _snippet(t, m)))
+        for m in _IMMIGRATION.finditer(t):
+            if not _IMMIGRATION_OK.search(t[max(0, m.start() - 80):m.end() + 80]):
+                out["no_immigration_barrier"].append((d.doc_id, _snippet(t, m)))
+    return out
+
+
 # ---------------------------------------------------------------- decisions
 def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str, str], list[str]]:
     """Returns (decisions by criterion key, text column values, hospital-level warnings)."""
@@ -85,7 +128,7 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
     for c in GRADED:
         f = r["findings"][c.key]
         ans, conf = f["answer"], f["confidence"]
-        ev_lines, bad, unverifiable, wrong_scope, good = [], [], [], [], 0
+        ev_lines, bad, unverifiable, wrong_scope, good, short = [], [], [], [], 0, 0
         for q in f["evidence"]:
             d = docs.get(q["doc_id"])
             ev_lines.append(f'{q["doc_id"]}: "{q["quote"]}"' + (f" ({d.url})" if d else ""))
@@ -95,6 +138,8 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
                 unverifiable.append(q["doc_id"])
             elif not quote_found(q["quote"], d.text):
                 bad.append(f"quote not found in {q['doc_id']}")
+            elif len(_norm(q["quote"]).split()) < MIN_QUOTE_WORDS:
+                short += 1  # a heading like "How To Apply" isn't evidence
             else:
                 good += 1
                 need_role = ROLE_FOR_SCOPE.get(c.scope)
@@ -128,7 +173,8 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
                 d = review(f"AI said '{ans}'. A missing document can't be confirmed automatically "
                            f"(it may be on another page) -- please check the website.{hint} {f['reasoning']}")
             elif proof == "quote" and good == 0:
-                d = review(f"AI said '{ans}' but gave no verifiable quote: {f['reasoning']}")
+                why = " (its quotes were too short to count as evidence, e.g. a heading)" if short else ""
+                d = review(f"AI said '{ans}' but gave no verifiable quote{why}: {f['reasoning']}")
             else:
                 d = Decision(YES if ans == "yes" else NO, f["reasoning"], ev_lines, ans, conf)
         out[c.key] = d
@@ -145,6 +191,31 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
     used = r.get("fpl_year_used")
     if yr.value != REVIEW and used is not None and (used == config.FPL_YEAR) != (yr.value == YES):
         out["fpl_current_year"] = Decision(REVIEW, f"AI answer '{yr.value}' contradicts the FPL year it found ({used}; expected {config.FPL_YEAR})", yr.evidence, yr.ai_answer, yr.confidence)
+
+    # ---- red-flag scan: the tool reads the documents itself before accepting "nothing wrong found"
+    flags = red_flags(site)
+    for key, label in (("no_time_limit", "a deadline to apply"), ("no_asset_checks", "an asset check"),
+                       ("no_immigration_barrier", "an immigration-status condition")):
+        dec = out[key]
+        if dec.value == YES and flags[key]:
+            hits = "; ".join(f'{doc}: "...{snip}..."' for doc, snip in flags[key][:3])
+            out[key] = Decision(REVIEW, f"AI found nothing like {label}, but the documents contain wording that may be one -- "
+                                        f"please check: {hits}", dec.evidence + [hits], dec.ai_answer, dec.confidence)
+    dec = out["consistent_across_documents"]
+    if dec.value == YES and flags["no_time_limit"]:
+        out["consistent_across_documents"] = Decision(
+            REVIEW, "AI called the documents consistent, but at least one mentions a deadline to apply -- check whether "
+                    "the others say the same: " + "; ".join(f'{d}: "...{s}..."' for d, s in flags["no_time_limit"][:2]),
+            dec.evidence, dec.ai_answer, dec.confidence)
+
+    # ---- the full Uniform Application includes these, so "yes, entire UA" + "missing X" can't both be true
+    if out["entire_uniform_application"].value == YES:
+        for key in ("income_tables_in_application", "installments_capped_5pct", "contact_info_in_application"):
+            dec = out[key]
+            if dec.value == NO:
+                out[key] = Decision(REVIEW, f"Contradiction: AI said the hospital uses the entire Uniform Application "
+                                            f"(which includes this) but also that the application lacks it. {dec.reason}",
+                                    dec.evidence, dec.ai_answer, dec.confidence)
 
     # ---- free-text columns
     text = {

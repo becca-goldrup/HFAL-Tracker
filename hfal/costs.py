@@ -12,16 +12,17 @@ import config
 
 # (substring of the model id, input $/M, output $/M). First match wins.
 PRICES = [
+    ("nova-pro", 0.80, 3.20), ("nova-2-lite", 0.33, 2.75), ("nova-lite", 0.06, 0.24), ("nova-micro", 0.035, 0.14),
     ("opus-5-5", 4.00, 20.00), ("opus", 5.00, 25.00),
     ("sonnet-5-5", 2.00, 10.00), ("sonnet-5", 2.00, 10.00), ("sonnet", 3.00, 15.00),
     ("haiku-5-5", 0.10, 0.50), ("haiku", 1.00, 5.00),
 ]
-OUTPUT_TOKENS_PER_SITE = 15_000   # answer + thinking, a generous guess
+OUTPUT_TOKENS_PER_SITE = 15_000   # answer + thinking, a generous guess (Nova: answer only, fewer)
 TOKENS_PER_SCANNED_PAGE = 2_000   # scanned PDFs are read as page images
 
 
 def current_model() -> str:
-    return config.BEDROCK_MODEL if config.PROVIDER == "bedrock" else config.MODEL
+    return {"bedrock": config.BEDROCK_MODEL, "bedrock-nova": config.NOVA_MODEL}.get(config.PROVIDER, config.MODEL)
 
 
 def prices(model: str | None = None) -> tuple[float, float]:

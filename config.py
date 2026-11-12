@@ -45,10 +45,15 @@ REFERENCE_APPLICATION = ROOT / "data" / "reference" / "nys-uniform-application-2
 POLICY_STATEMENT_AUTO_FAIL = False
 
 # ---- Where Claude runs -------------------------------------------------------
-# "bedrock"   -> the sprint's AWS sandbox (Amazon Bedrock). Sign in first with
-#                `aws sso login --profile hackathon` (see README).
-# "anthropic" -> your own Anthropic API key in .env (ANTHROPIC_API_KEY=...)
-PROVIDER = "bedrock"
+# "bedrock-nova" -> Amazon Nova in the sprint's AWS sandbox. Works with the sandbox
+#                   credits today (Claude there needs a Marketplace subscription the
+#                   sandbox role can't create). Sign in: `aws sso login --profile hackathon`
+# "bedrock"      -> Claude in the AWS sandbox, once Claude access is enabled
+# "anthropic"    -> Claude with your own Anthropic API key in .env (ANTHROPIC_API_KEY=...)
+PROVIDER = "bedrock-nova"
+NOVA_MODEL = "us.amazon.nova-pro-v1:0"
+NOVA_MAX_TOKENS = 10000
+NOVA_MAX_CHARS_PER_HOSPITAL = 900_000   # Nova Pro reads up to ~300K tokens
 
 AWS_PROFILE = "hackathon"   # the profile name from `aws configure sso`
 AWS_REGION = "us-east-1"

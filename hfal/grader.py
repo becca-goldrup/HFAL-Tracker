@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import os
 import json
+import re
 from pathlib import Path
 from typing import List, Literal, Optional
 
@@ -121,6 +122,9 @@ The {len(GRADED)} graded criteria:
 Also fill in the note fields. Use "N/A" for a note when there is nothing to say."""
 
 
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
 def _documents_content(site: SiteFetch, hospitals: list[dict]) -> tuple[list[dict], list[str]]:
     """Build the user message. Returns (content blocks, warnings)."""
     warnings: list[str] = []
@@ -135,7 +139,7 @@ def _documents_content(site: SiteFetch, hospitals: list[dict]) -> tuple[list[dic
         header += f"Note: {len(site.skipped_links)} more relevant-looking links were not downloaded (cap reached).\n"
     blocks: list[dict] = []
     text_parts = [header]
-    budget = config.MAX_CHARS_PER_HOSPITAL
+    budget = config.NOVA_MAX_CHARS_PER_HOSPITAL if config.PROVIDER == "bedrock-nova" else config.MAX_CHARS_PER_HOSPITAL
     for d in site.documents:
         meta = f'id="{d.doc_id}" kind="{d.kind}" url="{d.url}" link_text="{d.link_text}"'
         if d.language_hint:
@@ -150,7 +154,8 @@ def _documents_content(site: SiteFetch, hospitals: list[dict]) -> tuple[list[dic
                            "source": {"type": "base64", "media_type": "application/pdf",
                                       "data": base64.standard_b64encode(Path(d.file_path).read_bytes()).decode()}})
             continue
-        text = d.text
+        # Invisible control characters (left over from PDF text extraction) can make the AI service reject the request.
+        text = _CONTROL_CHARS.sub(" ", d.text)
         if d.language_hint and d.language_hint != "English" and len(text) > config.TRANSLATION_PREVIEW_CHARS:
             text = text[:config.TRANSLATION_PREVIEW_CHARS] + "\n[... translation preview truncated ...]"
         if len(text) > budget:
@@ -191,8 +196,14 @@ def model_id() -> str:
 
 
 def grade_site(site: SiteFetch, hospitals: list[dict]) -> dict:
-    """Call Claude. Returns a dict that is saved to data/cache/<site>/result.json."""
+    """Call the AI. Returns a dict that is saved to data/cache/<site>/result.json."""
     content, warnings = _documents_content(site, hospitals)
+    if config.PROVIDER == "bedrock-nova":
+        from hfal import nova
+        result, usage, model = nova.grade(SYSTEM, content, GradingResult)
+        return {"fingerprint": site.fingerprint(), "model": model, "graded_at": site.fetched_at,
+                "fpl_year_setting": config.FPL_YEAR, "warnings": warnings, "usage": usage,
+                "result": json.loads(result.model_dump_json())}
     extra = {}
     if config.PROVIDER == "anthropic":
         # If a safety filter wrongly declines, the API retries on another model.

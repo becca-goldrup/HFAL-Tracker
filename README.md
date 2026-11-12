@@ -87,6 +87,15 @@ budget. These steps follow the sprint's participant guide.
    python tools/check_bedrock.py --test
    ```
 
+**Which AI model.** In the sprint sandbox, Claude needs an AWS Marketplace subscription the sandbox role can't
+create, so `PROVIDER = "bedrock-nova"` (Amazon Nova Pro) is the default there: it runs on the sandbox credits and
+costs a few cents per hospital. Nova is less accurate than Claude, so expect more REVIEW items. With Claude access
+(`PROVIDER = "bedrock"` once enabled, or `"anthropic"` with your own API key), nothing else changes.
+
+**Check accuracy against CSS's 2025 review:** `python tools/compare_with_baseline.py` compares every AI-graded hospital
+with the original spreadsheet. After changing the safety rules, `python run.py --reapply` re-checks saved AI answers
+without new AI calls.
+
 **Mind the budget.** The sandbox has a $50 budget and freezes when it's used up. Three safeguards help:
 - `python run.py --fetch-only` is free and prints what grading would cost on Opus, Sonnet, and Haiku.
 - Every run shows its estimate and asks before spending anything.
