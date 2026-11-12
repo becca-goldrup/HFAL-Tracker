@@ -155,12 +155,41 @@ python tests/test_offline.py          # checks the safety rules with a simulated
 python tests/test_spend_cap.py        # checks the spending cap with a fake AI
 ```
 
+## Part 2: the dashboard
+
+The `docs/` folder is a website with three tabs, a shared set of filters (region or county, system, grade,
+requirement), and a detail panel for each hospital:
+* **Overview:** headline numbers, the grade breakdown, compliance with each requirement, and recent changes.
+* **Hospitals:** a sortable table. Select a hospital to see where it falls short, with the rule in plain language.
+* **Map:** every hospital as a dot colored by grade. Hover for name, address, and system; select a dot for the link.
+
+It's plain HTML and JavaScript, with no build step, and GitHub Pages hosts it for free.
+
+**Update the dashboard data** after a Part 1 run (or to rebuild from the spreadsheet in `data/input/`):
+```bash
+python tools/build_dashboard.py
+```
+This writes `docs/data/hospitals.json`. Commit and push it, and the website updates within a minute or two.
+The first build looks up each hospital's map location and county (US Census geocoder, with OpenStreetMap
+as a fallback) and saves them in `data/geocode.json`, so later builds skip that step.
+
+**Preview it locally:**
+```bash
+python3 -m http.server 8765 --directory docs
+```
+Then open <http://localhost:8765>.
+
+**Turn on GitHub Pages (one time):** in the repository on github.com, go to **Settings → Pages**. Under
+"Build and deployment", choose **Deploy from a branch**, select branch **main** and folder **/docs**, then select **Save**.
+The site appears at `https://becca-goldrup.github.io/HFAL-Tracker/`.
+
 ## Questions for CSS (judgment calls built into the tool)
 
 1. **FPL year.** The column says "2025 FPL Guidelines", but it's now late 2026. Should hospitals be on the
    2026 guidelines? Change `FPL_YEAR` in `config.py`.
 2. **Automatic F.** The rubric lists "no policy statement posted" as an automatic F, but the spreadsheet formula
-   doesn't include it. The tool's own grade (`hospitals.csv`, the "AI Grade Status" column) follows the rubric.
+   (and the published "14 of 212 compliant") doesn't use it. The tool matches the spreadsheet by default; set
+   `POLICY_STATEMENT_AUTO_FAIL = True` in `config.py` to follow the rubric table instead (17 hospitals would drop to F).
 3. **Missing documents.** When the application or summary isn't found, the tool marks the related criteria
    REVIEW rather than `no`, so a person confirms the document really is missing.
 4. **Plain-language law text** in `hfal/criteria.py` was drafted from the methodology document and should be

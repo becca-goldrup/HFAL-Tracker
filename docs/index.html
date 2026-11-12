@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NY Hospital Financial Assistance Tracker</title>
+  <meta name="description" content="How New York hospitals comply with the state's Hospital Financial Assistance Law: grades, gaps, and a statewide map.">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>NY Hospital Financial Assistance Tracker</h1>
+      <p class="sub">How New York hospitals comply with the reformed Hospital Financial Assistance Law (HFAL).
+        <span id="source-line"></span></p>
+      <nav class="tabs" role="tablist" aria-label="Views">
+        <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview">Overview</button>
+        <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals">Hospitals</button>
+        <button role="tab" id="tab-map" aria-controls="panel-map" data-tab="map">Map</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="filters wrap" aria-label="Filters">
+    <label class="f-search"><span>Search</span>
+      <input id="f-search" type="search" placeholder="Hospital, city, or system"></label>
+    <label><span>Region</span><select id="f-region"></select></label>
+    <label><span>System</span><select id="f-system"></select></label>
+    <label><span>Grade</span><select id="f-grade"></select></label>
+    <label><span>Falls short on</span><select id="f-criterion"></select></label>
+    <button id="f-reset" class="ghost" type="button">Reset</button>
+    <p id="f-count" class="count" aria-live="polite"></p>
+  </section>
+
+  <main class="wrap">
+    <!-- ======================== OVERVIEW ======================== -->
+    <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" class="panel">
+      <div class="tiles" id="tiles"></div>
+      <div class="grid-2">
+        <article class="card">
+          <h2>Grades</h2>
+          <p class="hint">A = meets every requirement. F = 10+ gaps, or no application / not the full NYS Uniform Application.</p>
+          <div id="grade-chart" class="hbars"></div>
+        </article>
+        <article class="card">
+          <h2>Recent updates</h2>
+          <div id="feed" class="feed"></div>
+        </article>
+      </div>
+      <article class="card">
+        <h2>Compliance by requirement</h2>
+        <p class="hint">Share of hospitals meeting each requirement, lowest first. Select a row to see the hospitals that fall short.</p>
+        <div id="criteria-chart" class="hbars criteria"></div>
+      </article>
+      <article class="card about">
+        <h2>About this data</h2>
+        <p>Each hospital is checked against 17 requirements drawn from New York's Hospital Financial Assistance Law,
+          using the materials on its website: the financial assistance application, the plain language summary, and the full policy.
+          Grades follow the Community Service Society of New York (CSS) rubric.</p>
+        <p>Items marked <strong>needs review</strong> could not be confirmed automatically and are waiting for a person to check them.
+          While any remain, a hospital's grade is shown as a range (for example "B to D").</p>
+        <p><a id="download" href="data/hospitals.json" download>Download the data (JSON)</a></p>
+      </article>
+    </section>
+
+    <!-- ======================== HOSPITALS ======================== -->
+    <section id="panel-hospitals" role="tabpanel" aria-labelledby="tab-hospitals" class="panel" hidden>
+      <div class="table-wrap card">
+        <table id="table">
+          <thead><tr>
+            <th data-sort="name" scope="col">Hospital</th>
+            <th data-sort="system" scope="col" class="hide-sm">System</th>
+            <th data-sort="county" scope="col" class="hide-sm">County</th>
+            <th data-sort="grade" scope="col">Grade</th>
+            <th data-sort="issues" scope="col" class="num">Gaps</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        <p id="table-empty" class="empty" hidden>No hospitals match these filters.</p>
+      </div>
+    </section>
+
+    <!-- ======================== MAP ======================== -->
+    <section id="panel-map" role="tabpanel" aria-labelledby="tab-map" class="panel" hidden>
+      <div class="card map-card">
+        <div id="map" aria-label="Map of hospitals colored by grade"></div>
+        <div class="legend" id="legend" aria-label="Grade colors"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================== HOSPITAL DETAIL ======================== -->
+  <div id="drawer-backdrop" hidden></div>
+  <aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-name" hidden>
+    <button id="d-close" class="ghost close" type="button" aria-label="Close">✕</button>
+    <div id="d-body"></div>
+  </aside>
+
+  <footer class="wrap foot">
+    Built for the AI for Health Equity Design Sprint with the Community Service Society of New York.
+    Hospital locations: US Census Bureau and © OpenStreetMap contributors.
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

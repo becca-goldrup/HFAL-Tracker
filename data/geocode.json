@@ -1,0 +1,1459 @@
+{
+ "1 Brookdale Plaza, Brooklyn, NY 11212": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.655240963941,
+  "lon": -73.912205232655,
+  "source": "census"
+ },
+ "1 Guthrie Drive, Corning, NY 14830": {
+  "county": "Steuben County",
+  "lat": 42.1355136,
+  "lon": -76.9692355,
+  "source": "openstreetmap"
+ },
+ "1 Heroes Way, Riverhead, NY 11901": {
+  "county": "Suffolk County",
+  "lat": 40.9343042,
+  "lon": -72.6739202,
+  "source": "openstreetmap"
+ },
+ "1 Hospital Drive, Massena, NY 13662": {
+  "county": "St. Lawrence County",
+  "county_fips": "089",
+  "lat": 44.936811514734,
+  "lon": -74.908379067524,
+  "source": "census"
+ },
+ "1 Titus Place, Walton, NY 13856": {
+  "county": "Delaware County",
+  "county_fips": "025",
+  "lat": 42.164433710106,
+  "lon": -75.128606491816,
+  "source": "census"
+ },
+ "10 HEALTHY WAY, Ellenville, NY 12428": {
+  "county": "Ulster County",
+  "county_fips": "111",
+  "lat": 41.733038771115,
+  "lon": -74.380395219436,
+  "source": "census"
+ },
+ "10-42 Mitchell Avenue, Binghamton, NY 13903": {
+  "county": "Broome County",
+  "county_fips": "007",
+  "lat": 42.084495979698,
+  "lon": -75.914055371845,
+  "source": "census"
+ },
+ "100 East 77th Street, New York, NY 10021": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.774246082279,
+  "lon": -73.961445605993,
+  "source": "census"
+ },
+ "100 High Street, Buffalo, NY 14203": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.900397279937,
+  "lon": -78.866517630894,
+  "source": "census"
+ },
+ "100 PARK STREET, Glens Falls, NY 12801": {
+  "county": "Warren County",
+  "county_fips": "113",
+  "lat": 43.307263339295,
+  "lon": -73.646098675978,
+  "source": "census"
+ },
+ "100 Port Washington Boulevard, Roslyn, NY 11576": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.805882590016,
+  "lon": -73.6690336584,
+  "source": "census"
+ },
+ "100 Woods Road, Valhalla, NY 10595": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.085903314409,
+  "lon": -73.803452059428,
+  "source": "census"
+ },
+ "1000 10th Avenue, New York, NY 10019": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.770078272132,
+  "lon": -73.987770672505,
+  "source": "census"
+ },
+ "1000 MONTAUK HIGHWAY, West Islip, NY 11795": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.695813461995,
+  "lon": -73.294615518695,
+  "source": "census"
+ },
+ "1000 North Village Avenue, Rockville Centre, NY 11570": {
+  "county": "Nassau County",
+  "lat": 40.687191,
+  "lon": -73.630873,
+  "source": "openstreetmap"
+ },
+ "1000 SOUTH AVENUE, Rochester, NY 14620": {
+  "county": "Monroe County",
+  "county_fips": "055",
+  "lat": 43.135215710086,
+  "lon": -77.607646256299,
+  "source": "census"
+ },
+ "1001 WEST STREET, Carthage, NY 13619": {
+  "county": "Jefferson County",
+  "county_fips": "045",
+  "lat": 43.986235462055,
+  "lon": -75.594813433316,
+  "source": "census"
+ },
+ "101 Dates Drive, Ithaca, NY 14850": {
+  "county": "Tompkins County",
+  "county_fips": "109",
+  "lat": 42.470867178959,
+  "lon": -76.537603891494,
+  "source": "census"
+ },
+ "101 Hospital Road, Patchogue, NY 11772": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.780340840758,
+  "lon": -72.978164271941,
+  "source": "census"
+ },
+ "101 St Andrews Lane, Glen Cove, NY 11542": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.87173788388,
+  "lon": -73.621501581455,
+  "source": "census"
+ },
+ "1014 Oswegatchie Trail PO Box 10, Star Lake, NY 13690": {
+  "county": "St. Lawrence County",
+  "county_fips": "089",
+  "lat": 44.163139666567,
+  "lon": -75.056237437555,
+  "source": "census"
+ },
+ "102-01 66th Road, Forest Hills, NY 11375": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.728552147055,
+  "lon": -73.851686859764,
+  "source": "census"
+ },
+ "105 Marys Avenue, Kingston, NY 12401": {
+  "county": "Ulster County",
+  "county_fips": "111",
+  "lat": 41.922556149089,
+  "lon": -73.999563250311,
+  "source": "census"
+ },
+ "110 W Sixth Street, Oswego, NY 13126": {
+  "county": "Oswego County",
+  "county_fips": "075",
+  "lat": 43.454908313815,
+  "lon": -76.51651731271,
+  "source": "census"
+ },
+ "1101 Nott Street, Schenectady, NY 12308": {
+  "county": "Schenectady County",
+  "county_fips": "093",
+  "lat": 42.819876549644,
+  "lon": -73.919021275611,
+  "source": "census"
+ },
+ "111 Clara Barton Street, Dansville, NY 14437": {
+  "county": "Livingston County",
+  "lat": 42.552596,
+  "lon": -77.6984412,
+  "source": "openstreetmap"
+ },
+ "111 East 210th Street, Bronx, NY 10467": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.879986609331,
+  "lon": -73.880738718171,
+  "source": "census"
+ },
+ "111 Hospital Drive, Utica, NY 13502": {
+  "county": "Oneida County",
+  "lat": 43.1036306,
+  "lon": -75.2361685,
+  "source": "openstreetmap"
+ },
+ "1111 Amsterdam Avenue, New York, NY 10025": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.805860528379,
+  "lon": -73.961663497342,
+  "source": "census"
+ },
+ "12 North 7th Avenue, Mount Vernon, NY 10550": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 40.912593484567,
+  "lon": -73.840090149009,
+  "source": "census"
+ },
+ "1200 Driving Park Avenue, Box 111, Newark, NY 14513": {
+  "county": "Wayne County",
+  "county_fips": "117",
+  "lat": 43.059584668382,
+  "lon": -77.100796595385,
+  "source": "census"
+ },
+ "121 DEKALB AVENUE, Brooklyn, NY 11201": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.689642270547,
+  "lon": -73.972207447143,
+  "source": "census"
+ },
+ "127 North St, Batavia, NY 14020": {
+  "county": "Genesee County",
+  "county_fips": "037",
+  "lat": 43.00397881195,
+  "lon": -78.177073618544,
+  "source": "census"
+ },
+ "127 South Broadway, Yonkers, NY 10701": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 40.930067629978,
+  "lon": -73.897605034114,
+  "source": "census"
+ },
+ "1270 Belmont Avenue, Schenectady, NY 12308": {
+  "county": "Schenectady County",
+  "county_fips": "093",
+  "lat": 42.82193231999,
+  "lon": -73.913344779501,
+  "source": "census"
+ },
+ "1275 York Avenue, New York, NY 10065": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.763745108575,
+  "lon": -73.956111427953,
+  "source": "census"
+ },
+ "1276 Fulton Avenue, Bronx, NY 10456": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.831748955379,
+  "lon": -73.903664079988,
+  "source": "census"
+ },
+ "128 Ashford Avenue, Dobbs Ferry, NY 10522": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.014698209186,
+  "lon": -73.86205335444,
+  "source": "census"
+ },
+ "1283 York Avenue, New York, NY 10065": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.763919552714,
+  "lon": -73.955980674063,
+  "source": "census"
+ },
+ "1300 Massachusetts Avenue, Troy, NY 12180": {
+  "county": "Rensselaer County",
+  "county_fips": "083",
+  "lat": 42.743581536555,
+  "lon": -73.675701591667,
+  "source": "census"
+ },
+ "133 Park Street, Malone, NY 12953": {
+  "county": "Franklin County",
+  "county_fips": "033",
+  "lat": 44.856847090827,
+  "lon": -74.291920219295,
+  "source": "census"
+ },
+ "134 Homer Avenue, Cortland, NY 13045": {
+  "county": "Cortland County",
+  "county_fips": "023",
+  "lat": 42.609106705247,
+  "lon": -76.186200668674,
+  "source": "census"
+ },
+ "140 Burwell Street, Little Falls, NY 13365": {
+  "county": "Herkimer County",
+  "county_fips": "043",
+  "lat": 43.043968482667,
+  "lon": -74.847480896349,
+  "source": "census"
+ },
+ "140 West Main Street, Cuba, NY 14727": {
+  "county": "Allegany County",
+  "county_fips": "003",
+  "lat": 42.213489116392,
+  "lon": -78.287442713491,
+  "source": "census"
+ },
+ "1400 Pelham Parkway, Bronx, NY 10461": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.857449135615,
+  "lon": -73.847645026799,
+  "source": "census"
+ },
+ "1425 PORTLAND AVENUE, Rochester, NY 14621": {
+  "county": "Monroe County",
+  "county_fips": "055",
+  "lat": 43.191058017109,
+  "lon": -77.584404674198,
+  "source": "census"
+ },
+ "15 Maple Avenue, Warwick, NY 10990": {
+  "county": "Orange County",
+  "county_fips": "071",
+  "lat": 41.26330646558,
+  "lon": -74.356308285903,
+  "source": "census"
+ },
+ "150 55th Street, Brooklyn, NY 11220": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.64689881081,
+  "lon": -74.020963693946,
+  "source": "census"
+ },
+ "150 Broad St, Hamilton, NY 13346": {
+  "county": "Madison County",
+  "county_fips": "053",
+  "lat": 42.813287068716,
+  "lon": -75.542164082186,
+  "source": "census"
+ },
+ "1500 N James St, Rome, NY 13440": {
+  "county": "Oneida County",
+  "county_fips": "065",
+  "lat": 43.228978566414,
+  "lon": -75.444142040517,
+  "source": "census"
+ },
+ "1540 Maple Road, Amherst, NY 14221": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.991177852952,
+  "lon": -78.731720907769,
+  "source": "census"
+ },
+ "1545 Atlantic Avenue, Brooklyn, NY 11213": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.678022132514,
+  "lon": -73.938511177364,
+  "source": "census"
+ },
+ "1555 Long Pond Road, Rochester, NY 14626": {
+  "county": "Monroe County",
+  "county_fips": "055",
+  "lat": 43.195558956438,
+  "lon": -77.701511062391,
+  "source": "census"
+ },
+ "156 West Avenue, Brockport, NY 14420": {
+  "county": "Monroe County",
+  "county_fips": "055",
+  "lat": 43.220117952642,
+  "lon": -77.944817412232,
+  "source": "census"
+ },
+ "16 Bank Street, Batavia, NY 14020": {
+  "county": "Genesee County",
+  "county_fips": "037",
+  "lat": 42.997671391994,
+  "lon": -78.181783837035,
+  "source": "census"
+ },
+ "16 Guion Place, New Rochelle, NY 10802": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 40.912979217623,
+  "lon": -73.787111783608,
+  "source": "census"
+ },
+ "160 East Main Street, Port Jervis, NY 12771": {
+  "county": "Orange County",
+  "county_fips": "071",
+  "lat": 41.367273370003,
+  "lon": -74.682675198223,
+  "source": "census"
+ },
+ "160 North Midland Avenue, Nyack, NY 10960": {
+  "county": "Rockland County",
+  "county_fips": "087",
+  "lat": 41.096702202455,
+  "lon": -73.924787393351,
+  "source": "census"
+ },
+ "1650 Grand Concourse, Bronx, NY 10457": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.843820287562,
+  "lon": -73.911466448479,
+  "source": "census"
+ },
+ "1656 Champlin Avenue, Utica, NY 13502": {
+  "county": "Oneida County",
+  "county_fips": "065",
+  "lat": 43.097297413082,
+  "lon": -75.27467681428,
+  "source": "census"
+ },
+ "169 Riverside Drive, Binghamton, NY 13905": {
+  "county": "Broome County",
+  "county_fips": "007",
+  "lat": 42.092683021595,
+  "lon": -75.936020591633,
+  "source": "census"
+ },
+ "17 Lansing Street, Auburn, NY 13021": {
+  "county": "Cayuga County",
+  "county_fips": "011",
+  "lat": 42.940894700559,
+  "lon": -76.56217900018,
+  "source": "census"
+ },
+ "170 William Street, New York, NY 10038": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.710407188516,
+  "lon": -74.005492940219,
+  "source": "census"
+ },
+ "1740-70 Eastchester Road, Bronx, NY 10461": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.847854639055,
+  "lon": -73.844802084058,
+  "source": "census"
+ },
+ "1752 Park Avenue, New York, NY 10035": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.802856500143,
+  "lon": -73.940731752771,
+  "source": "census"
+ },
+ "178 Grandview Drive, Cobleskill, NY 12043": {
+  "county": "Schoharie County",
+  "county_fips": "095",
+  "lat": 42.686275237455,
+  "lon": -74.482927640051,
+  "source": "census"
+ },
+ "179 North Broad St, Norwich, NY 13815": {
+  "county": "Chenango County",
+  "county_fips": "017",
+  "lat": 42.541025977225,
+  "lon": -75.524702228486,
+  "source": "census"
+ },
+ "1825 Eastchester Road, Bronx, NY 10461": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.850271730709,
+  "lon": -73.844943154036,
+  "source": "census"
+ },
+ "189 E Main Street, Westfield, NY 14787": {
+  "county": "Chautauqua County",
+  "county_fips": "013",
+  "lat": 42.159383936926,
+  "lon": -79.58920879787,
+  "source": "census"
+ },
+ "1901 First Avenue, New York, NY 10029": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.784173799248,
+  "lon": -73.944134032542,
+  "source": "census"
+ },
+ "191 North Main Street, Wellsville, NY 14895": {
+  "county": "Allegany County",
+  "county_fips": "003",
+  "lat": 42.122985779169,
+  "lon": -77.950085467712,
+  "source": "census"
+ },
+ "196-198 North Street, Geneva, NY 14456": {
+  "county": "Ontario County",
+  "county_fips": "069",
+  "lat": 42.875755062761,
+  "lon": -76.988180176202,
+  "source": "census"
+ },
+ "1980 Crompond Road, Cortlandt Manor, NY 10567": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.291450117237,
+  "lon": -73.892001223947,
+  "source": "census"
+ },
+ "2 Coulter Road, Clifton Springs, NY 14432": {
+  "county": "Ontario County",
+  "county_fips": "069",
+  "lat": 42.960536718884,
+  "lon": -77.13859038656,
+  "source": "census"
+ },
+ "200 Belle Terre Road, Port Jefferson, NY 11777": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.947734223202,
+  "lon": -73.060346563327,
+  "source": "census"
+ },
+ "200 Ohio Street, Medina, NY 14103": {
+  "county": "Orleans County",
+  "county_fips": "073",
+  "lat": 43.22364845875,
+  "lon": -78.397149895567,
+  "source": "census"
+ },
+ "201 Manor Place, Greenport, NY 11944": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 41.111135209701,
+  "lon": -72.36087002774,
+  "source": "census"
+ },
+ "203 Old Military Road, Lake Placid, NY 12946": {
+  "county": "Essex County",
+  "county_fips": "031",
+  "lat": 44.266577750242,
+  "lon": -73.98510464706,
+  "source": "census"
+ },
+ "207 Foote Avenue, Jamestown, NY 14701": {
+  "county": "Chautauqua County",
+  "county_fips": "013",
+  "lat": 42.091580335089,
+  "lon": -79.232969043653,
+  "source": "census"
+ },
+ "21 Bloomingdale Road, White Plains, NY 10605": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.025678190384,
+  "lon": -73.75773598592,
+  "source": "census"
+ },
+ "211 CHURCH STREET, Saratoga Springs, NY 12866": {
+  "county": "Saratoga County",
+  "county_fips": "091",
+  "lat": 43.084842906896,
+  "lon": -73.796215623871,
+  "source": "census"
+ },
+ "214 King Street, Ogdensburg, NY 13669": {
+  "county": "St. Lawrence County",
+  "county_fips": "089",
+  "lat": 44.692131973703,
+  "lon": -75.499563120036,
+  "source": "census"
+ },
+ "2157 MAIN STREET, Buffalo, NY 14214": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.93000224782,
+  "lon": -78.848936208874,
+  "source": "census"
+ },
+ "220 Steuben Street, Montour Falls, NY 14865": {
+  "county": "Schuyler County",
+  "county_fips": "097",
+  "lat": 42.351465979638,
+  "lon": -76.859166977931,
+  "source": "census"
+ },
+ "2201 HEMPSTEAD TURNPIKE, East Meadow, NY 11554": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.725299374809,
+  "lon": -73.555687701801,
+  "source": "census"
+ },
+ "221 Jericho Turnpike, Syosset, NY 11791": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.81024381809,
+  "lon": -73.508632162128,
+  "source": "census"
+ },
+ "2210 Troy Road, Niskayuna, NY 12309": {
+  "county": "Schenectady County",
+  "county_fips": "093",
+  "lat": 42.79350334825,
+  "lon": -73.877837237721,
+  "source": "census"
+ },
+ "2215 Burdett Avenue, Troy, NY 12180": {
+  "county": "Rensselaer County",
+  "county_fips": "083",
+  "lat": 42.734096503785,
+  "lon": -73.671327320688,
+  "source": "census"
+ },
+ "2233 State Route 86, P.O. Box 471, Saranac Lake, NY 12983": {
+  "county": "Franklin County",
+  "county_fips": "033",
+  "lat": 44.344294744072,
+  "lon": -74.144473412309,
+  "source": "census"
+ },
+ "224 East Main St, Springville, NY 14141": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.508558632565,
+  "lon": -78.658757020274,
+  "source": "census"
+ },
+ "234 East 149th Street, Bronx, NY 10451": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.817595544297,
+  "lon": -73.923799022637,
+  "source": "census"
+ },
+ "240 Meeting House Lane, Southampton, NY 11968": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.885746402359,
+  "lon": -72.380667524731,
+  "source": "census"
+ },
+ "241 North Road, Poughkeepsie, NY 12601": {
+  "county": "Dutchess County",
+  "county_fips": "027",
+  "lat": 41.718073911988,
+  "lon": -73.929725939264,
+  "source": "census"
+ },
+ "2475 St. Raymond Avenue, Bronx, NY 10461": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.840297035044,
+  "lon": -73.848434887502,
+  "source": "census"
+ },
+ "25 Hackett Boulevard, Albany, NY 12208": {
+  "county": "Albany County",
+  "county_fips": "001",
+  "lat": 42.645446231843,
+  "lon": -73.778442893509,
+  "source": "census"
+ },
+ "25-10 30th Avenue, Long Island City, NY 11102": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.768408164652,
+  "lon": -73.924770098317,
+  "source": "census"
+ },
+ "2525 Kings Highway, Brooklyn, NY 11229": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.61383572529,
+  "lon": -73.94808303235,
+  "source": "census"
+ },
+ "255 Lafayette Avenue, Suffern, NY 10901": {
+  "county": "Rockland County",
+  "county_fips": "087",
+  "lat": 41.112158791539,
+  "lon": -74.133918755939,
+  "source": "census"
+ },
+ "259 First Street, Mineola, NY 11501": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.741651402213,
+  "lon": -73.643256286263,
+  "source": "census"
+ },
+ "2601 Ocean Parkway, Brooklyn, NY 11235": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.586634394564,
+  "lon": -73.965790250445,
+  "source": "census"
+ },
+ "2605 Harlem Road, Cheektowaga, NY 14225": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.913727835799,
+  "lon": -78.784252124174,
+  "source": "census"
+ },
+ "270 Park Avenue, Huntington, NY 11743": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.880079939542,
+  "lon": -73.417487765771,
+  "source": "census"
+ },
+ "270-05 76th Avenue, New Hyde Park, NY 11040": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.753338096332,
+  "lon": -73.706882676227,
+  "source": "census"
+ },
+ "275 North Street, Harrison, NY 10528": {
+  "county": "Westchester County",
+  "lat": 40.988964,
+  "lon": -73.7081144,
+  "source": "openstreetmap"
+ },
+ "29 East Cayuga Street, Oswego, NY 13126": {
+  "county": "Oswego County",
+  "county_fips": "075",
+  "lat": 43.459496362935,
+  "lon": -76.50647836493,
+  "source": "census"
+ },
+ "2950 ELMWOOD AVENUE, Kenmore, NY 14217": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.979189422001,
+  "lon": -78.87874020217,
+  "source": "census"
+ },
+ "3 Mercycare Lane, Guilderland, NY 12084": {
+  "county": "Albany County",
+  "county_fips": "001",
+  "lat": 42.70024547053,
+  "lon": -73.906186354335,
+  "source": "census"
+ },
+ "30 Seventh Avenue, New York, NY 10011": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.73766437912,
+  "lon": -74.000416056468,
+  "source": "census"
+ },
+ "300 Community Drive, Manhasset, NY 11030": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.77619694039,
+  "lon": -73.702964156294,
+  "source": "census"
+ },
+ "301 East 17th Street, New York, NY 10003": {
+  "county": "New York County",
+  "lat": 40.7343943,
+  "lon": -73.9829914,
+  "source": "openstreetmap"
+ },
+ "301 East Main Street, Bay Shore, NY 11706": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.72488915165,
+  "lon": -73.241014171983,
+  "source": "census"
+ },
+ "301 Prospect Avenue, Syracuse, NY 13203": {
+  "county": "Onondaga County",
+  "county_fips": "067",
+  "lat": 43.055144161622,
+  "lon": -76.148912205454,
+  "source": "census"
+ },
+ "310 East 14th Street, New York, NY 10003": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.732174247708,
+  "lon": -73.984682001424,
+  "source": "census"
+ },
+ "315 South Manning Boulevard, Albany, NY 12208": {
+  "county": "Albany County",
+  "county_fips": "001",
+  "lat": 42.670998371296,
+  "lon": -73.786483754111,
+  "source": "census"
+ },
+ "3201 Kings Highway, Brooklyn, NY 11234": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.617757201191,
+  "lon": -73.943216470218,
+  "source": "census"
+ },
+ "321 Genesee Street, Oneida, NY 13421": {
+  "county": "Madison County",
+  "county_fips": "053",
+  "lat": 43.078768435955,
+  "lon": -75.655172350379,
+  "source": "census"
+ },
+ "325 East Bay Drive, Long Beach, NY 11561": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.594270666197,
+  "lon": -73.654695725669,
+  "source": "census"
+ },
+ "327 Beach 19th Street, Far Rockaway, NY 11691": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.598035257975,
+  "lon": -73.753028796793,
+  "source": "census"
+ },
+ "33-57 Harrison Street, Johnson City, NY 13790": {
+  "county": "Broome County",
+  "county_fips": "007",
+  "lat": 42.114511617892,
+  "lon": -75.959052194223,
+  "source": "census"
+ },
+ "3424 Kossuth Avenue & 210th Street, Bronx, NY 10467": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.880121989529,
+  "lon": -73.881755977365,
+  "source": "census"
+ },
+ "350 Parrish Street, Canandaigua, NY 14424": {
+  "county": "Ontario County",
+  "county_fips": "069",
+  "lat": 42.874929182701,
+  "lon": -77.290065271923,
+  "source": "census"
+ },
+ "355 Bard Avenue, Staten Island, NY 10310": {
+  "county": "Richmond County",
+  "county_fips": "085",
+  "lat": 40.635049466417,
+  "lon": -74.106531452375,
+  "source": "census"
+ },
+ "374 Stockholm Street, Brooklyn, NY 11237": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.704911644208,
+  "lon": -73.917336305222,
+  "source": "census"
+ },
+ "375 Seguine Avenue, Staten Island, NY 10309": {
+  "county": "Richmond County",
+  "county_fips": "085",
+  "lat": 40.517403614322,
+  "lon": -74.196876827936,
+  "source": "census"
+ },
+ "4 Fuller Street, Alexandria Bay, NY 13607": {
+  "county": "Jefferson County",
+  "county_fips": "045",
+  "lat": 44.33730462644,
+  "lon": -75.919978551512,
+  "source": "census"
+ },
+ "400 East Main Street, Mount Kisco, NY 10549": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.196125158292,
+  "lon": -73.724768598383,
+  "source": "census"
+ },
+ "400 North Main Street, Warsaw, NY 14569": {
+  "county": "Wyoming County",
+  "county_fips": "121",
+  "lat": 42.728716289882,
+  "lon": -78.13258655104,
+  "source": "census"
+ },
+ "41 East Post Road, White Plains, NY 10601": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.026804209819,
+  "lon": -73.7689139463,
+  "source": "census"
+ },
+ "418 North Main Street, Penn Yan, NY 14527": {
+  "county": "Yates County",
+  "county_fips": "123",
+  "lat": 42.670749877936,
+  "lon": -77.059864946454,
+  "source": "census"
+ },
+ "42084 State Highway 28, Margaretville, NY 12455": {
+  "county": "Delaware County",
+  "county_fips": "025",
+  "lat": 42.14771353342,
+  "lon": -74.644006390026,
+  "source": "census"
+ },
+ "427 Guy Park Avenue, Amsterdam, NY 12010": {
+  "county": "Montgomery County",
+  "county_fips": "057",
+  "lat": 42.954082540234,
+  "lon": -74.217183401024,
+  "source": "census"
+ },
+ "4295 HEMPSTEAD TURNPIKE, Bethpage, NY 11714": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.725864370432,
+  "lon": -73.478510145409,
+  "source": "census"
+ },
+ "43 New Scotland Avenue, Albany, NY 12208": {
+  "county": "Albany County",
+  "county_fips": "001",
+  "lat": 42.652792406989,
+  "lon": -73.780932973139,
+  "source": "census"
+ },
+ "43 Pearl Street West, Sidney, NY 13838": {
+  "county": "Delaware County",
+  "county_fips": "025",
+  "lat": 42.304531375359,
+  "lon": -75.396313498621,
+  "source": "census"
+ },
+ "4422 Third Avenue, Bronx, NY 10457": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.853566687307,
+  "lon": -73.891324791019,
+  "source": "census"
+ },
+ "445 Lenox Road, Brooklyn, NY 11203": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.654454308592,
+  "lon": -73.946246362853,
+  "source": "census"
+ },
+ "45 READE PLACE, Poughkeepsie, NY 12601": {
+  "county": "Dutchess County",
+  "county_fips": "027",
+  "lat": 41.694450973652,
+  "lon": -73.93530733755,
+  "source": "census"
+ },
+ "45 Rivington Street, New York, NY 10002": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.720818315678,
+  "lon": -73.991010257535,
+  "source": "census"
+ },
+ "451 Clarkson Avenue, Brooklyn, NY 11203": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.655770756693,
+  "lon": -73.945225330024,
+  "source": "census"
+ },
+ "45th Avenue & Parsons Blvd, Flushing, NY 11355": {
+  "county": "Queens County",
+  "lat": 40.7554446,
+  "lon": -73.8167587,
+  "source": "openstreetmap"
+ },
+ "460 Andes Road, Delhi, NY 13753": {
+  "county": "Delaware County",
+  "county_fips": "025",
+  "lat": 42.268082508488,
+  "lon": -74.915785253155,
+  "source": "census"
+ },
+ "462 First Avenue, New York, NY 10016": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.739699188888,
+  "lon": -73.976402850217,
+  "source": "census"
+ },
+ "462 Grider Street, Buffalo, NY 14215": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.926458376317,
+  "lon": -78.829223343283,
+  "source": "census"
+ },
+ "475 Seaview Avenue, Staten Island, NY 10305": {
+  "county": "Richmond County",
+  "county_fips": "085",
+  "lat": 40.583748596634,
+  "lon": -74.08643629534,
+  "source": "census"
+ },
+ "4802 TENTH AVENUE, Brooklyn, NY 11219": {
+  "county": "Kings County",
+  "lat": 40.6394203,
+  "lon": -73.9981068,
+  "source": "openstreetmap"
+ },
+ "4900 Broad Road, Syracuse, NY 13215": {
+  "county": "Onondaga County",
+  "county_fips": "067",
+  "lat": 43.007937707003,
+  "lon": -76.170238544971,
+  "source": "census"
+ },
+ "4988 Sthwy 30, Amsterdam, NY 12010": {
+  "county": "Montgomery County",
+  "county_fips": "057",
+  "lat": 42.961120445699,
+  "lon": -74.186200706369,
+  "source": "census"
+ },
+ "50 Leroy Street, Potsdam, NY 13676": {
+  "county": "St. Lawrence County",
+  "county_fips": "089",
+  "lat": 44.675911327646,
+  "lon": -74.981529247866,
+  "source": "census"
+ },
+ "50 Route 25A, Smithtown, NY 11787": {
+  "county": "Suffolk County",
+  "county_fips": "103",
+  "lat": 40.865028298703,
+  "lon": -73.220619318701,
+  "source": "census"
+ },
+ "506 Lenox Avenue, New York, NY 10037": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.814889914682,
+  "lon": -73.940197888596,
+  "source": "census"
+ },
+ "506 Sixth Street, Brooklyn, NY 11215": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.66846487769,
+  "lon": -73.979711281767,
+  "source": "census"
+ },
+ "51 N Route 9W, West Haverstraw, NY 10993": {
+  "county": "Rockland County",
+  "lat": 41.2140955,
+  "lon": -73.9885454,
+  "source": "openstreetmap"
+ },
+ "5141 Broadway, New York, NY 10034": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.872831970562,
+  "lon": -73.912219815335,
+  "source": "census"
+ },
+ "515 Main Street, Olean, NY 14760": {
+  "county": "Cattaraugus County",
+  "county_fips": "009",
+  "lat": 42.089827075311,
+  "lon": -78.426888572319,
+  "source": "census"
+ },
+ "525 East 68th Street, New York, NY 10021": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.764256692705,
+  "lon": -73.955377873986,
+  "source": "census"
+ },
+ "529 Central Avenue, Dunkirk, NY 14048": {
+  "county": "Chautauqua County",
+  "county_fips": "013",
+  "lat": 42.480793506987,
+  "lon": -79.3338482081,
+  "source": "census"
+ },
+ "530 East 74th Street, New York, NY 10021": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.767813721471,
+  "lon": -73.952097484683,
+  "source": "census"
+ },
+ "5300 Military Road, Lewiston, NY 14092": {
+  "county": "Niagara County",
+  "lat": 43.1540721,
+  "lon": -79.0325315,
+  "source": "openstreetmap"
+ },
+ "535 E 70th Street, New York, NY 10021": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.765283942127,
+  "lon": -73.953928512781,
+  "source": "census"
+ },
+ "55 Palmer Avenue, Bronxville, NY 10708": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 40.941568676773,
+  "lon": -73.837070877816,
+  "source": "census"
+ },
+ "550 First Avenue, New York, NY 10016": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.742344460288,
+  "lon": -73.97447520227,
+  "source": "census"
+ },
+ "555 St. Joseph's Boulevard, Elmira, NY 14901": {
+  "county": "Chemung County",
+  "county_fips": "015",
+  "lat": 42.091340335308,
+  "lon": -76.797244685758,
+  "source": "census"
+ },
+ "56-45 Main Street, Flushing, NY 11355": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.747512408397,
+  "lon": -73.826007483561,
+  "source": "census"
+ },
+ "565 Abbott Road, Buffalo, NY 14220": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.848248991469,
+  "lon": -78.812502638573,
+  "source": "census"
+ },
+ "600 East 233rd Street, Bronx, NY 10466": {
+  "county": "Bronx County",
+  "county_fips": "005",
+  "lat": 40.894588012279,
+  "lon": -73.861319336759,
+  "source": "census"
+ },
+ "600 Northern Boulevard, Albany, NY 12204": {
+  "county": "Albany County",
+  "lat": 42.6736875,
+  "lon": -73.7485902,
+  "source": "openstreetmap"
+ },
+ "600 Roe Avenue, Elmira, NY 14905": {
+  "county": "Chemung County",
+  "county_fips": "015",
+  "lat": 42.099312701282,
+  "lon": -76.826743317864,
+  "source": "census"
+ },
+ "6001 Shimer Drive, Lockport, NY 14094": {
+  "county": "Niagara County",
+  "lat": 43.1484587,
+  "lon": -78.7071723,
+  "source": "openstreetmap"
+ },
+ "601 Elmwood Avenue, Rochester, NY 14642": {
+  "county": "Monroe County",
+  "county_fips": "055",
+  "lat": 43.124314166138,
+  "lon": -77.624771443954,
+  "source": "census"
+ },
+ "6010 East Malloy Road, Syracuse, NY 13211": {
+  "county": "Onondaga County",
+  "county_fips": "067",
+  "lat": 43.099153569462,
+  "lon": -76.098645512067,
+  "source": "census"
+ },
+ "621 TENTH STREET, Niagara Falls, NY 14302": {
+  "county": "Niagara County",
+  "county_fips": "063",
+  "lat": 43.093465585033,
+  "lon": -79.050348740708,
+  "source": "census"
+ },
+ "622 West 168th Street, New York, NY 10032": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.84128523899,
+  "lon": -73.940403783591,
+  "source": "census"
+ },
+ "6511 Springbrook Avenue, Rhinebeck, NY 12572": {
+  "county": "Dutchess County",
+  "county_fips": "027",
+  "lat": 41.937598665423,
+  "lon": -73.90913359097,
+  "source": "census"
+ },
+ "670 Stoneleigh Avenue, Carmel, NY 10512": {
+  "county": "Putnam County",
+  "county_fips": "079",
+  "lat": 41.38474589439,
+  "lon": -73.664412571009,
+  "source": "census"
+ },
+ "68 Harris-Bushville Road P.O. Box 800, Harris, NY 12742": {
+  "county": "Sullivan County",
+  "lat": 41.7096481,
+  "lon": -74.737491,
+  "source": "openstreetmap"
+ },
+ "70 Atlantic Avenue, Brooklyn, NY 11201": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.691065967356,
+  "lon": -73.997570454037,
+  "source": "census"
+ },
+ "70 Dubois Street, Newburgh, NY 12550": {
+  "county": "Orange County",
+  "county_fips": "071",
+  "lat": 41.503657835627,
+  "lon": -74.015096958599,
+  "source": "census"
+ },
+ "701 North Broadway, Sleepy Hollow, NY 10591": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.103175822683,
+  "lon": -73.860892655305,
+  "source": "census"
+ },
+ "707 East Main Street, Middletown, NY 10940": {
+  "county": "Orange County",
+  "county_fips": "071",
+  "lat": 41.439924861501,
+  "lon": -74.367510729361,
+  "source": "census"
+ },
+ "71 Prospect Ave, Hudson, NY 12534": {
+  "county": "Columbia County",
+  "county_fips": "021",
+  "lat": 42.245789135581,
+  "lon": -73.777998889686,
+  "source": "census"
+ },
+ "7329 Seneca Road North, Hornell, NY 14843": {
+  "county": "Steuben County",
+  "county_fips": "101",
+  "lat": 42.356455537381,
+  "lon": -77.661768577506,
+  "source": "census"
+ },
+ "736 Irving Avenue, Syracuse, NY 13210": {
+  "county": "Onondaga County",
+  "county_fips": "067",
+  "lat": 43.041876106271,
+  "lon": -76.137929041974,
+  "source": "census"
+ },
+ "75 Beekman St, Plattsburgh, NY 12901": {
+  "county": "Clinton County",
+  "county_fips": "019",
+  "lat": 44.700062604853,
+  "lon": -73.466718013769,
+  "source": "census"
+ },
+ "75 NORTH COUNTRY ROAD, Port Jefferson, NY 11777": {
+  "county": "Suffolk County",
+  "lat": 40.939957,
+  "lon": -73.0534274,
+  "source": "openstreetmap"
+ },
+ "75 Park Street, Elizabethtown, NY 12932": {
+  "county": "Essex County",
+  "county_fips": "031",
+  "lat": 44.215343556118,
+  "lon": -73.596447863557,
+  "source": "census"
+ },
+ "750 East Adams Street, Syracuse, NY 13210": {
+  "county": "Onondaga County",
+  "county_fips": "067",
+  "lat": 43.042622626061,
+  "lon": -76.13981306953,
+  "source": "census"
+ },
+ "7571 State Route 54, Bath, NY 14810": {
+  "county": "Steuben County",
+  "county_fips": "101",
+  "lat": 42.373863231118,
+  "lon": -77.277000127737,
+  "source": "census"
+ },
+ "760 Broadway, Brooklyn, NY 11206": {
+  "county": "Kings County",
+  "county_fips": "047",
+  "lat": 40.700457135294,
+  "lon": -73.941585278736,
+  "source": "census"
+ },
+ "77 West Barney Street, Gouverneur, NY 13642": {
+  "county": "St. Lawrence County",
+  "county_fips": "089",
+  "lat": 44.338330038992,
+  "lon": -75.474050079491,
+  "source": "census"
+ },
+ "7785 North State Street, Lowville, NY 13367": {
+  "county": "Lewis County",
+  "county_fips": "049",
+  "lat": 43.795797238754,
+  "lon": -75.498219573039,
+  "source": "census"
+ },
+ "785 Mamaroneck Avenue, White Plains, NY 10605": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 41.01389968517,
+  "lon": -73.75506494721,
+  "source": "census"
+ },
+ "79-01 Broadway, Elmhurst, NY 11373": {
+  "county": "Queens County",
+  "lat": 40.7447748,
+  "lon": -73.8856505,
+  "source": "openstreetmap"
+ },
+ "818 Ellicott Street, Buffalo, NY 14203": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.900567516061,
+  "lon": -78.867233149076,
+  "source": "census"
+ },
+ "82-68 164th Street, Jamaica, NY 11432": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.717489763577,
+  "lon": -73.802240302213,
+  "source": "census"
+ },
+ "830 Washington Street, Watertown, NY 13601": {
+  "county": "Jefferson County",
+  "county_fips": "045",
+  "lat": 43.964737466274,
+  "lon": -75.912844982956,
+  "source": "census"
+ },
+ "888 OLD COUNTRY ROAD, Plainview, NY 11803": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.774541697885,
+  "lon": -73.477944407392,
+  "source": "census"
+ },
+ "8881 State Route 97, Callicoon, NY 12723": {
+  "county": "Sullivan County",
+  "county_fips": "105",
+  "lat": 41.739823576947,
+  "lon": -75.045745099384,
+  "source": "census"
+ },
+ "89 Genesee Street, Rochester, NY 14611": {
+  "county": "Monroe County",
+  "county_fips": "055",
+  "lat": 43.148428610588,
+  "lon": -77.636141532898,
+  "source": "census"
+ },
+ "89th Avenue & Van Wyck Expressway, Jamaica, NY 11418": {
+  "county": "Queens County",
+  "county_fips": "081",
+  "lat": 40.701400987239,
+  "lon": -73.816309019514,
+  "source": "census"
+ },
+ "900 Franklin Avenue, Valley Stream, NY 11580": {
+  "county": "Nassau County",
+  "county_fips": "059",
+  "lat": 40.681670759709,
+  "lon": -73.685779773306,
+  "source": "census"
+ },
+ "95 Bradhurst Avenue, Valhalla, NY 10595": {
+  "county": "Westchester County",
+  "lat": 41.0747958,
+  "lon": -73.799763,
+  "source": "openstreetmap"
+ },
+ "967 North Broadway, Yonkers, NY 10701": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 40.968270030227,
+  "lon": -73.885021375556,
+  "source": "census"
+ },
+ "99 EAST STATE STREET, Gloversville, NY 12078": {
+  "county": "Fulton County",
+  "county_fips": "035",
+  "lat": 43.068083290204,
+  "lon": -74.330755814055,
+  "source": "census"
+ },
+ "Elm and Carlton Streets, Buffalo, NY 14263": {
+  "county": "Erie County",
+  "county_fips": "029",
+  "lat": 42.898514016619,
+  "lon": -78.865002963824,
+  "source": "census"
+ },
+ "Health Sciences Center SUNY, Stony Brook, NY 11794": {
+  "county": "Suffolk County",
+  "lat": 40.9082694,
+  "lon": -73.1151875,
+  "source": "openstreetmap"
+ },
+ "NY": {
+  "county": "",
+  "lat": 43.1561681,
+  "lon": -75.8449946,
+  "source": "openstreetmap"
+ },
+ "ONE ATWELL ROAD, Cooperstown, NY 13326": {
+  "county": "Otsego County",
+  "county_fips": "077",
+  "lat": 42.696106617697,
+  "lon": -74.924044855056,
+  "source": "census"
+ },
+ "One Gustave L Levy Place, New York, NY 10029": {
+  "county": "New York County",
+  "county_fips": "061",
+  "lat": 40.790491979726,
+  "lon": -73.953785645448,
+  "source": "census"
+ },
+ "One Healthy Way, Oceanside, NY 11572": {
+  "county": "Nassau County",
+  "lat": 40.6518227,
+  "lon": -73.6306909,
+  "source": "openstreetmap"
+ },
+ "One Norton Avenue, Oneonta, NY 13820": {
+  "county": "Otsego County",
+  "county_fips": "077",
+  "lat": 42.457403987926,
+  "lon": -75.053274280839,
+  "source": "census"
+ },
+ "Two Park Avenue, Yonkers, NY 10703": {
+  "county": "Westchester County",
+  "county_fips": "119",
+  "lat": 40.939516563628,
+  "lon": -73.892176167812,
+  "source": "census"
+ }
+}
