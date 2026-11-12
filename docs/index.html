@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NY Hospital Financial Assistance Tracker</title>
   <meta name="description" content="How New York hospitals comply with the state's Hospital Financial Assistance Law: grades, gaps, and a statewide map.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,700&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
-      <h1>NY Hospital Financial Assistance Tracker</h1>
+      <h1>NY Hospital <em>Financial Assistance</em> Tracker</h1>
       <p class="sub">How New York hospitals comply with the reformed Hospital Financial Assistance Law (HFAL).
         <span id="source-line"></span></p>
       <nav class="tabs" role="tablist" aria-label="Views">
@@ -97,10 +100,10 @@
     <div id="d-body"></div>
   </aside>
 
-  <footer class="wrap foot">
-    Built for the AI for Health Equity Design Sprint with the Community Service Society of New York.
+  <footer class="site-foot"><div class="wrap foot">
+    Built for the AI for Health Equity Design Sprint (Columbia University) with the Community Service Society of New York.
     Hospital locations: US Census Bureau and © OpenStreetMap contributors.
-  </footer>
+  </div></footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>

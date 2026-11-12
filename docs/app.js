@@ -4,7 +4,7 @@
 
 const GRADES = ["A", "B", "C", "D", "F"];
 // Map dots sit on light map tiles in both themes, so they always use the light-mode set.
-const MAP_COLORS = { A: "#104281", B: "#5598e7", C: "#b5b4ad", D: "#eda100", F: "#c62f2f", R: "#ffffff" };
+const MAP_COLORS = { A: "#262262", B: "#0080a0", C: "#9a9890", D: "#e9a533", F: "#c4471b", R: "#ffffff" };
 const state = {
   data: null,
   filters: { search: "", region: "", system: "", grade: "", criterion: "" },

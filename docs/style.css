@@ -1,64 +1,76 @@
-/* ---------- tokens (light) ---------- */
+/* ---------- tokens ----------
+   Palette follows the Community Service Society of New York's website:
+   navy #262262, teal #0080A0, gold #E9A533, orange #DF6334, sand #DDD5B8.
+   Font: CSSNY uses Fann Grotesque Pro (licensed), so Work Sans is the free stand-in.
+   Grade colors were checked with a color-blindness validator (all pairs). */
 :root {
   color-scheme: light;
-  --page: #f9f9f7;
-  --surface: #fcfcfb;
-  --surface-2: #f3f2ee;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #6f6d68;
-  --grid: #e1e0d9;
-  --axis: #c3c2b7;
-  --border: rgba(11, 11, 11, 0.10);
-  --accent: #2a78d6;
-  --accent-ink: #1c5cab;
-  --bar: #2a78d6;
-  --bar-track: #ecebe6;
-  /* grade scale: blue (good) - gray - amber - red (bad); validated all-pairs for
-     color-blind separation (dataviz validator); letters always shown on badges */
-  --g-A: #104281; --g-A-ink: #ffffff;
-  --g-B: #5598e7; --g-B-ink: #0b0b0b;
-  --g-C: #b5b4ad; --g-C-ink: #0b0b0b;
-  --g-D: #eda100; --g-D-ink: #0b0b0b;
-  --g-F: #c62f2f; --g-F-ink: #ffffff;
+  --font: "Fann Grotesque Pro", "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --navy: #262262; --teal: #0080a0; --gold: #e9a533; --orange: #df6334; --sand: #ddd5b8;
+  --page: #faf8f3;
+  --surface: #ffffff;
+  --surface-2: #f3efe4;
+  --ink: #212529;
+  --ink-2: #4a4d55;
+  --muted: #6b6e76;
+  --heading: #262262;
+  --grid: #ebe6d6;
+  --axis: #c9c1a3;
+  --border: rgba(38, 34, 98, 0.12);
+  --accent: #262262;          /* buttons, focus */
+  --accent-ink: #006f8c;      /* links: CSSNY teal, darkened for readable contrast */
+  --tab-line: #df6334;
+  --bar: #262262;
+  --bar-track: #efeadb;
+  --header-bg: #ffffff;
+  --footer-bg: #262262; --footer-ink: #ffffff;
+  --g-A: #262262; --g-A-ink: #ffffff;
+  --g-B: #0080a0; --g-B-ink: #ffffff;
+  --g-C: #9a9890; --g-C-ink: #0b0b0b;
+  --g-D: #e9a533; --g-D-ink: #0b0b0b;
+  --g-F: #c4471b; --g-F-ink: #ffffff;
   --g-R: #ffffff; --g-R-ink: #0b0b0b;   /* range / under review */
-  --st-no: #c62f2f;
-  --st-yes: #006300;
+  --st-no: #c4471b;
+  --st-yes: #2e6b1f;
   --st-review: #8a5a00;
-  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
-  --radius: 10px;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow: 0 1px 2px rgba(38,34,98,.05), 0 4px 16px rgba(38,34,98,.05);
+  --radius: 8px;
+  font-family: var(--font);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
-    --ink: #f0efec; --ink-2: #c3c2b7; --muted: #9a9890;
-    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-    --accent: #3987e5; --accent-ink: #86b6ef; --bar: #3987e5; --bar-track: #2a2a28;
-    --g-A: #256abf; --g-A-ink: #ffffff;
-    --g-B: #86b6ef; --g-B-ink: #0b0b0b;
-    --g-C: #8a8982; --g-C-ink: #0b0b0b;
-    --g-D: #eda100; --g-D-ink: #0b0b0b;
-    --g-F: #e34948; --g-F-ink: #0b0b0b;
-    --g-R: #1a1a19; --g-R-ink: #f0efec;
-    --st-no: #f07a7a; --st-yes: #4cc24c; --st-review: #e0a640;
+    --page: #121128; --surface: #1b1a33; --surface-2: #25244a;
+    --ink: #f2f1ec; --ink-2: #c9c7d8; --muted: #9997b0; --heading: #f2f1ec;
+    --grid: #2c2b4d; --axis: #3a3960; --border: rgba(255,255,255,0.10);
+    --accent: #6f6bd1; --accent-ink: #5cc3df; --tab-line: #e9a533;
+    --bar: #a6a3f0; --bar-track: #2a2950;
+    --header-bg: #1b1a33; --footer-bg: #0e0d22; --footer-ink: #c9c7d8;
+    --g-A: #a6a3f0; --g-A-ink: #0b0b0b;
+    --g-B: #1f93b3; --g-B-ink: #0b0b0b;
+    --g-C: #57564f; --g-C-ink: #ffffff;
+    --g-D: #e9a533; --g-D-ink: #0b0b0b;
+    --g-F: #d9542a; --g-F-ink: #0b0b0b;
+    --g-R: #1b1a33; --g-R-ink: #f2f1ec;
+    --st-no: #ef7a4e; --st-yes: #6cc24c; --st-review: #e0a640;
     --shadow: none;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
-  --ink: #f0efec; --ink-2: #c3c2b7; --muted: #9a9890;
-  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-  --accent: #3987e5; --accent-ink: #86b6ef; --bar: #3987e5; --bar-track: #2a2a28;
-  --g-A: #256abf; --g-A-ink: #ffffff;
-  --g-B: #86b6ef; --g-B-ink: #0b0b0b;
-  --g-C: #8a8982; --g-C-ink: #0b0b0b;
-  --g-D: #eda100; --g-D-ink: #0b0b0b;
-  --g-F: #e34948; --g-F-ink: #0b0b0b;
-  --g-R: #1a1a19; --g-R-ink: #f0efec;
-  --st-no: #f07a7a; --st-yes: #4cc24c; --st-review: #e0a640;
+  --page: #121128; --surface: #1b1a33; --surface-2: #25244a;
+  --ink: #f2f1ec; --ink-2: #c9c7d8; --muted: #9997b0; --heading: #f2f1ec;
+  --grid: #2c2b4d; --axis: #3a3960; --border: rgba(255,255,255,0.10);
+  --accent: #6f6bd1; --accent-ink: #5cc3df; --tab-line: #e9a533;
+  --bar: #a6a3f0; --bar-track: #2a2950;
+  --header-bg: #1b1a33; --footer-bg: #0e0d22; --footer-ink: #c9c7d8;
+  --g-A: #a6a3f0; --g-A-ink: #0b0b0b;
+  --g-B: #1f93b3; --g-B-ink: #0b0b0b;
+  --g-C: #57564f; --g-C-ink: #ffffff;
+  --g-D: #e9a533; --g-D-ink: #0b0b0b;
+  --g-F: #d9542a; --g-F-ink: #0b0b0b;
+  --g-R: #1b1a33; --g-R-ink: #f2f1ec;
+  --st-no: #ef7a4e; --st-yes: #6cc24c; --st-review: #e0a640;
   --shadow: none;
 }
 
@@ -68,8 +80,9 @@ html, body { margin: 0; }
 body { background: var(--page); color: var(--ink); line-height: 1.45; font-size: 15px; }
 a { color: var(--accent-ink); }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
-h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: -0.01em; }
-h2 { font-size: 1.05rem; margin: 0 0 4px; }
+h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.015em; color: var(--heading); }
+h1 em { font-style: italic; }
+h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: var(--heading); }
 .sub { margin: 0; color: var(--ink-2); max-width: 70ch; }
 .hint { margin: 0 0 14px; color: var(--muted); font-size: 0.875rem; }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -78,13 +91,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- header & tabs ---------- */
-.site-header { background: var(--surface); border-bottom: 1px solid var(--border); padding-top: 20px; }
-.tabs { display: flex; gap: 4px; margin-top: 14px; }
+.site-header { background: var(--header-bg); padding-top: 22px; position: relative; }
+/* CSSNY's signature stripe: navy, gold, orange */
+.site-header::after { content: ""; display: block; height: 6px;
+  background: linear-gradient(90deg, var(--navy) 0 55%, var(--gold) 55% 78%, var(--orange) 78% 100%); }
+.tabs { display: flex; gap: 4px; margin-top: 16px; }
 .tabs button {
   background: none; border: none; padding: 10px 14px; font-weight: 600; color: var(--ink-2);
   border-bottom: 2px solid transparent; margin-bottom: -1px;
 }
-.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button[aria-selected="true"] { color: var(--heading); border-bottom: 3px solid var(--tab-line); }
 .tabs button:hover { color: var(--ink); }
 
 /* ---------- filters ---------- */
@@ -201,5 +217,7 @@ dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px;
 dl.facts dt { color: var(--muted); }
 dl.facts dd { margin: 0; }
 .patient-note { background: var(--surface-2); border-radius: 8px; padding: 12px 14px; font-size: 0.875rem; }
-.foot { color: var(--muted); font-size: 0.78rem; padding-top: 8px; padding-bottom: 28px; }
+.site-foot { background: var(--footer-bg); color: var(--footer-ink); margin-top: 24px; }
+.site-foot .foot { font-size: 0.82rem; padding-top: 20px; padding-bottom: 28px; }
+.site-foot a { color: inherit; }
 .about p { max-width: 80ch; color: var(--ink-2); font-size: 0.9rem; }
