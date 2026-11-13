@@ -1,0 +1,13 @@
+{
+ "reviewer": "Test (no changes)",
+ "submitted": "2026-11-13",
+ "data_generated": "2026-11-12",
+ "decisions": [
+  {
+   "id": "www-adirondackhealth-org-financial-assistance-policies-7ed8ca|V",
+   "d": "yes",
+   "n": "Test submission: this answer is already settled, so nothing should change."
+  }
+ ],
+ "source": "GitHub issue #1 by becca-goldrup"
+}
