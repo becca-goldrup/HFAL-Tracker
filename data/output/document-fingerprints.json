@@ -1,0 +1,362 @@
+{
+ "https://bertrandchaffee.com/patients-and-families/financial-assistance/": {
+  "fingerprint": "bff251a0a0681745d27c6f85f2bf56f0d91aba3d018970d13f0f1a630a4dcd5d",
+  "graded": "2026-11-12"
+ },
+ "https://brookshospital.org/patient-information/patient-financial-services/financial-information/": {
+  "fingerprint": "d323ec122bc8e5a40f9a76ecf0c9d27e40699ecf14bce447ad3ed5fe4b492027",
+  "graded": "2026-11-12"
+ },
+ "https://cayugahealth.org/patients/paying-for-your-care/cayuga-medical-associates/": {
+  "fingerprint": "ce6b244e6425116f3511b4fc87c9612f4f95f2da0efcb3187618194e05fe670d",
+  "graded": "2026-11-12"
+ },
+ "https://cayugahealth.org/patients/paying-for-your-care/schuyler-hospital/": {
+  "fingerprint": "8ed63cdb0f29d1bee879214aefb4abae5abfa534faac69709be0649a27f3b1c4",
+  "graded": "2026-11-13"
+ },
+ "https://cliftonfinehospital.org/financial-information/": {
+  "fingerprint": "bcf7e61b380be65b8e8c4a61a6f9ee7215308764ae900a4a2155463ab7e9e058",
+  "graded": "2026-11-12"
+ },
+ "https://communitymemorial.org/patient-visitor-info/financial-assistance/": {
+  "fingerprint": "d4e7be10e96edaea21083dcfdeb2a8a9254cd9cc5f861832eb8fd09a2bfe5385",
+  "graded": "2026-11-12"
+ },
+ "https://ehs.org/patient-visitors/paying-for-care/": {
+  "fingerprint": "af244d50364bb125c71e21ed38edc91c25e0ca4be4c71de56c3699333b3a6fcf",
+  "graded": "2026-11-13"
+ },
+ "https://erhny.org/patient-guests/financial-assistance-program/": {
+  "fingerprint": "1c4470aff0d2b1d7a97da1c40278ef61f3e331ea440785551a514d2fba8f1622",
+  "graded": "2026-11-13"
+ },
+ "https://flushinghospital.org/financial-services/": {
+  "fingerprint": "0eaf896c5ef3403659f903a6da75a045a4a6b8eefcf7466ed36aab8f36760234",
+  "graded": "2026-11-12"
+ },
+ "https://helenhayeshospital.org/admissions/patient-financial-services/": {
+  "fingerprint": "e61796ac8a6766a8592be8bd316931f04ea9a629286df500469c803dabf4635f",
+  "graded": "2026-11-12"
+ },
+ "https://jamaicahospital.org/financial/financial-assistance-program/": {
+  "fingerprint": "b5e4c10780f468b93e7e3d88bf1c44ee77caf0b8c59dd4c80ec7b6bb42ff99e3",
+  "graded": "2026-11-13"
+ },
+ "https://maimo.org/patients-visitors/paying-for-care/": {
+  "fingerprint": "49f79d358c3d62177b9e424cc3784d4af7dd30bfe8d2e3027a0441e5011d8507",
+  "graded": "2026-11-13"
+ },
+ "https://montefioreeinstein.org/patient-care/patients-visitors/billing-insurance/aid-policy": {
+  "fingerprint": "283e092acf2c377f090d41e0e494238398c6754f071224e489e73c1626280143",
+  "graded": "2026-11-13"
+ },
+ "https://montefiorenewrochelle.org/patients-and-visitors/financial-aid-policy": {
+  "fingerprint": "5177d0a62f8374e6eb1fa519007bdf3d184385b77e031bd0fb21df432cd47ec6",
+  "graded": "2026-11-13"
+ },
+ "https://nych.com/about-us/financial-aidcharity-care/": {
+  "fingerprint": "c7c325d41f847e593a68cff4e339796207f3acf8c3f6e8f67eba7709a2ab0ee9",
+  "graded": "2026-11-13"
+ },
+ "https://nyulangone.org/insurance-billing-financial-assistance": {
+  "fingerprint": "c97b104264b84771dcf6cae600e4ece03710e27afb3e66e02aef4e8b15fbb1a3",
+  "graded": "2026-11-13"
+ },
+ "https://onebrooklynhealth.org/financial-assistance": {
+  "fingerprint": "47aa6f0770173b39087961d1168b5bd3f90ff38a1c5ebd61f7d926527682ee5a",
+  "graded": "2026-11-12"
+ },
+ "https://orleanscommunityhealth.org/financial-assistance-charity-care/": {
+  "fingerprint": "8dfa4e85485236b8367a8dee15e556c1ccd5842bcd0836942c76e63503127b8d",
+  "graded": "2026-11-12"
+ },
+ "https://riversidehealth.org/patients-visitors/patient-financial-services/": {
+  "fingerprint": "b51402f92a06d1eb96dcb8452df0f8808094ebad9b70930cd9cf4214216404eb",
+  "graded": "2026-11-13"
+ },
+ "https://saintjosephs.org/financial-information/assistance/": {
+  "fingerprint": "f65d2f5ba7d0cc0ce935164b120ee149fbb8f55816a52fdd4936cc3508bad645",
+  "graded": "2026-11-13"
+ },
+ "https://samaritanhealth.com/for-patients/financial-information/financial-assistance-program/": {
+  "fingerprint": "9be4360f177133cd3c36dd8a77e03869de7ad03357bd9c4d8973048cbb6a031a",
+  "graded": "2026-11-13"
+ },
+ "https://whmcny.org/billing-payment/": {
+  "fingerprint": "48ec623872c691661c324f7f284e65d2cb55b66ff91ad235e1b0222378d5a128",
+  "graded": "2026-11-13"
+ },
+ "https://www.adirondackhealth.org/financial-assistance-policies": {
+  "fingerprint": "3e0fd49d07eb95654890d3c39f41e82a529151fade5e4650cdacb8da61fe0c88",
+  "graded": "2026-11-12"
+ },
+ "https://www.ahn.org/patients-visitors/patients/financial-services/uninsured-financial-assistance": {
+  "fingerprint": "2df91c697091f99acf4610edf898253f574a31e6c36a56b24be4271ad132ea63",
+  "graded": "2026-11-13"
+ },
+ "https://www.albanymed.org/patients-visitors/billing-insurance/financial-assistance-programs/": {
+  "fingerprint": "4b0dbccd39c128deb04b5f03f25087fa3a018b6adeaa4ffd838ca62ab104170a",
+  "graded": "2026-11-12"
+ },
+ "https://www.alicehyde.com/Patients-and-Visitors/Patient-Financial-Services/Financial-Assistance-Program": {
+  "fingerprint": "c59ed80e1f2db3683e01d67cdfd9c84fc1a788823909653897ba884fba5c1098",
+  "graded": "2026-11-13"
+ },
+ "https://www.arnothealth.org/financial-assistance": {
+  "fingerprint": "202233579c6411e3d796473a5ebc0f995f583cce688e9376af1b81e8b658e537",
+  "graded": "2026-11-12"
+ },
+ "https://www.auburnhospital.org/patients-and-visitors/financial-assistance/": {
+  "fingerprint": "c0f9f68392f93a4929e308c43332741908cdc2633ae042730a4dbc436087187e",
+  "graded": "2026-11-12"
+ },
+ "https://www.bassett.org/patients-visitors/billing-insurance/financial-assistance": {
+  "fingerprint": "ffa67100e87bd6afeae9fab17dfd622d071d0f40a68f2605971894b835c9f236",
+  "graded": "2026-11-12"
+ },
+ "https://www.blythedale.org/new-patients/finances-insurance": {
+  "fingerprint": "17c3c0ddcef39c90f0975448579d37cb05eb5172a3af4cb2989b3c95afae70cf",
+  "graded": "2026-11-12"
+ },
+ "https://www.brmc-ogh.org/visitors/financial-assistance/": {
+  "fingerprint": "a1f093641a912c5e78759487fecde68c202315eae43b240db1fcc8ad29ff2338",
+  "graded": "2026-11-13"
+ },
+ "https://www.bronxcare.org/about-us/charity-care-policy": {
+  "fingerprint": "30093ec74e52762658a6176bd1d9ac3c68ec72fab3786684d8fd4b30c2a7b7a9",
+  "graded": "2026-11-12"
+ },
+ "https://www.buffalogeneral.org/care/Financial-Assistance-Program/Financial-Assistance": {
+  "fingerprint": "4f5459d56795950501ddea41277c03e3ad617df6936f08cc4b24783e9adbf5a3",
+  "graded": "2026-11-12"
+ },
+ "https://www.calvaryhospital.org/patients-families/patient-financial-information/": {
+  "fingerprint": "1bfa2fef4f7cabe266d1addcab31329ffc7389b3f46a5a9c910ef001a3193829",
+  "graded": "2026-11-12"
+ },
+ "https://www.carthagehospital.com/patients-visitors/billing-insurance/": {
+  "fingerprint": "d26fffd11f75ad43f23a080ba2b4bf95f40385f1041f5b1b48bc03199388a0b8",
+  "graded": "2026-11-13"
+ },
+ "https://www.catholichealthli.org/paying-your-care/financial-assistance": {
+  "fingerprint": "60e432a2e379453c3edcc4a6b662762fe6de0f25fbcf5213d2f92dd711f44853",
+  "graded": "2026-11-12"
+ },
+ "https://www.chsbuffalo.org/billing-insurance/financial-assistance/": {
+  "fingerprint": "ec4f3de71cd8ed1c98965a3253f28a6bf771b486b263a43dd589fb7e9006d9ad",
+  "graded": "2026-11-13"
+ },
+ "https://www.claxtonhepburn.org/patient-visitors/financial-assistance/": {
+  "fingerprint": "49625bc489a0dac5f31b5471149a2565f3f1409b3bda11cf1112001cbb2312f2",
+  "graded": "2026-11-12"
+ },
+ "https://www.crouse.org/visit/patients/financial-assistance/": {
+  "fingerprint": "963b9d66e98bcc2bf7046171be39cd20e147ea4e9806f3a21c3cef85024f459a",
+  "graded": "2026-11-12"
+ },
+ "https://www.cubamemorialhospital.com/": {
+  "fingerprint": "37aaf458297f0c7cd52a1027e4dc7e6b5103d72e857395310678e6ad93cbcf3d",
+  "graded": "2026-11-12"
+ },
+ "https://www.cvph.org/Patients-and-Visitors/Patients/Financial-Assistance": {
+  "fingerprint": "c59ed80e1f2db3683e01d67cdfd9c84fc1a788823909653897ba884fba5c1098",
+  "graded": "2026-11-13"
+ },
+ "https://www.downstate.edu/patient-care/patient-family-support/insurance-billing/index.html": {
+  "fingerprint": "c59e2bd9dcecb77d325385ce1b9fbe2df6589ec2772c9bef8a64a0b1bfa4ded1",
+  "graded": "2026-11-13"
+ },
+ "https://www.ech.org/About-Us/financial-assistance": {
+  "fingerprint": "c59ed80e1f2db3683e01d67cdfd9c84fc1a788823909653897ba884fba5c1098",
+  "graded": "2026-11-13"
+ },
+ "https://www.ecmc.edu/patients-visitors/billing-and-insurance/financial-assistance/": {
+  "fingerprint": "5087f94bba9d853d3ea254ae7416be7d217d90e4c4a14e6c16a4d353273ed836",
+  "graded": "2026-11-12"
+ },
+ "https://www.ellismedicine.org/financial-assistance/default.aspx": {
+  "fingerprint": "3d6ee59148d832ca12fc842744a66b673b20681702b3e97f5e36ea5e7ceded58",
+  "graded": "2026-11-12"
+ },
+ "https://www.flhealth.org/patients-visitors/patient-financial-services/financial-aid-program": {
+  "fingerprint": "bc156371fdf7253be98e8b294c82e6edbaa31748571fb28be5e32416a15cd6cf",
+  "graded": "2026-11-12"
+ },
+ "https://www.garnethealth.org/patients-visitors/billing-insurance/financial-assistance": {
+  "fingerprint": "5e3dfa8c317b169835bd6cc8b9de6e5be64f192781e751ca5cf73a6919252a44",
+  "graded": "2026-11-13"
+ },
+ "https://www.guthrie.org/patients-visitors/pay-my-bill/financial-assistance": {
+  "fingerprint": "6de04c5c2e13eb762fd82460ef8fdeb25398a1efd5d95b354eebd0224fb903cc",
+  "graded": "2026-11-12"
+ },
+ "https://www.hss.edu/patient-care/paying-for-care/financial-assistance": {
+  "fingerprint": "48f6da12e3385a9d0a68fe8056614373a8a479508d586a075ea925508552b88d",
+  "graded": "2026-11-13"
+ },
+ "https://www.lcgh.net/": {
+  "fingerprint": "c011e90fa4a111ec6ad27de68faac57be0d22f97fd9401dbcfcbecc31b7fa3c8",
+  "graded": "2026-11-12"
+ },
+ "https://www.millardfillmoresuburban.org/care/Financial-Assistance-Program": {
+  "fingerprint": "b4899565e920142e72f919504267db719fc01dae3699b7ae4d8aa354ab31db52",
+  "graded": "2026-11-13"
+ },
+ "https://www.montefiorehealthsystem.org/body.cfm?id=69": {
+  "fingerprint": "eefae623397e619d7d06b00e96eee3b093b571f5807c46e6f139c980e56f7f45",
+  "graded": "2026-11-13"
+ },
+ "https://www.montefioreslc.org/patients/billing-insurance-information/": {
+  "fingerprint": "d165c48bab8fd2784b407b679c85462ce3bc92bda417b7751c00a728e7520317",
+  "graded": "2026-11-13"
+ },
+ "https://www.mountsinai.org/about/financial-assistance": {
+  "fingerprint": "9769ca47293db83139aa6e2fb5983cbb2c521ea1ebf160a90020d397a1c9d869",
+  "graded": "2026-11-13"
+ },
+ "https://www.mskcc.org/insurance-assistance/assistance": {
+  "fingerprint": "01c4a9b1665d9028dde57001b6ad96c146f6a5a0b23203d918df686a326217c1",
+  "graded": "2026-11-12"
+ },
+ "https://www.mvhealthsystem.org/patient-visitor-info/billing-assistance/financial-assistance-program/": {
+  "fingerprint": "1ed70b827a3c11d1ba821229b81de386315c2f51b6a1a1a66f30504e2da38a0c",
+  "graded": "2026-11-12"
+ },
+ "https://www.nfmmc.org/financial-assistance": {
+  "fingerprint": "7b47cc72bf4c7b80c0522765d89875f8605d7896e6c5738470b7ad6d5bc416f5",
+  "graded": "2026-11-13"
+ },
+ "https://www.nlh.org/about-nlh/patient-billing": {
+  "fingerprint": "dadb4cf41b55a8b2e751ce4f5da0056c75a8c66fdaa8a5d959a4cfbefaa96ee3",
+  "graded": "2026-11-13"
+ },
+ "https://www.northwell.edu/billing-and-insurance/financial-assistance-programs-policies/financial-assistance-program": {
+  "fingerprint": "01d06d7470898cff9f205a4822f7a21a75f6b0811daf29859ec7e0a9c6955dae",
+  "graded": "2026-11-12"
+ },
+ "https://www.numc.edu/patients-and-visitors/financial-assistance/": {
+  "fingerprint": "088ea74d21bf341efb865ba640c226a6b9f69ee772a15e32b6250d77427051eb",
+  "graded": "2026-11-13"
+ },
+ "https://www.nuvancehealth.org/patients-and-visitors/billing-and-insurance/patient-financial-assistance": {
+  "fingerprint": "6760b614f13a04f8e37bba996f9c995e4b06964571d4c37f622792e4c351846c",
+  "graded": "2026-11-13"
+ },
+ "https://www.nychealthandhospitals.org/financial-assistance/": {
+  "fingerprint": "27d85d010032d7ab595f167eb2dd89faf568a48e74d6afd7e901d1d67bd3d0b2",
+  "graded": "2026-11-12"
+ },
+ "https://www.nyp.org/pay-my-bill": {
+  "fingerprint": "ca7e5fb098a16a4327a6c048ceaf57ef25c0db5853c05266b614b61bd507a745",
+  "graded": "2026-11-13"
+ },
+ "https://www.nyuhs.org/patients-visitors/patients/financial-assistance": {
+  "fingerprint": "9e935c24e04ccdbafd9eccf7e40248ae27bf29bf894857e6880101307df60a98",
+  "graded": "2026-11-12"
+ },
+ "https://www.ochbuffalo.org/care-treatment/Financial-Assistance-Program": {
+  "fingerprint": "27a20187633be6c9306a8c75e59803c03cd9cce91d18a8fe83c84da4f59f6452",
+  "graded": "2026-11-12"
+ },
+ "https://www.oneidahealth.org/financial-assistance/": {
+  "fingerprint": "ac48982633edeff215ba1e0dd03468806c40b86518fb00e2d54596c297caa9ee",
+  "graded": "2026-11-13"
+ },
+ "https://www.oswegohealth.org/patients-families/billing-information/financial-assistance/": {
+  "fingerprint": "7626c0cf77cb30c9c0a2cea6ca7ea1ff339f1b4f16c197fa2bfd9d0948dd8f01",
+  "graded": "2026-11-13"
+ },
+ "https://www.riverhospital.org/patient-resources/financial-services": {
+  "fingerprint": "0f2d2ebdac211e650c1a13f329916174319038dc6cd4b36ab2aca3ec28f5d0e9",
+  "graded": "2026-11-13"
+ },
+ "https://www.rochesterregional.org/billing-and-insurance/financial-assistance": {
+  "fingerprint": "d52b6dfccf05c1644498e8c702d43aa2f8eefc064bd2503b41eff1f7ac82bbcf",
+  "graded": "2026-11-12"
+ },
+ "https://www.romehealth.org/medical-financial-assistance-near-rome-ny/": {
+  "fingerprint": "534700282db56a3c738c3205dcc87ab8b94bab25cfd21bcbc61f6f1b16a5bf2b",
+  "graded": "2026-11-13"
+ },
+ "https://www.roswellpark.org/become-patient/paying-cancer-care/financial-assistance": {
+  "fingerprint": "a2d60c915f31a62940027e44403a699fce1d61296880ec51fae7005595222f63",
+  "graded": "2026-11-13"
+ },
+ "https://www.rumcsi.org/patients-visitors/billing-and-insurance/financial-assistance-summary/": {
+  "fingerprint": "c42d855c2f028b1315daa9de7da8ad42fa58d946b0abe9d6970c4e50a857ec0f",
+  "graded": "2026-11-13"
+ },
+ "https://www.sbhny.org/financial-services/": {
+  "fingerprint": "9dbac2039298e2a4d3f4487abc655b0b6f87c10a83b75df985823cd0e5fb2851",
+  "graded": "2026-11-13"
+ },
+ "https://www.sjhsyr.org/for-patients/billing-and-insurance/financial-assistance": {
+  "fingerprint": "88c169d62a259394ee611ae7b7c057f3a8f5baebe2b2da74c46ea0c1589bb265",
+  "graded": "2026-11-13"
+ },
+ "https://www.smha.org/patients-visitors/financial-help/": {
+  "fingerprint": "af7d8b06f9472c9d6019c65e4b422e9b90b3e909176894eb4acf267a10903d59",
+  "graded": "2026-11-13"
+ },
+ "https://www.southnassau.org/sn/financial-assistance-program": {
+  "fingerprint": "e239cedf4af60d637e36b5e8413f744f23c5753373aa15569b41ee8b88eecc33",
+  "graded": "2026-11-13"
+ },
+ "https://www.sphp.com/for-patients/billing-information/financial-assistance": {
+  "fingerprint": "2d1dbc8c1286df280249dac0fc782c5f373145821b41761d8770b246d4ee1fc0",
+  "graded": "2026-11-13"
+ },
+ "https://www.stonybrookmedicine.edu/patientcare/oon/financial-assistance": {
+  "fingerprint": "0bb8e49867e379d693a0498830d5b1ab6bebeb5d7dbcba65a58205ac22803739",
+  "graded": "2026-11-13"
+ },
+ "https://www.tbh.org/visitor-information/billing/financial-assistance": {
+  "fingerprint": "5c828fae746dbe3a868c8389405ff303152613047d6451af94ad5015da6271d9",
+  "graded": "2026-11-12"
+ },
+ "https://www.upmc.com/patients-visitors/paying-bill/services/apply": {
+  "fingerprint": "ba0a83fe6be2c498d84bc25fbaaff8ee14b529c9d831b3ee95eca46ff8af5a67",
+  "graded": "2026-11-13"
+ },
+ "https://www.upstate.edu/hospital/patients-families/billing/financial-resources.php": {
+  "fingerprint": "b3f0bb681780773b3ed21bdbf62f5f09ed4d11c7c469cffe30cbf36078b32446",
+  "graded": "2026-11-12"
+ },
+ "https://www.urmc.rochester.edu/pay-a-bill/financial-assistance/highland-hospital-financial-assistance": {
+  "fingerprint": "d7c08cbf5ed8debb6ba011d40fe04896ea95e0db9d8966eca2ed2226a2927dfc",
+  "graded": "2026-11-12"
+ },
+ "https://www.urmc.rochester.edu/pay-a-bill/financial-assistance/jones-memorial-hospital-financial-assistance": {
+  "fingerprint": "3ebaada4d9db597bba44dc9393e5474a51c0dbb4534b4a10d619f4dabe7f9355",
+  "graded": "2026-11-13"
+ },
+ "https://www.urmc.rochester.edu/pay-a-bill/financial-assistance/noyes-health-financial-assistance": {
+  "fingerprint": "f7233168cd388faced996eaa13f40090200c8b2d1a1d42a83cdfc22bc3e37819",
+  "graded": "2026-11-12"
+ },
+ "https://www.urmc.rochester.edu/pay-a-bill/financial-assistance/st-james-hospital-financial-assistance": {
+  "fingerprint": "44631578cd306fc2591c7ebb297fe4d676e130fe19f04800164a380229a63200",
+  "graded": "2026-11-13"
+ },
+ "https://www.urmc.rochester.edu/pay-a-bill/financial-assistance/strong-memorial-hospital-financial-assistance": {
+  "fingerprint": "4c229c220a401bb37a28536b8d1f992d4481ab1353275f57e929c2a180b60815",
+  "graded": "2026-11-13"
+ },
+ "https://www.urmc.rochester.edu/pay-a-bill/financial-assistance/thompson-health-financial-assistance": {
+  "fingerprint": "bf7cd888d88ce9e082b85b0d72fc3434ea78b9ca25f11a6b00f328c470ccb300",
+  "graded": "2026-11-12"
+ },
+ "https://www.wcchs.net/patients-guests/billing-information/": {
+  "fingerprint": "2936bba20f9fae82e1ee135df8b0fd9fc8b1111f8c70928a45136c3da85f8d07",
+  "graded": "2026-11-13"
+ },
+ "https://www.wmchealth.org/patients-and-visitors/insurance-and-billing/financial-assistance": {
+  "fingerprint": "5f0ed066091a98312796456d985011247f18570f3a76e355504c69a512d95fcc",
+  "graded": "2026-11-12"
+ },
+ "https://www.wphospital.org/patients-visitors/patients/billing-information/standard-charges/": {
+  "fingerprint": "80459cc2c51831dd6a76cac7b8a70ceed3ea99b4a103880b77aeff7c9b33c42a",
+  "graded": "2026-11-13"
+ }
+}

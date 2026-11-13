@@ -69,6 +69,24 @@ def pick_input(arg: str | None) -> Path:
     sys.exit(f"No spreadsheet found. Put the CSS .xlsx file in {config.INPUT_DIR}/")
 
 
+FINGERPRINTS = config.OUTPUT_DIR / "document-fingerprints.json"
+
+
+def load_fingerprints() -> dict:
+    """{hfa_url: {"fingerprint", "graded"}}: what each website's documents looked like when last graded."""
+    import json
+    try:
+        return json.loads(FINGERPRINTS.read_text())
+    except Exception:
+        return {}
+
+
+def save_fingerprints(fps: dict) -> None:
+    import json
+    FINGERPRINTS.parent.mkdir(parents=True, exist_ok=True)
+    FINGERPRINTS.write_text(json.dumps(dict(sorted(fps.items())), indent=1))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--input", help="spreadsheet to start from (default: newest in data/output, else data/input)")
@@ -88,7 +106,7 @@ def main():
     # Hospitals that share a financial assistance page are checked once.
     groups: "OrderedDict[str, list[dict]]" = OrderedDict()
     for h in tracker.hospitals():
-        if args.only and args.only.lower() not in f"{h['name']} {h['system']} {h['hfa_url']}".lower():
+        if args.only and not any(o.strip().lower() in f"{h['name']} {h['system']} {h['hfa_url']}".lower() for o in args.only.split("|") if o.strip()):
             continue
         if not h["hfa_url"]:
             print(f"  ! {h['name']}: no HFA link in the sheet -- skipped")
@@ -121,21 +139,24 @@ def main():
                 if site.landing_ok or load_site(url) is None:
                     save_site(site)  # a failed attempt doesn't overwrite the last good download
                 ok_docs = [d for d in site.documents if not d.error]
-                prev = load_result(url)
+                # The last fingerprint lives in the repository (data/output/document-fingerprints.json),
+                # so it survives even when GitHub's temporary cache of downloaded files has expired.
+                prev_fp = fingerprints.get(url, {}).get("fingerprint") or (load_result(url) or {}).get("fingerprint")
                 if not site.landing_ok:
                     st, reason = f"error: {site.error}", ""
-                elif prev and prev["fingerprint"] == site.fingerprint() and not args.force:
+                elif prev_fp and prev_fp == site.fingerprint() and not args.force:
                     st, reason = "unchanged", "documents unchanged"
                 else:
                     st = "grade"
-                    reason = ("first AI check" if not prev else
-                              "documents changed" if prev["fingerprint"] != site.fingerprint() else
+                    reason = ("first AI check" if not prev_fp else
+                              "documents changed" if prev_fp != site.fingerprint() else
                               "re-checked (same documents)")
                 with lock:
                     sites[url], status[url], why[url] = site, st, reason
                     done[0] += 1
                     print(f"  [{done[0]}/{len(urls)}] {len(ok_docs):2d} docs  {st[:60]:12}  {url}", flush=True)
 
+    fingerprints = load_fingerprints()
     chunks = [urls[i::n_workers] for i in range(n_workers)]
     with ThreadPoolExecutor(n_workers) as ex:
         for fut in [ex.submit(fetch_worker, c) for c in chunks]:
@@ -213,17 +234,18 @@ def main():
     for url, hospitals in groups.items():
         site, res, st = sites[url], results.get(url), status[url]
         n_docs = len([d for d in site.documents if not d.error])
+        already_has_ai = all(tracker.ws.cell(h["row"], tracker.new_col["AI Last Checked"]).value for h in hospitals)
+        if st == "unchanged" and already_has_ai and not args.reapply:
+            # Nothing changed online: keep the sheet as-is (including staff decisions).
+            for h in hospitals:
+                tracker.mark_checked(h, "website unchanged")
+            tracker.log_run(url, "unchanged", len(hospitals), n_docs, None, "documents unchanged")
+            fingerprints[url] = {"fingerprint": site.fingerprint(), "graded": fingerprints.get(url, {}).get("graded", "")}
+            continue
         if st.startswith(("error", "skipped")) or res is None:
             for h in hospitals:
                 tracker.mark_checked(h, st if st.startswith(("error", "skipped")) else "error: no AI result")
             tracker.log_run(url, st, len(hospitals), n_docs, None, why.get(url, ""))
-            continue
-        already_has_ai = all(tracker.ws.cell(h["row"], tracker.new_col["AI Last Checked"]).value for h in hospitals)
-        if st == "unchanged" and already_has_ai and not args.reapply:
-            # Nothing changed online: keep the sheet as-is (including human fixes).
-            for h in hospitals:
-                tracker.mark_checked(h, "website unchanged")
-            tracker.log_run(url, "unchanged", len(hospitals), n_docs, None, "documents unchanged")
             continue
         decisions, text, warnings = decide(site, res)
         tracker.record_details(url, site, decisions, res.get("model", ""))
@@ -233,10 +255,12 @@ def main():
             tracker.apply(h, decisions, text, warnings, site, fpl_val, psa_listed(res["result"]), why.get(url, ""))
         if st == "grade":
             usage_total.update(res["usage"])
+            fingerprints[url] = {"fingerprint": site.fingerprint(), "graded": tracker.run_date}
         tracker.log_run(url, "graded" if st == "grade" else "applied cached result", len(hospitals), n_docs,
                         res["usage"] if st == "grade" else None, why.get(url, ""))
 
     out = tracker.save()
+    save_fingerprints(fingerprints)
 
     # ------------------------------------------------------------ summary
     checked = [h for hs in groups.values() for h in hs]
