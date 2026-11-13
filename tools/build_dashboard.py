@@ -309,7 +309,7 @@ def build_health(t: Tracker) -> dict:
                 else:
                     quote = d.evidence[0][:260]
             totals[basis] += 1
-            items.append({"key": c.key, "value": value, "basis": basis, "cause": cause,
+            items.append({"key": c.key, "column": c.column, "value": value, "basis": basis, "cause": cause,
                           "confidence": d.confidence if d is not None else "", "reason": str(reason)[:320],
                           "quote": quote, "doc": doc, "url": durl})
         g = grade_row(t.last_values(first["row"]))

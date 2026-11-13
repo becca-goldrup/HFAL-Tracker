@@ -216,6 +216,12 @@ The dashboard's **For CSS staff** tab has three steps:
 3. **Send decisions.** Download the decisions file and upload it to `data/reviews/` on GitHub. The workflow applies
    it to the newest spreadsheet (`tools/apply_reviews.py`), records it in the AI Change Log, and refreshes the dashboard.
 
+**Correcting any AI answer, not just flagged ones:** in the **Data health** tab, open a hospital website and choose
+**Edit** on any of its 17 answers (this also works for websites the AI couldn't check, to enter values by hand).
+Corrections go into the same decisions file as review decisions. CSS staff decisions are kept on later checks: if
+the AI agrees or isn't sure, the staff decision stays; if the hospital's documents change and the AI now disagrees,
+the item goes back to review showing both answers.
+
 Anyone can see this tab (the repository is public), but only people with write access to the repository can run
 checks or upload decisions.
 

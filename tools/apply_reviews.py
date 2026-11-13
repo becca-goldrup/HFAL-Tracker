@@ -8,8 +8,10 @@ runs this automatically; locally:
     python tools/apply_reviews.py
 
 Each decision sets one requirement (yes / no) for every hospital that shares that
-financial assistance page, but only where the cell is still marked REVIEW (a newer
-AI check may have settled it already). Applied files move to data/reviews/applied/.
+financial assistance page. Review decisions apply only where the cell is still
+marked REVIEW (a newer AI check may have settled it already); corrections made
+from the Data health tab ("override") apply to any answer. Applied files move to
+data/reviews/applied/.
 """
 import json
 import sys
@@ -56,9 +58,11 @@ def main():
                 skipped += 1
                 continue
             hospitals = by_site.get(d.get("hfa_url"), [])
+            override = bool(d.get("override"))  # a correction to an answer that wasn't flagged
             changed = False
             for h in hospitals:
-                if tracker.ws.cell(h["row"], _col(column)).value == REVIEW:
+                current = tracker.ws.cell(h["row"], _col(column)).value
+                if current == REVIEW or override:
                     tracker.apply_decision(h, column, value, reviewer, when, str(d.get("note") or "")[:500])
                     changed = True
             applied += changed

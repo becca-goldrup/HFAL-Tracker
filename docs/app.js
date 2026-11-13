@@ -427,10 +427,13 @@ function renderReview() {
   const done = items.filter((i) => decided(i.id)).length;
   $("#progress-fill").style.width = items.length ? `${(100 * done) / items.length}%` : "0%";
   $("#progress-text").textContent = items.length ? `${done} of ${items.length} flagged items reviewed` : "";
-  $("#send-summary").textContent = done
-    ? `You've decided ${done} item${done === 1 ? "" : "s"}. Download them and upload the file to apply them.`
-    : "Decide at least one item above, then send your decisions here.";
-  $("#rv-download").disabled = !done;
+  const all = savedDecisions();
+  const fixes = all.filter((x) => x.override).length;
+  $("#send-summary").textContent = all.length
+    ? `Ready to send: ${all.length - fixes} review decision${all.length - fixes === 1 ? "" : "s"}` +
+      `${fixes ? ` and ${fixes} correction${fixes === 1 ? "" : "s"} from the Data health tab` : ""}. Download them and upload the file to apply them.`
+    : "Decide at least one item above (or correct an answer in the Data health tab), then send your decisions here.";
+  $("#rv-download").disabled = !all.length;
 
   if (!state.data.last_run) {
     $("#review-list").innerHTML = `<p class="empty">Flagged items appear here after the first AI check.</p>`;
@@ -487,13 +490,20 @@ function reviewItem(i) {
   </div>`;
 }
 
+// Every saved decision: flagged items settled in this tab, plus corrections made in the Data health tab.
+function savedDecisions() {
+  const byId = Object.fromEntries((state.data.review || []).map((i) => [i.id, i]));
+  return Object.entries(staff.decisions).filter(([, x]) => x.decision === "yes" || x.decision === "no").map(([id, x]) => {
+    const item = byId[id] || {};
+    return { id, hfa_url: x.hfa_url || item.hfa_url, column: x.column || item.column,
+             requirement: x.requirement || item.requirement, decision: x.decision, note: x.note || "",
+             override: !!x.override && !item.id, hospitals: x.hospitals || item.hospitals || [] };
+  }).filter((x) => x.hfa_url && x.column);
+}
+
 function downloadDecisions() {
-  const items = state.data.review || [];
   const name = ($("#rv-name").value || "").trim();
-  const decisions = items.filter((i) => decided(i.id)).map((i) => ({
-    id: i.id, hfa_url: i.hfa_url, column: i.column, requirement: i.requirement,
-    decision: decided(i.id), note: (staff.decisions[i.id] || {}).note || "", hospitals: i.hospitals,
-  }));
+  const decisions = savedDecisions();
   const today = new Date().toISOString().slice(0, 10);
   const blob = new Blob([JSON.stringify({ reviewer: name, submitted: today, data_generated: state.data.generated,
     decisions }, null, 1)], { type: "application/json" });
@@ -524,7 +534,7 @@ const BASIS = {
              about: "The AI couldn't check this website (it blocks automated access), so the value from CSS's 2025 review is kept." },
 };
 const BASIS_ORDER = ["quote", "absence", "review", "staff", "carried"];
-const health = { data: null, loading: false, filter: { status: "all", cause: "", req: "" }, open: new Set() };
+const health = { data: null, loading: false, filter: { status: "all", cause: "", req: "" }, open: new Set(), editing: new Set() };
 
 function showHealth() {
   if (health.data) return renderHealth();
@@ -689,16 +699,35 @@ function healthDetail(s) {
     ${(s.notes || []).map((n) => `<p class="rv-site-note">${esc(n)}</p>`).join("")}
     <ul class="h-items">${s.items.map((i) => {
       const doc = safeUrl(i.url);
-      return `<li class="h-item">
+      const id = `${s.id}|${i.column}`;
+      const mine = staff.decisions[id];
+      const pending = mine && (mine.decision === "yes" || mine.decision === "no");
+      const editing = health.editing.has(id);
+      const edit = pending
+        ? `<p class="h-edit-state">Your change: <strong>${mine.decision === "yes" ? "meets requirement" : "falls short"}</strong>
+             (not sent yet) <button type="button" class="text-btn" data-h-undo="${esc(id)}">Undo</button></p>`
+        : editing
+          ? `<div class="h-edit" data-h-edit-id="${esc(id)}" data-site="${esc(s.id)}" data-column="${esc(i.column)}">
+               <div class="rv-actions">
+                 <button type="button" class="rv-btn yes" data-h-set="yes">✓ Meets requirement</button>
+                 <button type="button" class="rv-btn no" data-h-set="no">✕ Falls short</button>
+                 <button type="button" class="text-btn" data-h-cancel="${esc(id)}">Cancel</button></div>
+               <input type="text" class="h-note" placeholder="Why? (optional, saved with the change)"></div>`
+          : `<button type="button" class="text-btn h-edit-link" data-h-start="${esc(id)}">Edit</button>`;
+      return `<li class="h-item${pending ? " is-edited" : ""}">
         <span class="h-sw" style="background:${BASIS[i.basis].color}"></span>
         <div><div class="h-item-head"><strong>${esc(d.labels[i.key])}</strong>
           <span class="h-ans h-${esc(i.value)}">${i.value === "review" ? "needs review" : esc(i.value)}</span>
           <span class="h-how">${BASIS[i.basis].short}${i.cause ? ` · ${esc(d.causes[i.cause] || "")}` : ""}${i.confidence ? ` · AI confidence: ${esc(i.confidence)}` : ""}</span></div>
           ${i.quote ? `<p class="h-quote">${i.doc ? `<span class="rv-doc">${doc ? `<a href="${esc(doc)}" target="_blank" rel="noopener">${esc(i.doc)} ↗</a>` : esc(i.doc)}</span>` : ""}<q>${esc(i.quote)}</q></p>` : ""}
           ${i.basis !== "quote" && i.reason ? `<p class="h-reason">${esc(i.reason)}</p>` : ""}
+          ${edit}
         </div></li>`;
     }).join("")}</ul>
-    ${nrev ? `<button type="button" class="btn btn-secondary" data-h-review="${esc(s.system)}">Review this system's flagged items →</button>` : ""}
+    <div class="send-actions">
+      ${nrev ? `<button type="button" class="btn btn-secondary" data-h-review="${esc(s.system)}">Review this system's flagged items →</button>` : ""}
+      <a href="#staff" class="text-btn h-send-link">Send your changes (For CSS staff, step 3) →</a>
+    </div>
   </div>`;
 }
 
@@ -712,6 +741,26 @@ document.addEventListener("click", (e) => {
   const r = e.target.closest("[data-h-req]");
   if (r) { f.req = f.req === r.dataset.hReq ? "" : r.dataset.hReq; f.status = "all"; renderHealth(); scrollToSites(); return; }
   if (e.target.closest("[data-h-clear]")) { f.cause = ""; f.req = ""; renderHealth(); return; }
+  const start = e.target.closest("[data-h-start]");
+  if (start) { health.editing.add(start.dataset.hStart); renderHealthSites(); return; }
+  const cancel = e.target.closest("[data-h-cancel]");
+  if (cancel) { health.editing.delete(cancel.dataset.hCancel); renderHealthSites(); return; }
+  const undo = e.target.closest("[data-h-undo]");
+  if (undo) { delete staff.decisions[undo.dataset.hUndo]; storageSet(staff.key, staff.decisions); renderHealthSites(); renderReview(); return; }
+  const set = e.target.closest("[data-h-set]");
+  if (set) {
+    const box = set.closest("[data-h-edit-id]");
+    const site = health.data.sites.find((x) => x.id === box.dataset.site);
+    const item = site.items.find((x) => x.column === box.dataset.column);
+    const id = box.dataset.hEditId;
+    staff.decisions[id] = { decision: set.dataset.hSet, note: box.querySelector(".h-note").value.trim(),
+      override: item.basis !== "review", hfa_url: site.hfa_url, column: item.column,
+      requirement: health.data.labels[item.key], hospitals: site.hospitals };
+    storageSet(staff.key, staff.decisions);
+    health.editing.delete(id);
+    renderHealthSites(); renderReview();
+    return;
+  }
   const rv = e.target.closest("[data-h-review]");
   if (rv) { location.hash = "staff"; $("#rv-system").value = rv.dataset.hReview; $("#rv-show").value = "todo"; renderReview(); return; }
   const row = e.target.closest("tr[data-h-site]");

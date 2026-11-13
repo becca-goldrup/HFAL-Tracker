@@ -344,3 +344,12 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .h-quote { margin: 4px 0 0; font-size: 0.86rem; color: var(--ink-2); }
 .h-reason { margin: 4px 0 0; font-size: 0.84rem; color: var(--muted); }
 .h-legend-inline { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.82rem; color: var(--ink-2); margin-top: 10px; }
+
+/* ---------- editing answers (Data health) ---------- */
+.h-edit-link { font-size: 0.82rem; padding: 2px 0; margin-top: 4px; }
+.h-edit { margin-top: 6px; }
+.h-edit .rv-actions { margin-top: 4px; }
+.h-note { display: block; width: 100%; max-width: 520px; margin-top: 8px; font: inherit; font-size: 0.86rem; color: var(--ink);
+  background: transparent; border: none; border-bottom: 1px solid var(--rule-strong); padding: 5px 2px; }
+.h-edit-state { margin: 6px 0 0; font-size: 0.86rem; color: var(--ink); }
+.h-item.is-edited { box-shadow: inset 3px 0 0 var(--gold); padding-left: 8px; }

@@ -141,6 +141,19 @@ class Tracker:
         for c in GRADED:
             d = decisions[c.key]
             value = max_fpl_value if c.key == "max_fpl_400" else d.value
+            cell = self.ws.cell(row, _col(c.column))
+            staff_note = cell.comment.text if cell.comment is not None and cell.comment.text.startswith("Reviewed by") else ""
+            if staff_note:
+                staff_value = _normalize(cell.value)
+                if d.value == REVIEW or d.value == staff_value:
+                    continue  # the AI agrees, or isn't sure: keep the CSS staff decision as it is
+                # The AI now disagrees with staff (the hospital's documents changed): ask a person again.
+                reason = (f"CSS staff decided '{staff_value}' ({staff_note[:200]}). After the hospital's documents changed, "
+                          f"the AI now answers '{d.value}': {d.reason}")
+                self._set(row, _col(c.column), REVIEW, c.header.strip(), name, reason, d.evidence)
+                self.review_rows.append([self.run_date, name, hospital["system"], c.column, c.header.strip(),
+                                         d.ai_answer, d.confidence, reason, "\n".join(d.evidence), hospital["hfa_url"], ""])
+                continue
             self._set(row, _col(c.column), value, c.header.strip(), name,
                       d.reason if d.value == REVIEW else None, d.evidence)
             if d.value == REVIEW:
@@ -179,12 +192,15 @@ class Tracker:
             self.ws.cell(row, self.new_col["AI Documents Reviewed"], docs[:32000])
 
     def apply_decision(self, hospital: dict, column: str, value: str, reviewer: str, when: str, note: str = ""):
-        """Record a person's review decision for one REVIEW cell (see tools/apply_reviews.py)."""
+        """Record a CSS staff decision for one answer (see tools/apply_reviews.py): a flagged
+        item they settled, or any AI answer they corrected."""
         cell = self.ws.cell(hospital["row"], _col(column))
         old = cell.value
+        was = _normalize(old)
         cell.value = value
         cell.fill = NOFILL
-        cell.comment = Comment(f"Reviewed by {reviewer or 'CSS reviewer'} on {when}: {value}."
+        replaced = "" if was in (REVIEW, value) else f" (changed from '{was}')"
+        cell.comment = Comment(f"Reviewed by {reviewer or 'CSS reviewer'} on {when}: {value}{replaced}."
                                + (f" Note: {note}" if note else ""), AUTHOR, width=400, height=120)
         label = next((LABELS[c.key] for c in GRADED if c.column == column), column)
         self.changes.append([when, hospital["name"], column, label, old, value,
