@@ -80,13 +80,16 @@ def main():
         f.replace(dest)
         print(f"  {f.name}: {len(decisions)} decision(s) from {reviewer}")
 
-    if not applied and not skipped:
-        print("No decisions to apply.")
+    if not applied:
+        # Nothing changed in the spreadsheet (the files are still recorded in data/reviews/applied/).
+        print(f"Applied 0 decisions; {skipped} skipped because those answers were already settled "
+              f"(or weren't a yes/no). No changes to the spreadsheet.")
         return
     tracker.run_date = date.fromisoformat(src.stem.replace("hfal-tracker-", "")).isoformat() \
         if src.stem.startswith("hfal-tracker-") else tracker.run_date  # keep the same dated file
-    out = tracker.save()
-    print(f"Applied {applied} decision(s); {skipped} skipped (already settled, or not a yes/no). Saved {out}")
+    tracker.save()
+    print(f"Applied {applied} decision(s)" + (f"; {skipped} skipped because those answers were already settled "
+          f"(or weren't a yes/no)." if skipped else "."))
 
 
 if __name__ == "__main__":
