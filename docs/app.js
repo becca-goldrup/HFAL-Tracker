@@ -29,6 +29,10 @@ const criterion = (key) => state.data.criteria.find((c) => c.key === key);
 fetch("data/hospitals.json")
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then((pub) => {
+    if (!pub.datasets) {  // older single-dataset data file
+      pub = Object.assign({}, pub, { published: { dataset: "baseline" },
+        datasets: { baseline: { label: pub.source, source: pub.source, generated: pub.generated, hospitals: pub.hospitals } } });
+    }
     state.pub = pub;
     state.data = { repo: pub.repo, generated: pub.generated, fpl_year: pub.fpl_year, criteria: pub.criteria,
                    policy_statement_auto_fail: pub.policy_statement_auto_fail };
