@@ -259,6 +259,77 @@ def last_run_info(t: Tracker) -> dict | None:
             "cost": round(costs.actual(usage), 2)}
 
 
+# ---------------------------------------------------------------- Data health tab
+def build_health(t: Tracker) -> dict:
+    """How each AI answer was decided, per hospital website (docs/data/health.json)."""
+    from hfal.fetch import load_site
+    from hfal.grader import load_result
+    from hfal.verify import CAUSES, decide
+
+    sites: dict[str, list] = {}
+    for h in t.hospitals():
+        if h["hfa_url"]:
+            sites.setdefault(h["hfa_url"], []).append(h)
+    out, totals = [], {"quote": 0, "absence": 0, "review": 0, "staff": 0, "carried": 0}
+    pipeline = {"websites": len(sites), "downloaded": 0, "graded": 0, "blocked": 0}
+    for url, hs in sites.items():
+        first = hs[0]
+        site, res = load_site(url), load_result(url)
+        checked = bool(site and site.landing_ok and res)
+        if site and site.landing_ok:
+            pipeline["downloaded"] += 1
+        decisions = {}
+        if checked:
+            pipeline["graded"] += 1
+            try:
+                decisions, _, _ = decide(site, res)
+            except Exception:
+                decisions = {}
+        else:
+            pipeline["blocked"] += 1
+        items = []
+        for c in GRADED:
+            cell = t.ws.cell(first["row"], col(c.column))
+            value = _status(cell.value)
+            comment = cell.comment.text if cell.comment else ""
+            d = decisions.get(c.key)
+            if comment.startswith("Reviewed by"):
+                basis, reason, cause = "staff", comment, ""
+            elif not checked or d is None:
+                basis, reason, cause = "carried", "Not re-checked by the AI; this is the value from CSS's 2025 review.", ""
+            elif d.value == REVIEW and value != "review":
+                basis, reason, cause = "staff", "Changed by a person in the spreadsheet.", ""
+            else:
+                basis, reason, cause = d.basis or ("review" if value == "review" else "absence"), d.reason, d.cause
+            quote, doc, durl = "", "", ""
+            if d is not None and d.evidence:
+                m = re.match(r'^(D\d+): "(.*)"(?: \((https?://[^)]*)\))?$', d.evidence[0], re.S)
+                if m:
+                    doc, quote, durl = m[1], m[2][:260], m[3] or ""
+                else:
+                    quote = d.evidence[0][:260]
+            totals[basis] += 1
+            items.append({"key": c.key, "value": value, "basis": basis, "cause": cause,
+                          "confidence": d.confidence if d is not None else "", "reason": str(reason)[:320],
+                          "quote": quote, "doc": doc, "url": durl})
+        g = grade_row(t.last_values(first["row"]))
+        docs = [{"id": dd.doc_id, "url": dd.url, "kind": dd.kind, "scanned": dd.scanned,
+                 "error": bool(dd.error)} for dd in (site.documents if site else [])]
+        out.append({
+            "id": site_slug(url), "hfa_url": url, "system": first["system"] or "Independent",
+            "hospitals": [h["name"] for h in hs], "grade": g["grade"],
+            "last_checked": _text(t.ws.cell(first["row"], t.new_col["AI Last Checked"]).value),
+            "model": (res or {}).get("model", "") if checked else "",
+            "status": "checked" if checked else "blocked",
+            "problem": "" if checked else (site.error if site and site.error else "Website could not be checked"),
+            "notes": (site.notes if site else []), "documents": docs, "items": items,
+        })
+    out.sort(key=lambda x: (-sum(i["basis"] == "review" for i in x["items"]), x["hospitals"][0]))
+    return {"generated": date.today().isoformat(), "fpl_year": config.FPL_YEAR,
+            "causes": CAUSES, "labels": {c.key: LABELS[c.key] for c in GRADED},
+            "totals": totals, "pipeline": pipeline, "sites": out}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", help="spreadsheet to use (default: newest in data/output, else data/input)")
@@ -268,6 +339,10 @@ def main():
     data = build(src)
     (DOCS / "data").mkdir(parents=True, exist_ok=True)
     (DOCS / "data" / "hospitals.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+    if src.parent.resolve() == config.OUTPUT_DIR.resolve():
+        health = build_health(Tracker(src))
+        (DOCS / "data" / "health.json").write_text(json.dumps(health, ensure_ascii=False, separators=(",", ":")))
+        print(f"Wrote docs/data/health.json: {len(health['sites'])} websites, answers by basis {health['totals']}")
     located = sum(1 for h in data["hospitals"] if h["lat"] is not None)
     print(f"From: {src}\nWrote docs/data/hospitals.json: {len(data['hospitals'])} hospitals, "
           f"{located} on the map, {len(data['changes'])} recent changes")

@@ -32,6 +32,21 @@ class Decision:
     evidence: list[str] = field(default_factory=list)  # 'D3: "quote" (url)'
     ai_answer: str = ""
     confidence: str = ""
+    basis: str = ""      # how it was decided: quote | absence | review
+    cause: str = ""      # for review items: one of CAUSES
+
+# Why an answer goes to review (shown on the dashboard's Data health tab).
+CAUSES = {
+    "ai_unsure": "The AI wasn't sure",
+    "doc_not_found": "Document not found on the website",
+    "absence": "A missing document needs confirming",
+    "quote_mismatch": "Quote not found in the document",
+    "weak_evidence": "No usable quote as evidence",
+    "scanned": "Scanned PDF can't be machine-checked",
+    "wrong_doc": "Evidence came from the wrong document",
+    "red_flag": "Tool found wording the AI may have missed",
+    "contradiction": "The AI's answers contradict each other",
+}
 
 
 # ---------------------------------------------------------------- quote matching
@@ -146,37 +161,38 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
                 if need_role and q["doc_id"] not in roles.get(need_role, set()):
                     wrong_scope.append(q["doc_id"])
 
-        def review(why: str) -> Decision:
-            return Decision(REVIEW, why, ev_lines, ans, conf)
+        def review(why: str, cause: str) -> Decision:
+            return Decision(REVIEW, why, ev_lines, ans, conf, "review", cause)
 
         if ans == "unclear":
-            d = review(f"AI unsure: {f['reasoning']}")
+            d = review(f"AI unsure: {f['reasoning']}", "ai_unsure")
         elif ans == "not_found":
-            d = review(f"AI could not find the needed document: {f['reasoning']}")
+            d = review(f"AI could not find the needed document: {f['reasoning']}", "doc_not_found")
         elif conf == "low":
-            d = review(f"AI said '{ans}' with low confidence: {f['reasoning']}")
+            d = review(f"AI said '{ans}' with low confidence: {f['reasoning']}", "ai_unsure")
         elif bad:
-            d = review("Possible hallucination -- " + "; ".join(bad) + f". AI said '{ans}': {f['reasoning']}")
+            d = review("Possible hallucination -- " + "; ".join(bad) + f". AI said '{ans}': {f['reasoning']}", "quote_mismatch")
         elif unverifiable:
-            d = review(f"AI said '{ans}' based on scanned PDF(s) {', '.join(unverifiable)} that can't be machine-checked: {f['reasoning']}")
+            d = review(f"AI said '{ans}' based on scanned PDF(s) {', '.join(unverifiable)} that can't be machine-checked: {f['reasoning']}", "scanned")
         elif wrong_scope:
-            d = review(f"Evidence came from {', '.join(wrong_scope)}, not the {c.scope} (rubric says judge from the {c.scope} only)")
+            d = review(f"Evidence came from {', '.join(wrong_scope)}, not the {c.scope} (rubric says judge from the {c.scope} only)", "wrong_doc")
         elif c.requires_doc and c.requires_doc not in roles:
             hint = (f' Tip: search "hospital financial assistance application {config.FPL_YEAR} <hospital name>", and add the '
                     f"link to EXTRA_DOCUMENTS in config.py." if c.requires_doc == "application" else "")
-            d = review(f"No {c.requires_doc.replace('_', ' ')} was found among the downloaded documents, so this can't be judged automatically.{hint}")
+            d = review(f"No {c.requires_doc.replace('_', ' ')} was found among the downloaded documents, so this can't be judged automatically.{hint}", "doc_not_found")
         else:
             proof = c.yes_proof if ans == "yes" else c.no_proof
             if proof == "review":
                 hint = (f' Tip: search "hospital financial assistance application {config.FPL_YEAR} <hospital name>".'
                         if c.key == "application_posted" else "")
                 d = review(f"AI said '{ans}'. A missing document can't be confirmed automatically "
-                           f"(it may be on another page) -- please check the website.{hint} {f['reasoning']}")
+                           f"(it may be on another page) -- please check the website.{hint} {f['reasoning']}", "absence")
             elif proof == "quote" and good == 0:
                 why = " (its quotes were too short to count as evidence, e.g. a heading)" if short else ""
-                d = review(f"AI said '{ans}' but gave no verifiable quote{why}: {f['reasoning']}")
+                d = review(f"AI said '{ans}' but gave no verifiable quote{why}: {f['reasoning']}", "weak_evidence")
             else:
-                d = Decision(YES if ans == "yes" else NO, f["reasoning"], ev_lines, ans, conf)
+                d = Decision(YES if ans == "yes" else NO, f["reasoning"], ev_lines, ans, conf,
+                             "quote" if good else "absence")
         out[c.key] = d
 
     # ---- cross-checks on numbers the AI extracted
@@ -184,13 +200,13 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
     pct = r.get("max_fpl_percent")
     if fpl.value != REVIEW:
         if pct is None:
-            out["max_fpl_400"] = Decision(REVIEW, f"AI said '{fpl.value}' but did not report the FPL %", fpl.evidence, fpl.ai_answer, fpl.confidence)
+            out["max_fpl_400"] = Decision(REVIEW, f"AI said '{fpl.value}' but did not report the FPL %", fpl.evidence, fpl.ai_answer, fpl.confidence, "review", "contradiction")
         elif (pct >= 400) != (fpl.value == YES):
-            out["max_fpl_400"] = Decision(REVIEW, f"AI answer '{fpl.value}' contradicts its own number ({pct}%)", fpl.evidence, fpl.ai_answer, fpl.confidence)
+            out["max_fpl_400"] = Decision(REVIEW, f"AI answer '{fpl.value}' contradicts its own number ({pct}%)", fpl.evidence, fpl.ai_answer, fpl.confidence, "review", "contradiction")
     yr = out["fpl_current_year"]
     used = r.get("fpl_year_used")
     if yr.value != REVIEW and used is not None and (used == config.FPL_YEAR) != (yr.value == YES):
-        out["fpl_current_year"] = Decision(REVIEW, f"AI answer '{yr.value}' contradicts the FPL year it found ({used}; expected {config.FPL_YEAR})", yr.evidence, yr.ai_answer, yr.confidence)
+        out["fpl_current_year"] = Decision(REVIEW, f"AI answer '{yr.value}' contradicts the FPL year it found ({used}; expected {config.FPL_YEAR})", yr.evidence, yr.ai_answer, yr.confidence, "review", "contradiction")
 
     # ---- red-flag scan: the tool reads the documents itself before accepting "nothing wrong found"
     flags = red_flags(site)
@@ -200,13 +216,13 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
         if dec.value == YES and flags[key]:
             hits = "; ".join(f'{doc}: "...{snip}..."' for doc, snip in flags[key][:3])
             out[key] = Decision(REVIEW, f"AI found nothing like {label}, but the documents contain wording that may be one -- "
-                                        f"please check: {hits}", dec.evidence + [hits], dec.ai_answer, dec.confidence)
+                                        f"please check: {hits}", dec.evidence + [hits], dec.ai_answer, dec.confidence, "review", "red_flag")
     dec = out["consistent_across_documents"]
     if dec.value == YES and flags["no_time_limit"]:
         out["consistent_across_documents"] = Decision(
             REVIEW, "AI called the documents consistent, but at least one mentions a deadline to apply -- check whether "
                     "the others say the same: " + "; ".join(f'{d}: "...{s}..."' for d, s in flags["no_time_limit"][:2]),
-            dec.evidence, dec.ai_answer, dec.confidence)
+            dec.evidence, dec.ai_answer, dec.confidence, "review", "red_flag")
 
     # ---- the full Uniform Application includes these, so "yes, entire UA" + "missing X" can't both be true
     if out["entire_uniform_application"].value == YES:
@@ -215,7 +231,7 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
             if dec.value == NO:
                 out[key] = Decision(REVIEW, f"Contradiction: AI said the hospital uses the entire Uniform Application "
                                             f"(which includes this) but also that the application lacks it. {dec.reason}",
-                                    dec.evidence, dec.ai_answer, dec.confidence)
+                                    dec.evidence, dec.ai_answer, dec.confidence, "review", "contradiction")
 
     # ---- free-text columns
     text = {

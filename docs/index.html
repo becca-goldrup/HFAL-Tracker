@@ -24,7 +24,8 @@
         <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview">Overview</button>
         <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals">Hospitals</button>
         <button role="tab" id="tab-map" aria-controls="panel-map" data-tab="map">Map</button>
-        <button role="tab" id="tab-staff" aria-controls="panel-staff" data-tab="staff" class="tab-staff">For CSS staff</button>
+        <button role="tab" id="tab-health" aria-controls="panel-health" data-tab="health" class="tab-staff">Data health</button>
+        <button role="tab" id="tab-staff" aria-controls="panel-staff" data-tab="staff">For CSS staff</button>
       </nav>
     </div>
   </header>
@@ -111,6 +112,15 @@
       <div class="legend" id="legend" aria-label="Grade colors"></div>
       <div id="map" aria-label="Map of hospitals colored by grade"></div>
       <p class="src">Source: <span class="src-name"></span>. Locations: US Census Bureau and OpenStreetMap.</p>
+    </section>
+
+    <!-- ======================== DATA HEALTH ======================== -->
+    <section id="panel-health" role="tabpanel" aria-labelledby="tab-health" class="panel" hidden>
+      <h2 class="fig-title">Data health</h2>
+      <p class="fig-sub">How the AI reached each answer, and how much weight each one can bear. Every answer is either
+        backed by a quote the tool found in the hospital's own documents, accepted because nothing problematic was found,
+        or sent to a person to check.</p>
+      <div id="health-root"><p class="empty">Loading…</p></div>
     </section>
 
     <!-- ======================== CSS STAFF ======================== -->

@@ -126,13 +126,14 @@ function bindEvents() {
 }
 
 function showTab(tab) {
-  if (!["overview", "hospitals", "map", "staff"].includes(tab)) tab = "overview";
-  // The public filters don't apply to the staff workspace.
-  document.querySelector('section.filters[aria-label="Filters"]').hidden = tab === "staff";
+  if (!["overview", "hospitals", "map", "health", "staff"].includes(tab)) tab = "overview";
+  // The public filters don't apply to the staff tabs.
+  document.querySelector('section.filters[aria-label="Filters"]').hidden = tab === "staff" || tab === "health";
   document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
   document.querySelectorAll(".panel").forEach((p) => (p.hidden = p.id !== `panel-${tab}`));
   window.scrollTo(0, 0);
   if (tab === "map") { initMap(); state.map.invalidateSize(); renderMap(filtered()); }
+  if (tab === "health") showHealth();
 }
 
 /* ---------------------------------------------------------------- render */
@@ -504,4 +505,227 @@ function downloadDecisions() {
   link.click();
   link.parentNode.removeChild(link);
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+
+/* ================================================================ Data health
+   How each AI answer was decided (docs/data/health.json, made by tools/build_dashboard.py).
+   Loaded only when the tab is opened. */
+const BASIS = {
+  quote:   { label: "Verified by a quote", short: "Quote verified", color: "#0080a0",
+             about: "The AI quoted the hospital's document, and the tool found that exact text in the document it downloaded." },
+  absence: { label: "Accepted: nothing found", short: "Nothing found", color: "#8cc3d3",
+             about: "Nothing problematic was found, e.g. no deadline wording anywhere. The tool also scanned the documents itself for such wording before accepting." },
+  review:  { label: "Needs a person", short: "Needs review", color: "#e9a533",
+             about: "The tool couldn't confirm the AI's answer, so it is waiting for CSS staff in the For CSS staff tab." },
+  staff:   { label: "Decided by CSS staff", short: "Staff decision", color: "var(--g-A)",
+             about: "A CSS reviewer settled this answer." },
+  carried: { label: "Not re-checked", short: "2025 value", color: "#b5b4ad",
+             about: "The AI couldn't check this website (it blocks automated access), so the value from CSS's 2025 review is kept." },
+};
+const BASIS_ORDER = ["quote", "absence", "review", "staff", "carried"];
+const health = { data: null, loading: false, filter: { status: "all", cause: "", req: "" }, open: new Set() };
+
+function showHealth() {
+  if (health.data) return renderHealth();
+  if (health.loading) return;
+  health.loading = true;
+  fetch("data/health.json")
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then((d) => { health.data = d; renderHealth(); })
+    .catch(() => {
+      $("#health-root").innerHTML = `<p class="empty">Data health details appear here after the first AI check.</p>`;
+    });
+}
+
+function hBar(counts, total) {
+  return `<div class="h-stack" role="img" aria-label="${BASIS_ORDER.map((b) => `${BASIS[b].label}: ${counts[b] || 0}`).join(", ")}">` +
+    BASIS_ORDER.filter((b) => counts[b]).map((b) =>
+      `<span style="width:${(100 * counts[b]) / total}%;background:${BASIS[b].color}" title="${BASIS[b].label}: ${counts[b]}"></span>`).join("") +
+    `</div>`;
+}
+
+function renderHealth() {
+  const d = health.data;
+  const sites = d.sites;
+  const all = sites.flatMap((s) => s.items);
+  const total = all.length;
+  const t = d.totals;
+  const finalSites = sites.filter((s) => s.status === "checked" && !s.items.some((i) => i.basis === "review"));
+  const hospitalsFinal = finalSites.reduce((n, s) => n + s.hospitals.length, 0);
+  const hospitalsAll = sites.reduce((n, s) => n + s.hospitals.length, 0);
+  const p = d.pipeline;
+  const models = [...new Set(sites.map((s) => s.model.replace(/^us\.(amazon|anthropic)\./, "").replace(/-v\d.*$/, "").replace(" (json)", "")).filter(Boolean))];
+
+  // Causes and requirements among review items
+  const causeCount = {}, reqCount = {};
+  sites.forEach((s) => s.items.forEach((i) => {
+    if (i.basis !== "review") return;
+    causeCount[i.cause || "other"] = (causeCount[i.cause || "other"] || 0) + 1;
+    reqCount[i.key] = (reqCount[i.key] || 0) + 1;
+  }));
+  const causeRows = Object.entries(causeCount).sort((a, b) => b[1] - a[1]);
+  const reqRows = Object.entries(reqCount).sort((a, b) => b[1] - a[1]);
+  const maxCause = Math.max(1, ...causeRows.map((r) => r[1]));
+  const maxReq = Math.max(1, ...reqRows.map((r) => r[1]));
+  const f = health.filter;
+
+  $("#health-root").innerHTML = `
+    <div class="stats">
+      ${tile("Websites checked by AI", `${p.graded}<span class="of-total"> / ${p.websites}</span>`, `${p.blocked} block automated access`)}
+      ${tile("Answers verified by a quote", t.quote, `${pct(t.quote, total)}% of ${total} answers`)}
+      ${tile("Answers waiting for a person", t.review, `${pct(t.review, total)}% of answers`)}
+      ${tile("Hospitals fully verified", hospitalsFinal, `of ${hospitalsAll} have nothing left to review`)}
+    </div>
+
+    <section class="fig">
+      <h2 class="fig-title">How an AI grade is made</h2>
+      <ol class="pipeline">
+        <li><strong>Download.</strong> A browser visits each hospital's financial assistance page and saves the linked documents
+          (applications, summaries, policies). ${p.downloaded} of ${p.websites} websites downloaded; ${p.blocked} block automated access.</li>
+        <li><strong>AI reads.</strong> ${esc(models.join(", ") || "The AI")} read each website's documents and answered the 17 questions,
+          quoting the text behind each answer. It is told to answer "unclear" rather than guess.</li>
+        <li><strong>Tool checks.</strong> A program, not the AI, checks every quote against the downloaded documents, rejects
+          headings as evidence, scans the documents itself for deadline, asset and immigration wording, and catches answers that contradict each other.</li>
+        <li><strong>Accept or flag.</strong> ${t.quote} answers were accepted with a verified quote and ${t.absence} because nothing problematic was found.
+          ${t.review} were flagged for a person.</li>
+        <li><strong>People decide.</strong> CSS staff settle flagged items in the For CSS staff tab${t.staff ? `; ${t.staff} settled so far` : ""}.
+          A hospital's grade is final only when nothing is left to review.</li>
+      </ol>
+    </section>
+
+    <section class="fig">
+      <h2 class="fig-title">How certain the answers are</h2>
+      ${hBar(t, total)}
+      <dl class="h-legend">${BASIS_ORDER.map((b) => `<div class="h-legend-row">
+        <dt><span class="h-sw" style="background:${BASIS[b].color}"></span>${BASIS[b].label}
+          <span class="h-num">${t[b] || 0} (${pct(t[b] || 0, total)}%)</span></dt><dd>${BASIS[b].about}</dd></div>`).join("")}</dl>
+    </section>
+
+    <div class="h-two">
+      <section class="fig">
+        <h2 class="fig-title">Why answers need a person</h2>
+        <div class="hbars h-causes">${causeRows.map(([k, n]) => `
+          <button class="hbar clickable${f.cause === k ? " is-on" : ""}" data-h-cause="${esc(k)}">
+            <span class="lbl">${esc(d.causes[k] || "Other")}</span>
+            <span class="track"><span class="fill" style="width:${(100 * n) / maxCause}%;background:${BASIS.review.color}"></span></span>
+            <span class="val">${n}</span></button>`).join("")}</div>
+        <p class="src">Select a cause to list the websites below.</p>
+      </section>
+      <section class="fig">
+        <h2 class="fig-title">Which requirements need a person most</h2>
+        <div class="hbars h-causes">${reqRows.map(([k, n]) => `
+          <button class="hbar clickable${f.req === k ? " is-on" : ""}" data-h-req="${esc(k)}">
+            <span class="lbl">${esc(d.labels[k])}</span>
+            <span class="track"><span class="fill" style="width:${(100 * n) / maxReq}%;background:${BASIS.review.color}"></span></span>
+            <span class="val">${n}</span></button>`).join("")}</div>
+        <p class="src">Select a requirement to list the websites below.</p>
+      </section>
+    </div>
+
+    <section class="fig h-sites-fig">
+      <h2 class="fig-title">Hospital websites</h2>
+      <p class="fig-sub">Each square is one of the 17 requirements, colored by how it was decided. Select a website to see every answer, the AI's confidence, and the quote behind it.</p>
+      <div class="h-controls">
+        <div class="seg" role="group" aria-label="Show">
+          ${[["all", "All"], ["review", "Has items to review"], ["final", "Final grade"], ["blocked", "Couldn't be checked"]].map(([v, l]) =>
+            `<button type="button" data-h-status="${v}" aria-pressed="${f.status === v}">${l}</button>`).join("")}
+        </div>
+        ${f.cause || f.req ? `<p class="h-active">Showing websites with
+          ${f.cause ? `<strong>${esc(d.causes[f.cause] || "other causes")}</strong>` : ""}${f.cause && f.req ? " on " : ""}${f.req ? `<strong>${esc(d.labels[f.req])}</strong>` : ""}
+          <button type="button" class="text-btn" data-h-clear>Clear</button></p>` : ""}
+      </div>
+      <div id="h-sites"></div>
+    </section>
+    <div class="h-legend-inline">${BASIS_ORDER.map((b) => `<span><span class="h-sw" style="background:${BASIS[b].color}"></span>${BASIS[b].short}</span>`).join("")}</div>`;
+  renderHealthSites();
+}
+
+function healthSiteMatches(s) {
+  const f = health.filter;
+  const review = s.items.filter((i) => i.basis === "review");
+  if (f.status === "review" && !review.length) return false;
+  if (f.status === "final" && (s.status !== "checked" || review.length)) return false;
+  if (f.status === "blocked" && s.status === "checked") return false;
+  if (f.cause && !review.some((i) => (i.cause || "other") === f.cause && (!f.req || i.key === f.req))) return false;
+  if (f.req && !review.some((i) => i.key === f.req)) return false;
+  return true;
+}
+
+function renderHealthSites() {
+  const d = health.data;
+  const shown = d.sites.filter(healthSiteMatches);
+  $("#h-sites").innerHTML = !shown.length ? `<p class="empty">No websites match.</p>` : `
+    <table class="h-table"><thead><tr>
+      <th scope="col">Website</th><th scope="col" class="hide-sm">System</th><th scope="col">The 17 answers</th>
+      <th scope="col" class="num">To review</th><th scope="col">Grade</th></tr></thead><tbody>
+    ${shown.map((s) => {
+      const nrev = s.items.filter((i) => i.basis === "review").length;
+      const open = health.open.has(s.id);
+      const more = s.hospitals.length - 1;
+      return `<tr class="h-row" data-h-site="${esc(s.id)}" tabindex="0" aria-expanded="${open}">
+        <td><span class="name">${esc(s.hospitals[0])}</span>${more ? `<span class="city">+ ${more} more hospital${more === 1 ? "" : "s"}</span>` : ""}</td>
+        <td class="hide-sm">${esc(s.system)}</td>
+        <td><span class="h-squares">${s.items.map((i) => `<i style="background:${BASIS[i.basis].color}" title="${esc(d.labels[i.key])}: ${BASIS[i.basis].label}"></i>`).join("")}</span></td>
+        <td class="num">${s.status === "checked" ? nrev : "–"}</td>
+        <td><span class="badge ${/ to /.test(s.grade) ? "g-R" : "g-" + esc(s.grade)}">${esc(s.grade)}</span></td></tr>
+      ${open ? `<tr class="h-detail"><td colspan="5">${healthDetail(s)}</td></tr>` : ""}`;
+    }).join("")}</tbody></table>`;
+}
+
+function healthDetail(s) {
+  const d = health.data;
+  const docs = s.documents || [];
+  const url = safeUrl(s.hfa_url);
+  const nrev = s.items.filter((i) => i.basis === "review").length;
+  const meta = s.status === "checked"
+    ? `Checked ${esc(s.last_checked)} by ${esc(s.model.replace(/^us\.(amazon|anthropic)\./, ""))}. Read ${docs.filter((x) => !x.error).length} documents` +
+      `${docs.some((x) => x.scanned) ? ` (${docs.filter((x) => x.scanned).length} scanned)` : ""}` +
+      `${docs.some((x) => x.error) ? `; ${docs.filter((x) => x.error).length} couldn't be downloaded` : ""}.`
+    : `Not checked: ${esc(s.problem)}. Values below are from CSS's 2025 review.`;
+  return `<div class="h-detail-box">
+    <p class="h-meta">${meta} ${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">Financial assistance page ↗</a>` : ""}</p>
+    ${s.hospitals.length > 1 ? `<p class="h-meta">Hospitals on this page: ${s.hospitals.map(esc).join(", ")}</p>` : ""}
+    ${(s.notes || []).map((n) => `<p class="rv-site-note">${esc(n)}</p>`).join("")}
+    <ul class="h-items">${s.items.map((i) => {
+      const doc = safeUrl(i.url);
+      return `<li class="h-item">
+        <span class="h-sw" style="background:${BASIS[i.basis].color}"></span>
+        <div><div class="h-item-head"><strong>${esc(d.labels[i.key])}</strong>
+          <span class="h-ans h-${esc(i.value)}">${i.value === "review" ? "needs review" : esc(i.value)}</span>
+          <span class="h-how">${BASIS[i.basis].short}${i.cause ? ` · ${esc(d.causes[i.cause] || "")}` : ""}${i.confidence ? ` · AI confidence: ${esc(i.confidence)}` : ""}</span></div>
+          ${i.quote ? `<p class="h-quote">${i.doc ? `<span class="rv-doc">${doc ? `<a href="${esc(doc)}" target="_blank" rel="noopener">${esc(i.doc)} ↗</a>` : esc(i.doc)}</span>` : ""}<q>${esc(i.quote)}</q></p>` : ""}
+          ${i.basis !== "quote" && i.reason ? `<p class="h-reason">${esc(i.reason)}</p>` : ""}
+        </div></li>`;
+    }).join("")}</ul>
+    ${nrev ? `<button type="button" class="btn btn-secondary" data-h-review="${esc(s.system)}">Review this system's flagged items →</button>` : ""}
+  </div>`;
+}
+
+document.addEventListener("click", (e) => {
+  if (!health.data) return;
+  const f = health.filter;
+  const st = e.target.closest("[data-h-status]");
+  if (st) { f.status = st.dataset.hStatus; renderHealth(); return; }
+  const c = e.target.closest("[data-h-cause]");
+  if (c) { f.cause = f.cause === c.dataset.hCause ? "" : c.dataset.hCause; f.status = "all"; renderHealth(); scrollToSites(); return; }
+  const r = e.target.closest("[data-h-req]");
+  if (r) { f.req = f.req === r.dataset.hReq ? "" : r.dataset.hReq; f.status = "all"; renderHealth(); scrollToSites(); return; }
+  if (e.target.closest("[data-h-clear]")) { f.cause = ""; f.req = ""; renderHealth(); return; }
+  const rv = e.target.closest("[data-h-review]");
+  if (rv) { location.hash = "staff"; $("#rv-system").value = rv.dataset.hReview; $("#rv-show").value = "todo"; renderReview(); return; }
+  const row = e.target.closest("tr[data-h-site]");
+  if (row && !e.target.closest("a")) {
+    const id = row.dataset.hSite;
+    health.open.has(id) ? health.open.delete(id) : health.open.add(id);
+    renderHealthSites();
+  }
+});
+document.addEventListener("keydown", (e) => {
+  const row = e.target.closest && e.target.closest("tr[data-h-site]");
+  if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); row.click(); }
+});
+function scrollToSites() {
+  const el = document.querySelector(".h-sites-fig");
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
