@@ -422,3 +422,4 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .unreach-done { margin: 0; font-weight: 600; color: var(--st-yes); }
 .unreach-manual summary { cursor: pointer; font-size: 0.88rem; color: var(--ink-2); }
 .unreach-manual code { font-size: 0.82rem; overflow-wrap: anywhere; }
+.unreach-from { margin: 0; }

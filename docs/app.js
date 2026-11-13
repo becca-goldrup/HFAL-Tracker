@@ -566,21 +566,22 @@ function renderUnreachable() {
   const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
   const open = sites.filter((x) => !x.confirmed).length;
   box.innerHTML = `<h4 class="sub-h">Couldn’t be checked automatically (${sites.length})</h4>
-    <p class="hint">These websites block automated access, so they still show the answers from CSS’s September 2025 review.
+    <p class="hint">These websites block automated access, so the AI couldn’t re-check them and they keep their most recent answers.
       For each one, open the hospital’s page and either confirm those answers still hold, or save its documents so the next check can grade them.
-      ${open ? "" : "All confirmed."}</p>
+      ${open ? "" : "All confirmed for this check."}</p>
     <div class="unreach">${sites.map((x) => {
       const id = `${x.id}|*`;
       const mine = staff.decisions[id];
       const names = x.hospitals.length > 2 ? `${x.hospitals.slice(0, 2).join(", ")} and ${x.hospitals.length - 2} more` : x.hospitals.join(", ");
       return `<div class="unreach-item" data-unreach="${esc(id)}">
         <div class="unreach-head"><strong>${esc(names)}</strong> <span class="hint">${esc(x.system)}</span></div>
+        <p class="hint unreach-from">Current answers: ${esc(x.answers_from || "CSS’s September 2025 review")}.</p>
         <a class="text-btn" href="${esc(x.hfa_url)}" target="_blank" rel="noopener">Open the hospital’s financial assistance page ↗</a>
-        ${x.confirmed ? `<p class="unreach-done">✓ Confirmed by CSS staff. These answers are now staff decisions.</p>` : `
+        ${x.confirmed ? `<p class="unreach-done">✓ Confirmed for this check.</p>` : `
         <div class="unreach-actions">
           ${mine ? `<span class="unreach-done">✓ Marked as confirmed (send it below)</span>
                     <button type="button" class="text-btn" data-unreach-undo>Undo</button>`
-                 : `<button type="button" class="btn btn-secondary" data-unreach-confirm>Confirm the 2025 answers still hold</button>`}
+                 : `<button type="button" class="btn btn-secondary" data-unreach-confirm>Confirm these answers still hold</button>`}
         </div>
         <details class="unreach-manual"><summary>Or save the documents by hand</summary>
           <ol class="steps">

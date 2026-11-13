@@ -375,6 +375,21 @@ def since_baseline(base: Tracker, ai: Tracker) -> dict:
     return {"counts": counts, "items": items}
 
 
+def unreachable_entry(site: dict, check_date: str) -> dict:
+    """A website the AI couldn't reach in this check: where its current answers came from, and whether
+    CSS staff confirmed them by hand for THIS check (a confirmation from an earlier check doesn't count)."""
+    import re
+    answers = [i for i in site["items"] if i["value"] in ("yes", "no")]
+    stamps = [re.match(r"Reviewed by (.+?) on (\d{4}-\d{2}-\d{2})", i["reason"]) for i in answers if i["basis"] == "staff"]
+    stamps = [m for m in stamps if m]
+    latest = max(stamps, key=lambda m: m[2]) if stamps else None
+    return {"id": site["id"], "hfa_url": site["hfa_url"], "system": site["system"], "hospitals": site["hospitals"],
+            "folder": f"data/manual/{site['id']}",
+            "answers_from": (f"confirmed by hand by {latest[1]} on {latest[2]}" if latest
+                             else "CSS's September 2025 review"),
+            "confirmed": bool(answers) and len(stamps) == len(answers) and min(m[2] for m in stamps) >= check_date}
+
+
 def check_history(t: Tracker) -> list[dict]:
     """One entry per check date from the AI Run Log: what ran, compared with what, and why websites were checked."""
     if "AI Run Log" not in t.wb.sheetnames:
@@ -425,10 +440,7 @@ def main():
                          "source": d["source"], "generated": d["generated"], "hospitals": d["hospitals"]}
         health = build_health(t)
         # Websites the AI couldn't reach: staff confirm the 2025 answers or save the documents by hand.
-        unreachable = [{"id": x["id"], "hfa_url": x["hfa_url"], "system": x["system"], "hospitals": x["hospitals"],
-                        "confirmed": all(i["basis"] == "staff" for i in x["items"] if i["value"] in ("yes", "no")),
-                        "folder": f"data/manual/{x['id']}"}
-                       for x in health["sites"] if x["status"] != "checked"]
+        unreachable = [unreachable_entry(x, day) for x in health["sites"] if x["status"] != "checked"]
         staff = {"key": key, "label": datasets[key]["label"], "generated": d["generated"], "repo": config.GITHUB_REPO,
                  "review": d["review"], "last_run": d["last_run"], "unreachable": unreachable,
                  "since_baseline": since_baseline(base_t, t), "history": check_history(t)}
