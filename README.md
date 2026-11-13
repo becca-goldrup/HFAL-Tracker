@@ -246,12 +246,33 @@ the evidence shown to reviewers is always the hospital's own wording. A citation
 a scanned PDF that can't be machine-read, an "unclear" answer, or wording found by the tool's own red-flag scan
 sends the item to human review.
 
-**What the public tabs show:** staff choose in **CSS staff → Status & publishing**. *Preview* switches the public
+**What the public tabs show:** staff choose in **CSS staff → Overview**. *Preview* switches the public
 tabs for that person only (with a banner); *Publish* opens a pre-filled GitHub issue that, once submitted, switches
 the public tabs for everyone and records who published (`data/reviews/publish.json`). The two datasets are CSS's
 verified spreadsheet (`data/input`) and the latest AI check with staff decisions (`data/output`). Without a publish
-choice, `PUBLIC_DATA` in `config.py` decides (default `"baseline"`). The review queue and change log live in
-`docs/data/staff.json`, loaded only by the staff tab.
+choice, `PUBLIC_DATA` in `config.py` decides (default `"baseline"`). Each AI check's review queue, changes and
+data health live in `docs/data/staff-<check>.json` and `health-<check>.json`, loaded only by the staff tab.
+
+## Each January: switching to the new year's Uniform Application
+
+The AI compares each hospital's application against the official NYS Uniform Financial Assistance Application,
+and checks that it uses the current year's Federal Poverty Level figures. When NYS DOH publishes the new year's
+form (2027, for example):
+
+1. Copy the text of the new form from the NYS Department of Health website into a plain text file named
+   `data/reference/nys-uniform-application-2027.txt` (the same way `nys-uniform-application-2026.txt` is saved).
+2. In `config.py`, change two lines:
+   ```python
+   FPL_YEAR = 2027
+   REFERENCE_APPLICATION = ROOT / "data" / "reference" / "nys-uniform-application-2027.txt"
+   ```
+3. Run a full re-check, so every website is compared against the new form, not just the ones whose documents
+   changed: `python run.py --force` on a computer, or delete `data/output/document-fingerprints.json` before the
+   next GitHub check.
+
+Expect a bigger review that month: hospitals that haven't switched to the new form yet will be flagged or marked
+as falling short on the application requirements. Keep the old form's text file; it records what earlier checks
+were compared against.
 
 ## Questions for CSS (judgment calls built into the tool)
 
