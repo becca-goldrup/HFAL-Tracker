@@ -2,7 +2,14 @@
 Settings you might want to change. Everything else lives in the hfal/ folder.
 """
 import os
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+
+def today() -> str:
+    """Today's date in New York (GitHub's computers run on UTC, which is ahead in the evening)."""
+    return datetime.now(ZoneInfo("America/New_York")).date().isoformat()
 
 ROOT = Path(__file__).parent
 

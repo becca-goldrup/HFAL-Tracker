@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -34,7 +35,23 @@ BLUE = PatternFill("solid", fgColor="FFBDD7EE")
 NOFILL = PatternFill(fill_type=None)
 AUTHOR = "HFAL AI"
 
-NEW_COLUMNS = ["AI Last Checked", "AI Items Needing Review", "AI Grade Status", "AI Documents Reviewed"]
+NEW_COLUMNS = ["AI Last Checked", "AI Items Needing Review", "AI Grade Status", "AI Documents Reviewed",
+               "AI Service Area (as listed)"]
+
+
+DETAILS_SHEET = "AI Answer Details"
+DETAILS_HEADERS = ["HFA link", "Column", "Requirement", "How decided", "Why flagged", "AI confidence", "Reason",
+                   "Cited sentence", "Document", "Document link", "Model", "Checked", "Site notes", "Documents read"]
+
+
+def psa_listed(result: dict) -> str:
+    """The hospital's service area as it describes it: counties, plus its own wording (a cited sentence)."""
+    counties = [c for c in (result.get("psa_counties") or []) if c]
+    quote = result.get("psa_definition_quote") or ""
+    text = "; ".join(counties)
+    if quote:
+        text = (text + " | " if text else "") + f'"{quote}"'
+    return text[:1000]
 
 
 def _col(letter: str) -> int:
@@ -46,8 +63,19 @@ class Tracker:
         self.path = path
         self.wb = openpyxl.load_workbook(path)
         self.ws = self.wb[config.SHEET_NAME]
-        self.run_date = date.today().isoformat()
+        self.run_date = config.today()
+        # What this run's answers are compared against (shown in the change log and dashboard).
+        is_output = path.parent.resolve() == config.OUTPUT_DIR.resolve()
+        self.compared_with = (f"AI check of {path.stem.replace('hfal-tracker-', '')}" if is_output
+                              else "CSS manual review (September 2025)")
+        self._cur_why = ""
         self._ensure_new_columns()
+        # How each AI answer was decided, per website and requirement (the dashboard's Data health tab).
+        self.details: dict = {}
+        if DETAILS_SHEET in self.wb.sheetnames:
+            for row in self.wb[DETAILS_SHEET].iter_rows(min_row=2, values_only=True):
+                if row and row[0]:
+                    self.details[(row[0], row[1])] = list(row)
         self.changes: list[list] = []
         self.review_rows: list[list] = []
         self.run_rows: list[list] = []
@@ -128,11 +156,13 @@ class Tracker:
                 cell.comment = None
         if changed:
             self.changes.append([self.run_date, hospital, get_column_letter(col), label, old, value,
-                                 "\n".join(evidence[:3])])
+                                 "\n".join(evidence[:3]), self.compared_with, self._cur_why])
 
     def apply(self, hospital: dict, decisions: dict, text: dict, warnings: list[str], site,
-              max_fpl_value) -> None:
+              max_fpl_value, psa: str = "", why: str = "") -> None:
         row, name = hospital["row"], hospital["name"]
+        self._cur_why = why
+        self.ws.cell(row, self.new_col["AI Service Area (as listed)"], psa or "Not described in the documents")
         if hospital.get("link_fixed_from"):
             link = self.ws.cell(row, _col("N"))
             self._set(row, _col("N"), hospital["hfa_url"], "HFA Link", name, None,
@@ -204,13 +234,31 @@ class Tracker:
                                + (f" Note: {note}" if note else ""), AUTHOR, width=400, height=120)
         label = next((LABELS[c.key] for c in GRADED if c.column == column), column)
         self.changes.append([when, hospital["name"], column, label, old, value,
-                             f"Human review by {reviewer or 'CSS reviewer'}" + (f": {note}" if note else "")])
+                             f"Human review by {reviewer or 'CSS reviewer'}" + (f": {note}" if note else ""),
+                             "", "CSS staff decision"])
         self._write_status(hospital["row"], None, keep_date=True)
 
-    def log_run(self, hfa_url: str, status: str, n_hospitals: int, n_docs: int, usage: Optional[dict]):
+    def record_details(self, hfa_url: str, site, decisions: dict, model: str) -> None:
+        """Remember how each answer for this website was decided (replaces earlier details for it)."""
+        docs = json.dumps([{"id": d.doc_id, "url": d.url, "kind": d.kind, "scanned": d.scanned, "error": bool(d.error)}
+                           for d in site.documents])
+        notes = json.dumps(list(site.notes))
+        for c in GRADED:
+            d = decisions[c.key]
+            quote, doc, durl = "", "", ""
+            if d.evidence:
+                m = re.match(r'^(D\d+): "(.*)"(?: \((https?://[^)]*)\))?$', d.evidence[0], re.S)
+                if m:
+                    doc, quote, durl = m[1], m[2][:300], m[3] or ""
+                else:
+                    quote = d.evidence[0][:300]
+            self.details[(hfa_url, c.column)] = [hfa_url, c.column, c.key, d.basis or "", d.cause or "", d.confidence or "",
+                                                 str(d.reason)[:400], quote, doc, durl, model, self.run_date, notes, docs]
+
+    def log_run(self, hfa_url: str, status: str, n_hospitals: int, n_docs: int, usage: Optional[dict], why: str = ""):
         u = usage or {}
         self.run_rows.append([self.run_date, hfa_url, status, n_hospitals, n_docs,
-                              u.get("input", ""), u.get("output", "")])
+                              u.get("input", ""), u.get("output", ""), why, self.compared_with])
 
     # ------------------------------------------------------------ saving
     def _sheet(self, title: str, headers: list[str], widths: list[int], reset: bool):
@@ -256,11 +304,21 @@ class Tracker:
         for r in self.review_rows:
             q.append(r)
         log = self._sheet("AI Change Log", ["Date", "Hospital", "Column", "Field", "Old value", "New value",
-                                            "Evidence"], [11, 38, 7, 36, 25, 25, 80], reset=False)
+                                            "Evidence", "Compared with", "Why"], [11, 38, 7, 36, 25, 25, 80, 30, 26], reset=False)
+        for i, hname in enumerate(["Compared with", "Why"], 8):  # older logs: add the new headers
+            if not log.cell(1, i).value:
+                log.cell(1, i, hname).font = Font(bold=True)
         for r in self.changes:
             log.append(r)
+        det = self._sheet(DETAILS_SHEET, DETAILS_HEADERS, [50, 7, 26, 12, 16, 10, 60, 60, 8, 40, 26, 11, 30, 30], reset=True)
+        for key in sorted(self.details):
+            det.append(self.details[key])
         runs = self._sheet("AI Run Log", ["Date", "HFA link", "Status", "Hospitals", "Documents",
-                                          "Input tokens", "Output tokens"], [11, 60, 40, 9, 9, 12, 12], reset=False)
+                                          "Input tokens", "Output tokens", "Why", "Compared with"],
+                           [11, 60, 40, 9, 9, 12, 12, 26, 30], reset=False)
+        for i, hname in enumerate(["Why", "Compared with"], 8):
+            if not runs.cell(1, i).value:
+                runs.cell(1, i, hname).font = Font(bold=True)
         for r in self.run_rows:
             runs.append(r)
         for s in (q, log):

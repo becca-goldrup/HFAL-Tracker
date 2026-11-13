@@ -38,6 +38,18 @@ def main():
     if src.parent.resolve() != config.OUTPUT_DIR.resolve():
         print("No AI-checked spreadsheet in data/output yet; decisions will be applied after the first check.")
         return
+    # Decisions say which AI check they were made on ("dataset": "ai-YYYY-MM-DD"); apply them to that spreadsheet.
+    wanted = set()
+    for f in files:
+        try:
+            wanted.add(str(json.loads(f.read_text()).get("dataset") or ""))
+        except Exception:
+            pass
+    wanted.discard("")
+    if len(wanted) == 1:
+        target = config.OUTPUT_DIR / f"hfal-tracker-{wanted.pop().replace('ai-', '')}.xlsx"
+        if target.exists():
+            src = target
     tracker = Tracker(src)
     by_site, by_slug = {}, {}
     for h in tracker.hospitals():
@@ -53,7 +65,7 @@ def main():
             print(f"  ! {f.name}: could not read ({e}); left in place")
             continue
         reviewer = str(batch.get("reviewer") or "CSS reviewer")[:80]
-        when = str(batch.get("submitted") or date.today().isoformat())[:10]
+        when = str(batch.get("submitted") or config.today())[:10]
         for d in decisions:
             # Compact form from the Submit to GitHub button: {"id": "<site>|<column>", "d": ..., "n": ..., "o": 1}
             if "id" in d and "|" in str(d["id"]) and not d.get("hfa_url"):

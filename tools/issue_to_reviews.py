@@ -26,19 +26,19 @@ def main():
     data = json.loads(m.group(1))
     decisions = data.get("decisions") or []
     publish = data.get("publish")
-    if publish in ("baseline", "latest"):
+    if publish and re.fullmatch(r"baseline|latest|ai-\d{4}-\d{2}-\d{2}", str(publish)):
         # A staff member chose which dataset the public tabs show.
         (REVIEWS_DIR).mkdir(parents=True, exist_ok=True)
         (REVIEWS_DIR / "publish.json").write_text(json.dumps(
             {"dataset": publish, "by": (str(data.get("reviewer") or "").strip() or author)[:80],
-             "date": str(data.get("submitted") or date.today().isoformat())[:10], "issue": number}, indent=1))
+             "date": str(data.get("submitted") or config.today())[:10], "issue": number}, indent=1))
         print(f"Public tabs set to show: {publish}")
         if not decisions:
             return
     if not isinstance(decisions, list) or not decisions or len(decisions) > 500:
         sys.exit("The decisions block is empty or too large.")
     data["reviewer"] = (str(data.get("reviewer") or "").strip() or author)[:80]
-    data["submitted"] = str(data.get("submitted") or date.today().isoformat())[:10]
+    data["submitted"] = str(data.get("submitted") or config.today())[:10]
     data["source"] = f"GitHub issue #{number} by {author}"
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
     out = REVIEWS_DIR / f"reviews-{data['submitted']}-issue{number}.json"

@@ -1,0 +1,478 @@
+{
+ "source": "US Census Bureau, County Adjacency File 2024 (county_adjacency2024.txt)",
+ "url": "https://www2.census.gov/geo/docs/reference/county_adjacency/county_adjacency2024.txt",
+ "counties": {
+  "Albany County": [
+   "Columbia County",
+   "Greene County",
+   "Rensselaer County",
+   "Saratoga County",
+   "Schenectady County",
+   "Schoharie County"
+  ],
+  "Allegany County": [
+   "Cattaraugus County",
+   "Livingston County",
+   "McKean County, PA",
+   "Potter County, PA",
+   "Steuben County",
+   "Wyoming County"
+  ],
+  "Bronx County": [
+   "Bergen County, NJ",
+   "Nassau County",
+   "New York County",
+   "Queens County",
+   "Westchester County"
+  ],
+  "Broome County": [
+   "Chenango County",
+   "Cortland County",
+   "Delaware County",
+   "Susquehanna County, PA",
+   "Tioga County",
+   "Wayne County, PA"
+  ],
+  "Cattaraugus County": [
+   "Allegany County",
+   "Chautauqua County",
+   "Erie County",
+   "McKean County, PA",
+   "Warren County, PA",
+   "Wyoming County"
+  ],
+  "Cayuga County": [
+   "Cortland County",
+   "Jefferson County",
+   "Onondaga County",
+   "Oswego County",
+   "Seneca County",
+   "Tompkins County",
+   "Wayne County"
+  ],
+  "Chautauqua County": [
+   "Cattaraugus County",
+   "Erie County",
+   "Erie County, PA",
+   "Warren County, PA"
+  ],
+  "Chemung County": [
+   "Bradford County, PA",
+   "Schuyler County",
+   "Steuben County",
+   "Tioga County",
+   "Tioga County, PA",
+   "Tompkins County"
+  ],
+  "Chenango County": [
+   "Broome County",
+   "Cortland County",
+   "Delaware County",
+   "Madison County",
+   "Otsego County"
+  ],
+  "Clinton County": [
+   "Chittenden County, VT",
+   "Essex County",
+   "Franklin County",
+   "Grand Isle County, VT"
+  ],
+  "Columbia County": [
+   "Albany County",
+   "Berkshire County, MA",
+   "Dutchess County",
+   "Greene County",
+   "Rensselaer County",
+   "Ulster County"
+  ],
+  "Cortland County": [
+   "Broome County",
+   "Cayuga County",
+   "Chenango County",
+   "Madison County",
+   "Onondaga County",
+   "Tioga County",
+   "Tompkins County"
+  ],
+  "Delaware County": [
+   "Broome County",
+   "Chenango County",
+   "Greene County",
+   "Otsego County",
+   "Schoharie County",
+   "Sullivan County",
+   "Ulster County",
+   "Wayne County, PA"
+  ],
+  "Dutchess County": [
+   "Berkshire County, MA",
+   "Columbia County",
+   "Northwest Hills Planning Region, CT",
+   "Orange County",
+   "Putnam County",
+   "Ulster County",
+   "Western Connecticut Planning Region, CT"
+  ],
+  "Erie County": [
+   "Cattaraugus County",
+   "Chautauqua County",
+   "Genesee County",
+   "Niagara County",
+   "Wyoming County"
+  ],
+  "Essex County": [
+   "Addison County, VT",
+   "Chittenden County, VT",
+   "Clinton County",
+   "Franklin County",
+   "Hamilton County",
+   "Warren County",
+   "Washington County"
+  ],
+  "Franklin County": [
+   "Clinton County",
+   "Essex County",
+   "Hamilton County",
+   "St. Lawrence County"
+  ],
+  "Fulton County": [
+   "Hamilton County",
+   "Herkimer County",
+   "Montgomery County",
+   "Saratoga County"
+  ],
+  "Genesee County": [
+   "Erie County",
+   "Livingston County",
+   "Monroe County",
+   "Niagara County",
+   "Orleans County",
+   "Wyoming County"
+  ],
+  "Greene County": [
+   "Albany County",
+   "Columbia County",
+   "Delaware County",
+   "Rensselaer County",
+   "Schoharie County",
+   "Ulster County"
+  ],
+  "Hamilton County": [
+   "Essex County",
+   "Franklin County",
+   "Fulton County",
+   "Herkimer County",
+   "Saratoga County",
+   "St. Lawrence County",
+   "Warren County"
+  ],
+  "Herkimer County": [
+   "Fulton County",
+   "Hamilton County",
+   "Lewis County",
+   "Montgomery County",
+   "Oneida County",
+   "Otsego County",
+   "St. Lawrence County"
+  ],
+  "Jefferson County": [
+   "Cayuga County",
+   "Lewis County",
+   "Oswego County",
+   "St. Lawrence County"
+  ],
+  "Kings County": [
+   "Hudson County, NJ",
+   "New York County",
+   "Queens County",
+   "Richmond County"
+  ],
+  "Lewis County": [
+   "Herkimer County",
+   "Jefferson County",
+   "Oneida County",
+   "Oswego County",
+   "St. Lawrence County"
+  ],
+  "Livingston County": [
+   "Allegany County",
+   "Genesee County",
+   "Monroe County",
+   "Ontario County",
+   "Steuben County",
+   "Wyoming County"
+  ],
+  "Madison County": [
+   "Chenango County",
+   "Cortland County",
+   "Oneida County",
+   "Onondaga County",
+   "Oswego County",
+   "Otsego County"
+  ],
+  "Monroe County": [
+   "Genesee County",
+   "Livingston County",
+   "Ontario County",
+   "Orleans County",
+   "Wayne County"
+  ],
+  "Montgomery County": [
+   "Fulton County",
+   "Herkimer County",
+   "Otsego County",
+   "Saratoga County",
+   "Schenectady County",
+   "Schoharie County"
+  ],
+  "Nassau County": [
+   "Bronx County",
+   "Queens County",
+   "Suffolk County",
+   "Westchester County",
+   "Western Connecticut Planning Region, CT"
+  ],
+  "New York County": [
+   "Bergen County, NJ",
+   "Bronx County",
+   "Hudson County, NJ",
+   "Kings County",
+   "Queens County"
+  ],
+  "Niagara County": [
+   "Erie County",
+   "Genesee County",
+   "Orleans County"
+  ],
+  "Oneida County": [
+   "Herkimer County",
+   "Lewis County",
+   "Madison County",
+   "Oswego County",
+   "Otsego County"
+  ],
+  "Onondaga County": [
+   "Cayuga County",
+   "Cortland County",
+   "Madison County",
+   "Oswego County"
+  ],
+  "Ontario County": [
+   "Livingston County",
+   "Monroe County",
+   "Seneca County",
+   "Steuben County",
+   "Wayne County",
+   "Yates County"
+  ],
+  "Orange County": [
+   "Dutchess County",
+   "Passaic County, NJ",
+   "Pike County, PA",
+   "Putnam County",
+   "Rockland County",
+   "Sullivan County",
+   "Sussex County, NJ",
+   "Ulster County"
+  ],
+  "Orleans County": [
+   "Genesee County",
+   "Monroe County",
+   "Niagara County"
+  ],
+  "Oswego County": [
+   "Cayuga County",
+   "Jefferson County",
+   "Lewis County",
+   "Madison County",
+   "Oneida County",
+   "Onondaga County"
+  ],
+  "Otsego County": [
+   "Chenango County",
+   "Delaware County",
+   "Herkimer County",
+   "Madison County",
+   "Montgomery County",
+   "Oneida County",
+   "Schoharie County"
+  ],
+  "Putnam County": [
+   "Dutchess County",
+   "Orange County",
+   "Rockland County",
+   "Westchester County",
+   "Western Connecticut Planning Region, CT"
+  ],
+  "Queens County": [
+   "Bronx County",
+   "Kings County",
+   "Monmouth County, NJ",
+   "Nassau County",
+   "New York County",
+   "Richmond County"
+  ],
+  "Rensselaer County": [
+   "Albany County",
+   "Bennington County, VT",
+   "Berkshire County, MA",
+   "Columbia County",
+   "Greene County",
+   "Saratoga County",
+   "Washington County"
+  ],
+  "Richmond County": [
+   "Hudson County, NJ",
+   "Kings County",
+   "Middlesex County, NJ",
+   "Monmouth County, NJ",
+   "Queens County",
+   "Union County, NJ"
+  ],
+  "Rockland County": [
+   "Bergen County, NJ",
+   "Orange County",
+   "Passaic County, NJ",
+   "Putnam County",
+   "Westchester County"
+  ],
+  "Saratoga County": [
+   "Albany County",
+   "Fulton County",
+   "Hamilton County",
+   "Montgomery County",
+   "Rensselaer County",
+   "Schenectady County",
+   "Warren County",
+   "Washington County"
+  ],
+  "Schenectady County": [
+   "Albany County",
+   "Montgomery County",
+   "Saratoga County",
+   "Schoharie County"
+  ],
+  "Schoharie County": [
+   "Albany County",
+   "Delaware County",
+   "Greene County",
+   "Montgomery County",
+   "Otsego County",
+   "Schenectady County"
+  ],
+  "Schuyler County": [
+   "Chemung County",
+   "Seneca County",
+   "Steuben County",
+   "Tompkins County",
+   "Yates County"
+  ],
+  "Seneca County": [
+   "Cayuga County",
+   "Ontario County",
+   "Schuyler County",
+   "Tompkins County",
+   "Wayne County",
+   "Yates County"
+  ],
+  "St. Lawrence County": [
+   "Franklin County",
+   "Hamilton County",
+   "Herkimer County",
+   "Jefferson County",
+   "Lewis County"
+  ],
+  "Steuben County": [
+   "Allegany County",
+   "Chemung County",
+   "Livingston County",
+   "Ontario County",
+   "Potter County, PA",
+   "Schuyler County",
+   "Tioga County, PA",
+   "Yates County"
+  ],
+  "Suffolk County": [
+   "Greater Bridgeport Planning Region, CT",
+   "Lower Connecticut River Valley Planning Region, CT",
+   "Nassau County",
+   "South Central Connecticut Planning Region, CT",
+   "Southeastern Connecticut Planning Region, CT",
+   "Washington County, RI",
+   "Western Connecticut Planning Region, CT"
+  ],
+  "Sullivan County": [
+   "Delaware County",
+   "Orange County",
+   "Pike County, PA",
+   "Ulster County",
+   "Wayne County, PA"
+  ],
+  "Tioga County": [
+   "Bradford County, PA",
+   "Broome County",
+   "Chemung County",
+   "Cortland County",
+   "Susquehanna County, PA",
+   "Tompkins County"
+  ],
+  "Tompkins County": [
+   "Cayuga County",
+   "Chemung County",
+   "Cortland County",
+   "Schuyler County",
+   "Seneca County",
+   "Tioga County"
+  ],
+  "Ulster County": [
+   "Columbia County",
+   "Delaware County",
+   "Dutchess County",
+   "Greene County",
+   "Orange County",
+   "Sullivan County"
+  ],
+  "Warren County": [
+   "Essex County",
+   "Hamilton County",
+   "Saratoga County",
+   "Washington County"
+  ],
+  "Washington County": [
+   "Addison County, VT",
+   "Bennington County, VT",
+   "Essex County",
+   "Rensselaer County",
+   "Rutland County, VT",
+   "Saratoga County",
+   "Warren County"
+  ],
+  "Wayne County": [
+   "Cayuga County",
+   "Monroe County",
+   "Ontario County",
+   "Seneca County"
+  ],
+  "Westchester County": [
+   "Bergen County, NJ",
+   "Bronx County",
+   "Nassau County",
+   "Putnam County",
+   "Rockland County",
+   "Western Connecticut Planning Region, CT"
+  ],
+  "Wyoming County": [
+   "Allegany County",
+   "Cattaraugus County",
+   "Erie County",
+   "Genesee County",
+   "Livingston County"
+  ],
+  "Yates County": [
+   "Ontario County",
+   "Schuyler County",
+   "Seneca County",
+   "Steuben County"
+  ]
+ }
+}

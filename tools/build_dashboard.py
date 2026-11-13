@@ -136,6 +136,8 @@ def build(src: Path) -> dict:
     hospitals = t.hospitals()
     geo = geocode(hospitals)
     other_notes_col = next((c for c in range(1, ws.max_column + 1) if ws.cell(2, c).value == "Other Notes"), None)
+    adj_file = config.ROOT / "data" / "reference" / "ny_county_adjacency.json"
+    adjacency = json.loads(adj_file.read_text())["counties"] if adj_file.exists() else {}
     out = []
     for h in hospitals:
         r = h["row"]
@@ -153,6 +155,9 @@ def build(src: Path) -> dict:
             "max_fpl": (f"{int(max_fpl * 100)}%" if isinstance(max_fpl, (int, float)) else _text(max_fpl)),
             "notes": {k: _text(ws.cell(r, col(letter)).value) for k, letter in TEXT_COLUMNS.items()},
             "last_checked": _text(ws.cell(r, t.new_col["AI Last Checked"]).value),
+            # Service area: what the hospital lists, and the legal minimum (its county + every bordering county).
+            "psa_listed": _text(ws.cell(r, t.new_col["AI Service Area (as listed)"]).value),
+            "psa_required": [loc.get("county", "")] + adjacency.get(loc.get("county", ""), []) if loc.get("county") else [],
         }
         if other_notes_col:
             rec["notes"]["other_notes"] = _text(ws.cell(r, other_notes_col).value)
@@ -172,7 +177,7 @@ def build(src: Path) -> dict:
         "repo": config.GITHUB_REPO,
         "review": review,
         "last_run": last_run,
-        "generated": date.today().isoformat(),
+        "generated": config.today(),
         "source": (f"AI-assisted check ({src.stem.replace('hfal-tracker-', '')})" if is_ai
                    else "CSS manual review, September 2025"),
         "fpl_year": config.FPL_YEAR,
@@ -261,151 +266,180 @@ def last_run_info(t: Tracker) -> dict | None:
 
 # ---------------------------------------------------------------- Data health tab
 def build_health(t: Tracker) -> dict:
-    """How each AI answer was decided, per hospital website (docs/data/health.json)."""
-    from hfal.fetch import load_site
-    from hfal.grader import load_result
-    from hfal.verify import CAUSES, decide
+    """How each AI answer was decided, per hospital website, read from the check's own
+    'AI Answer Details' tab (so it works for any dataset, on any computer)."""
+    from hfal.verify import CAUSES
 
     sites: dict[str, list] = {}
     for h in t.hospitals():
         if h["hfa_url"]:
             sites.setdefault(h["hfa_url"], []).append(h)
-    # Where downloaded documents aren't available (e.g. GitHub applying review decisions),
-    # keep each website's previous details and only refresh the staff decisions.
-    previous = {}
-    prev_path = DOCS / "data" / "health.json"
-    if prev_path.exists():
-        try:
-            previous = {s["hfa_url"]: s for s in json.loads(prev_path.read_text()).get("sites", [])}
-        except Exception:
-            previous = {}
     out, totals = [], {"quote": 0, "absence": 0, "review": 0, "staff": 0, "carried": 0}
     pipeline = {"websites": len(sites), "downloaded": 0, "graded": 0, "blocked": 0}
     for url, hs in sites.items():
         first = hs[0]
-        site, res = load_site(url), load_result(url)
-        checked = bool(site and site.landing_ok and res)
-        prev = previous.get(url)
-        if not checked and site is None and prev and prev.get("status") == "checked":
-            entry = json.loads(json.dumps(prev))
-            for item in entry["items"]:
-                cell = t.ws.cell(first["row"], col(item["column"])) if item.get("column") else None
-                if cell is not None and cell.comment is not None and cell.comment.text.startswith("Reviewed by"):
-                    item.update(value=_status(cell.value), basis="staff", cause="", reason=cell.comment.text[:320])
-            entry["grade"] = grade_row(t.last_values(first["row"]))["grade"]
-            pipeline["downloaded"] += 1
-            pipeline["graded"] += 1
-            for item in entry["items"]:
-                totals[item["basis"]] += 1
-            out.append(entry)
-            continue
-        if site and site.landing_ok:
-            pipeline["downloaded"] += 1
-        decisions = {}
-        if checked:
-            pipeline["graded"] += 1
-            try:
-                decisions, _, _ = decide(site, res)
-            except Exception:
-                decisions = {}
-        else:
-            pipeline["blocked"] += 1
-        items = []
+        rows = {c.column: t.details.get((url, c.column)) for c in GRADED}
+        checked = all(rows.values())
+        pipeline["graded" if checked else "blocked"] += 1
+        pipeline["downloaded"] += checked
+        items, model, notes, docs, last = [], "", [], [], ""
         for c in GRADED:
             cell = t.ws.cell(first["row"], col(c.column))
             value = _status(cell.value)
             comment = cell.comment.text if cell.comment else ""
-            d = decisions.get(c.key)
+            r = rows[c.column]
+            quote = doc = durl = conf = cause = ""
+            if r:
+                (_, _, _, basis, cause, conf, reason, quote, doc, durl, model, last, notes_j, docs_j) = (list(r) + [""] * 14)[:14]
+                try:
+                    notes, docs = json.loads(notes_j or "[]"), json.loads(docs_j or "[]")
+                except Exception:
+                    pass
             if comment.startswith("Reviewed by"):
                 basis, reason, cause = "staff", comment, ""
-            elif not checked or d is None:
-                basis, reason, cause = "carried", "Not re-checked by the AI; this is the value from CSS's 2025 review.", ""
-            elif d.value == REVIEW and value != "review":
+            elif not r:
+                basis, reason, cause = "carried", "Not checked by the AI; this is the value from CSS's 2025 review.", ""
+            elif basis == "review" and value != "review":
                 basis, reason, cause = "staff", "Changed by a person in the spreadsheet.", ""
-            else:
-                basis, reason, cause = d.basis or ("review" if value == "review" else "absence"), d.reason, d.cause
-            quote, doc, durl = "", "", ""
-            if d is not None and d.evidence:
-                m = re.match(r'^(D\d+): "(.*)"(?: \((https?://[^)]*)\))?$', d.evidence[0], re.S)
-                if m:
-                    doc, quote, durl = m[1], m[2][:260], m[3] or ""
-                else:
-                    quote = d.evidence[0][:260]
+            basis = basis if basis in totals else ("review" if value == "review" else "absence")
             totals[basis] += 1
-            items.append({"key": c.key, "column": c.column, "value": value, "basis": basis, "cause": cause,
-                          "confidence": d.confidence if d is not None else "", "reason": str(reason)[:320],
-                          "quote": quote, "doc": doc, "url": durl})
+            items.append({"key": c.key, "column": c.column, "value": value, "basis": basis, "cause": cause or "",
+                          "confidence": conf or "", "reason": str(reason or "")[:320],
+                          "quote": str(quote or "")[:260], "doc": doc or "", "url": durl or ""})
         g = grade_row(t.last_values(first["row"]))
-        docs = [{"id": dd.doc_id, "url": dd.url, "kind": dd.kind, "scanned": dd.scanned,
-                 "error": bool(dd.error)} for dd in (site.documents if site else [])]
         out.append({
             "id": site_slug(url), "hfa_url": url, "system": first["system"] or "Independent",
             "hospitals": [h["name"] for h in hs], "grade": g["grade"],
-            "last_checked": _text(t.ws.cell(first["row"], t.new_col["AI Last Checked"]).value),
-            "model": (res or {}).get("model", "") if checked else "",
-            "status": "checked" if checked else "blocked",
-            "problem": "" if checked else (site.error if site and site.error else "Website could not be checked"),
-            "notes": (site.notes if site else []), "documents": docs, "items": items,
+            "last_checked": str(last or _text(t.ws.cell(first["row"], t.new_col["AI Last Checked"]).value)),
+            "model": model or "", "status": "checked" if checked else "blocked",
+            "problem": "" if checked else "The AI couldn't check this website (it blocks automated access, or failed).",
+            "notes": notes, "documents": docs, "items": items,
         })
     out.sort(key=lambda x: (-sum(i["basis"] == "review" for i in x["items"]), x["hospitals"][0]))
-    return {"generated": date.today().isoformat(), "fpl_year": config.FPL_YEAR,
+    return {"generated": config.today(), "fpl_year": config.FPL_YEAR,
             "causes": CAUSES, "labels": {c.key: LABELS[c.key] for c in GRADED},
             "totals": totals, "pipeline": pipeline, "sites": out}
 
 
 PUBLISH_FILE = config.ROOT / "data" / "reviews" / "publish.json"
+MAX_AI_DATASETS = 3   # most recent AI checks offered on the dashboard
 
 
-def published_choice(has_latest: bool) -> dict:
+def ai_key(path: Path) -> str:
+    return "ai-" + path.stem.replace("hfal-tracker-", "")
+
+
+def published_choice(keys: list[str], latest_ai: str | None) -> dict:
     """Which dataset the public tabs show: set by staff (Publish button), else config.PUBLIC_DATA."""
-    choice = {"dataset": config.PUBLIC_DATA, "by": "", "date": ""}
+    choice = {"dataset": "baseline" if config.PUBLIC_DATA == "baseline" else (latest_ai or "baseline"), "by": "", "date": ""}
     if PUBLISH_FILE.exists():
         try:
             saved = json.loads(PUBLISH_FILE.read_text())
-            if saved.get("dataset") in ("baseline", "latest"):
+            if saved.get("dataset"):
                 choice.update({k: saved.get(k, "") for k in ("dataset", "by", "date")})
         except Exception:
             pass
-    if not has_latest:
+    if choice["dataset"] == "latest":
+        choice["dataset"] = latest_ai or "baseline"
+    if choice["dataset"] not in keys:
         choice["dataset"] = "baseline"
     return choice
 
 
+def since_baseline(base: Tracker, ai: Tracker) -> dict:
+    """Which requirement answers differ between CSS's 2025 review and this AI check, per website."""
+    base_rows = {h["name"]: h["row"] for h in base.hospitals()}
+    groups: dict[str, dict] = {}
+    for h in ai.hospitals():
+        if h["name"] not in base_rows:
+            continue
+        diffs = []
+        for c in GRADED:
+            before = _status(base.ws.cell(base_rows[h["name"]], col(c.column)).value)
+            after = _status(ai.ws.cell(h["row"], col(c.column)).value)
+            if before != after:
+                diffs.append({"key": c.key, "label": LABELS[c.key], "before": before, "after": after})
+        if not diffs:
+            continue
+        g = groups.setdefault(h["hfa_url"] + json.dumps(diffs), {"hfa_url": h["hfa_url"], "system": h["system"] or "Independent",
+                                                                 "hospitals": [], "changes": diffs})
+        if h["name"] not in g["hospitals"]:
+            g["hospitals"].append(h["name"])
+    items = sorted(groups.values(), key=lambda g: (-len(g["changes"]), g["hospitals"][0]))
+    counts = {"websites": len({g["hfa_url"] for g in items}), "hospitals": sum(len(g["hospitals"]) for g in items),
+              "answers": sum(len(g["changes"]) * len(g["hospitals"]) for g in items),
+              "now_review": sum(sum(ch["after"] == "review" for ch in g["changes"]) * len(g["hospitals"]) for g in items)}
+    return {"counts": counts, "items": items}
+
+
+def check_history(t: Tracker) -> list[dict]:
+    """One entry per check date from the AI Run Log: what ran, compared with what, and why websites were checked."""
+    if "AI Run Log" not in t.wb.sheetnames:
+        return []
+    by_date: dict[str, dict] = {}
+    for r in t.wb["AI Run Log"].iter_rows(min_row=2, values_only=True):
+        if not r or not r[0]:
+            continue
+        r = list(r) + [None] * 9
+        by_date.setdefault(str(r[0]), {})[r[1]] = r  # latest row per website that day
+    out = []
+    for i, (day, rows) in enumerate(sorted(by_date.items())):
+        status = [str(x[2] or "") for x in rows.values()]
+        why = {}
+        for x in rows.values():
+            w = x[7] or ("first AI check" if i == 0 and str(x[2]) == "graded" else "")
+            if w:
+                why[w] = why.get(w, 0) + 1
+        compared = [x[8] for x in rows.values() if x[8]]
+        out.append({"date": day, "websites": len(rows), "graded": sum(s == "graded" for s in status),
+                    "unchanged": sum(s == "unchanged" for s in status),
+                    "problems": sum(s.startswith(("error", "skipped")) for s in status), "why": why,
+                    "compared_with": max(set(compared), key=compared.count) if compared else
+                                     ("CSS manual review (September 2025)" if i == 0 else "")})
+    return list(reversed(out))
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--input", help="build only from this spreadsheet (skips the two-dataset setup)")
+    ap.add_argument("--input", help="build only from this spreadsheet (skips the multi-dataset setup)")
     args = ap.parse_args()
     from run import pick_input
-    (DOCS / "data").mkdir(parents=True, exist_ok=True)
+    data_dir = DOCS / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
     baseline_src = pick_input(args.input) if args.input else sorted(config.INPUT_DIR.glob("*.xlsx"))[0]
     outputs = [] if args.input else sorted(p for p in config.OUTPUT_DIR.glob("*.xlsx") if not p.name.startswith("~$"))
-    latest_src = outputs[-1] if outputs else None
+    ai_files = outputs[-MAX_AI_DATASETS:]
 
+    base_t = Tracker(baseline_src)
     base = build(baseline_src)
-    latest = build(latest_src) if latest_src else None
-    pub = published_choice(latest is not None)
-
-    def dataset(d, label):
-        return {"label": label, "source": d["source"], "generated": d["generated"], "hospitals": d["hospitals"]}
-
-    datasets = {"baseline": dataset(base, "CSS manual review (September 2025)")}
-    if latest:
-        datasets["latest"] = dataset(latest, f"AI check ({latest_src.stem.replace('hfal-tracker-', '')}) with staff decisions")
+    datasets = {"baseline": {"label": "CSS manual review (September 2025)", "kind": "baseline", "date": "",
+                             "source": base["source"], "generated": base["generated"], "hospitals": base["hospitals"]}}
+    for f in reversed(ai_files):  # newest first
+        key, day = ai_key(f), f.stem.replace("hfal-tracker-", "")
+        d = build(f)
+        t = Tracker(f)
+        datasets[key] = {"label": f"AI check of {day} (with staff decisions)", "kind": "ai", "date": day,
+                         "source": d["source"], "generated": d["generated"], "hospitals": d["hospitals"]}
+        staff = {"key": key, "label": datasets[key]["label"], "generated": d["generated"], "repo": config.GITHUB_REPO,
+                 "review": d["review"], "last_run": d["last_run"],
+                 "since_baseline": since_baseline(base_t, t), "history": check_history(t)}
+        (data_dir / f"staff-{key}.json").write_text(json.dumps(staff, ensure_ascii=False, separators=(",", ":")))
+        health = build_health(t)
+        (data_dir / f"health-{key}.json").write_text(json.dumps(health, ensure_ascii=False, separators=(",", ":")))
+        print(f"{key}: {len(d['review'])} review items, {staff['since_baseline']['counts']['answers']} answers differ "
+              f"from the 2025 review, health {health['totals']}")
+    keys = list(datasets)
+    latest_ai = next((k for k in keys if k != "baseline"), None)
+    pub = published_choice(keys, latest_ai)
     public = {k: base[k] for k in ("repo", "generated", "fpl_year", "policy_statement_auto_fail", "criteria")}
-    public.update({"published": pub, "datasets": datasets})
-    (DOCS / "data" / "hospitals.json").write_text(json.dumps(public, ensure_ascii=False, separators=(",", ":")))
-
-    # Staff-only data (loaded only by the CSS staff tab).
-    staff = {"generated": base["generated"], "repo": config.GITHUB_REPO, "published": pub,
-             "review": latest["review"] if latest else [], "last_run": latest["last_run"] if latest else None,
-             "changes": latest["changes"] if latest else []}
-    (DOCS / "data" / "staff.json").write_text(json.dumps(staff, ensure_ascii=False, separators=(",", ":")))
-    if latest_src:
-        health = build_health(Tracker(latest_src))
-        (DOCS / "data" / "health.json").write_text(json.dumps(health, ensure_ascii=False, separators=(",", ":")))
-        print(f"Wrote docs/data/health.json: {len(health['sites'])} websites, answers by basis {health['totals']}")
-    print(f"Wrote docs/data/hospitals.json: datasets {list(datasets)}, published: {pub['dataset']}")
-    print(f"Wrote docs/data/staff.json: {len(staff['review'])} review items, {len(staff['changes'])} changes")
+    public.update({"published": pub, "latest_ai": latest_ai, "datasets": datasets})
+    (data_dir / "hospitals.json").write_text(json.dumps(public, ensure_ascii=False, separators=(",", ":")))
+    # Remove files for checks that are no longer offered (and the old single-dataset files).
+    wanted = {f"staff-{k}.json" for k in keys} | {f"health-{k}.json" for k in keys} | {"hospitals.json"}
+    for old in data_dir.glob("*.json"):
+        if old.name not in wanted and (old.name.startswith(("staff", "health"))):
+            old.unlink()
+    print(f"Wrote docs/data/hospitals.json: datasets {keys}, published: {pub['dataset']}")
 
 
 if __name__ == "__main__":

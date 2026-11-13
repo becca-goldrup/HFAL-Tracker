@@ -89,7 +89,7 @@ assert ws["T3"].value == "REVIEW" and ws["T3"].fill.fgColor.rgb == "FFF4B183" an
 assert ws["AL3"].value == "no" and ws["AL3"].fill.fgColor.rgb == "FFBDD7EE"   # changed yes -> no
 assert ws["AI3"].value == 4 and ws["R3"].value == "yes"
 assert {"AI Review Queue", "AI Change Log", "AI Run Log"} <= set(wb.sheetnames)
-assert ws.tables["Table1"].ref.endswith("AU5"), ws.tables["Table1"].ref
+assert ws.tables["Table1"].ref.endswith("AV5"), ws.tables["Table1"].ref
 print("  queue rows:", wb["AI Review Queue"].max_row - 1, "| change rows:", wb["AI Change Log"].max_row - 1,
       "| status:", ws.cell(3, 46).value)
 print("  csv:", (config.OUTPUT_DIR / "hospitals.csv").read_text().splitlines()[1][:150], "...")

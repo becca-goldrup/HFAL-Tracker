@@ -15,15 +15,15 @@
 <body>
   <header class="masthead">
     <div class="wrap">
-      <p class="kicker">Hospital Financial Assistance Law · Compliance tracker</p>
+      <p class="kicker" data-i18n="kicker">Hospital Financial Assistance Law · Compliance tracker</p>
       <h1>Equity Lens</h1>
-      <p class="dek">How New York hospitals measure up to the state's reformed financial assistance law,
+      <p class="dek" data-i18n="dek">How New York hospitals measure up to the state's reformed financial assistance law,
         which requires hospitals to help patients with incomes up to 400% of the federal poverty level.</p>
-      <p class="byline" id="source-line"></p>
+      <p class="byline"><span id="source-line"></span> <button id="lang-toggle" class="lang-toggle" type="button" lang="es">Español</button></p>
       <nav class="tabs" role="tablist" aria-label="Views">
-        <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview">Overview</button>
-        <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals">Hospitals</button>
-        <button role="tab" id="tab-map" aria-controls="panel-map" data-tab="map">Map</button>
+        <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview" data-i18n="tab_overview">Overview</button>
+        <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals" data-i18n="tab_hospitals">Hospitals</button>
+        <button role="tab" id="tab-map" aria-controls="panel-map" data-tab="map" data-i18n="tab_map">Map</button>
         <button role="tab" id="tab-staff" aria-controls="panel-staff" data-tab="staff" class="tab-staff">CSS staff</button>
       </nav>
     </div>
@@ -32,13 +32,13 @@
   <div id="preview-banner" class="preview-banner" hidden></div>
 
   <section class="filters wrap" aria-label="Filters">
-    <label class="f-search"><span>Search</span>
-      <input id="f-search" type="search" placeholder="Hospital, city, or system"></label>
-    <label><span>Region</span><select id="f-region"></select></label>
-    <label><span>System</span><select id="f-system"></select></label>
-    <label><span>Grade</span><select id="f-grade"></select></label>
-    <label><span>Falls short on</span><select id="f-criterion"></select></label>
-    <button id="f-reset" class="text-btn" type="button">Clear filters</button>
+    <label class="f-search"><span data-i18n="f_search">Search</span>
+      <input id="f-search" type="search" placeholder="Hospital, city, or system" data-i18n-placeholder="f_search"></label>
+    <label><span data-i18n="f_region">Region</span><select id="f-region"></select></label>
+    <label><span data-i18n="f_system">System</span><select id="f-system"></select></label>
+    <label><span data-i18n="f_grade">Grade</span><select id="f-grade"></select></label>
+    <label><span data-i18n="f_criterion">Falls short on</span><select id="f-criterion"></select></label>
+    <button id="f-reset" class="text-btn" type="button" data-i18n="f_reset">Clear filters</button>
     <p id="f-count" class="count" aria-live="polite"></p>
   </section>
 
@@ -48,73 +48,79 @@
       <div class="stats" id="tiles"></div>
 
       <figure class="fig">
-        <h2 class="fig-title">Grade distribution</h2>
+        <h2 class="fig-title" data-i18n="grades_title">Grade distribution</h2>
         <div id="grade-chart" class="hbars"></div>
-        <figcaption class="src">Source: <span class="src-name"></span>. Grades follow the Community Service Society of New York rubric.</figcaption>
+        <figcaption class="src" data-i18n="grades_src">Source: <span class="src-name"></span>. Grades follow the Community Service Society of New York rubric.</figcaption>
       </figure>
 
       <figure class="fig">
-        <h2 class="fig-title">Compliance by requirement</h2>
+        <h2 class="fig-title" data-i18n="criteria_title">Compliance by requirement</h2>
         <div id="criteria-chart" class="hbars criteria"></div>
-        <figcaption class="src">Source: <span class="src-name"></span>. Hospitals with items still under review are left out of that requirement's share.</figcaption>
+        <figcaption class="src" data-i18n="criteria_src">Source: <span class="src-name"></span>. Hospitals with items still under review are left out of that requirement's share.</figcaption>
       </figure>
 
 
       <section class="fig">
-        <h2 class="fig-title">What each grade means</h2>
+        <h2 class="fig-title" data-i18n="rubric_title">What each grade means</h2>
         <dl id="rubric" class="rubric"></dl>
       </section>
 
       <section class="fig">
-        <h2 class="fig-title">What each requirement means</h2>
+        <h2 class="fig-title" data-i18n="guide_title">What each requirement means</h2>
         <div id="criteria-guide" class="guide"></div>
       </section>
 
       <section class="fig about">
-        <h2 class="fig-title">About this data</h2>
-        <p>Each hospital is checked against 17 requirements drawn from New York's Hospital Financial Assistance Law,
+        <h2 class="fig-title" data-i18n="about_title">About this data</h2>
+        <p data-i18n="about_1">Each hospital is checked against 17 requirements drawn from New York's Hospital Financial Assistance Law,
           using the materials on its website: the financial assistance application, the plain language summary, and the full policy.
           Grades follow the Community Service Society of New York (CSS) rubric.</p>
-        <p>Items marked <strong>needs review</strong> could not be confirmed automatically and are waiting for a person to check them.
+        <p data-i18n="about_2">Items marked <strong>needs review</strong> could not be confirmed automatically and are waiting for a person to check them.
           While any remain, a hospital's grade is shown as a range (for example "B to D").</p>
-        <p><a id="download" href="data/hospitals.json" download>Download the data (JSON)</a></p>
+        <p data-i18n="about_3">Notes and quotes from hospitals' documents appear as written in the original.</p>
+        <p><a id="download" href="data/hospitals.json" download data-i18n="download">Download the data (JSON)</a></p>
       </section>
     </section>
 
     <!-- ======================== HOSPITALS ======================== -->
     <section id="panel-hospitals" role="tabpanel" aria-labelledby="tab-hospitals" class="panel" hidden>
-      <h2 class="fig-title">Every hospital, graded</h2>
-      <p class="fig-sub">Select a hospital to see where it falls short and what the law requires. Select a column heading to sort.</p>
+      <h2 class="fig-title" data-i18n="hosp_title">Every hospital, graded</h2>
+      <p class="fig-sub" data-i18n="hosp_sub">Select a hospital to see where it falls short and what the law requires. Select a column heading to sort.</p>
       <div class="table-wrap">
         <table id="table">
           <thead><tr>
-            <th data-sort="name" scope="col">Hospital</th>
-            <th data-sort="system" scope="col" class="hide-sm">System</th>
-            <th data-sort="county" scope="col" class="hide-sm">County</th>
-            <th data-sort="grade" scope="col">Grade</th>
-            <th data-sort="issues" scope="col" class="num">Gaps</th>
+            <th data-sort="name" scope="col" data-i18n="th_hospital">Hospital</th>
+            <th data-sort="system" scope="col" class="hide-sm" data-i18n="th_system">System</th>
+            <th data-sort="county" scope="col" class="hide-sm" data-i18n="th_county">County</th>
+            <th data-sort="grade" scope="col" data-i18n="th_grade">Grade</th>
+            <th data-sort="issues" scope="col" class="num" data-i18n="th_gaps">Gaps</th>
           </tr></thead>
           <tbody></tbody>
         </table>
-        <p id="table-empty" class="empty" hidden>No hospitals match these filters.</p>
+        <p id="table-empty" class="empty" hidden data-i18n="table_empty">No hospitals match these filters.</p>
       </div>
-      <p class="src">Source: <span class="src-name"></span>.</p>
+      <p class="src" data-i18n="hosp_src">Source: <span class="src-name"></span>.</p>
     </section>
 
     <!-- ======================== MAP ======================== -->
     <section id="panel-map" role="tabpanel" aria-labelledby="tab-map" class="panel" hidden>
-      <h2 class="fig-title">Where hospitals fall short</h2>
-      <p class="fig-sub">Each dot is a hospital, colored by grade. Hover over a dot for details; select it for links.</p>
+      <h2 class="fig-title" data-i18n="map_title">Where hospitals fall short</h2>
+      <p class="fig-sub" data-i18n="map_sub">Each dot is a hospital, colored by grade. Hover over a dot for details; select it for links.</p>
       <div class="legend" id="legend" aria-label="Grade colors"></div>
       <div id="map" aria-label="Map of hospitals colored by grade"></div>
-      <p class="src">Source: <span class="src-name"></span>. Locations: US Census Bureau and OpenStreetMap.</p>
+      <p class="src" data-i18n="map_src">Source: <span class="src-name"></span>. Locations: US Census Bureau and OpenStreetMap.</p>
     </section>
 
     <!-- ======================== CSS STAFF ======================== -->
     <section id="panel-staff" role="tabpanel" aria-labelledby="tab-staff" class="panel" hidden>
       <h2 class="fig-title">For the CSS team</h2>
-      <p class="fig-sub">Check the latest AI review, settle what it couldn't confirm, and choose what the public tabs show.
+      <p class="fig-sub">Pick an AI check, settle what it couldn't confirm, and choose what the public tabs show.
         Making changes requires access to the project's GitHub repository.</p>
+      <div class="staff-ds">
+        <label for="staff-ds">Working on</label>
+        <select id="staff-ds"></select>
+        <p id="staff-ds-note" class="hint"></p>
+      </div>
       <nav class="subnav" role="tablist" aria-label="Staff sections">
         <button role="tab" type="button" data-sub="status">Status &amp; publishing</button>
         <button role="tab" type="button" data-sub="review">Review <span id="sub-review-count" class="sub-count"></span></button>
@@ -142,9 +148,10 @@
         </section>
 
         <section class="staff-step">
-          <h3 class="step-title">Recent updates</h3>
-          <p class="hint">Changes the latest AI check found in hospitals' financial assistance materials, newest first.</p>
-          <div id="feed" class="feed"></div>
+          <h3 class="step-title">What this check changed</h3>
+          <p class="hint">Compared with <strong>CSS's manual review from September 2025</strong>, the last dataset checked entirely by people.
+            Open a hospital to see which answers differ.</p>
+          <div id="feed"></div>
         </section>
       </div>
 
@@ -203,12 +210,13 @@
     <div id="d-body"></div>
   </aside>
 
-  <footer class="site-foot"><div class="wrap foot">
+  <footer class="site-foot"><div class="wrap foot" data-i18n="footer">
     Built for the AI for Health Equity Design Sprint (Columbia University) with the Community Service Society of New York.
     Hospital locations: US Census Bureau and © OpenStreetMap contributors.
   </div></footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

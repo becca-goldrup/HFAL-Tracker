@@ -102,7 +102,7 @@ def main():
 
     # ------------------------------------------------------------ 1. fetch
     from hfal.grader import load_result
-    sites, status = {}, {}
+    sites, status, why = {}, {}, {}
     print(f"Step 1/3: downloading documents ({config.FETCH_WORKERS} websites at a time)", flush=True)
     lock, done = threading.Lock(), [0]
     urls = list(groups)
@@ -123,13 +123,16 @@ def main():
                 ok_docs = [d for d in site.documents if not d.error]
                 prev = load_result(url)
                 if not site.landing_ok:
-                    st = f"error: {site.error}"
+                    st, reason = f"error: {site.error}", ""
                 elif prev and prev["fingerprint"] == site.fingerprint() and not args.force:
-                    st = "unchanged"
+                    st, reason = "unchanged", "documents unchanged"
                 else:
                     st = "grade"
+                    reason = ("first AI check" if not prev else
+                              "documents changed" if prev["fingerprint"] != site.fingerprint() else
+                              "re-checked (same documents)")
                 with lock:
-                    sites[url], status[url] = site, st
+                    sites[url], status[url], why[url] = site, st, reason
                     done[0] += 1
                     print(f"  [{done[0]}/{len(urls)}] {len(ok_docs):2d} docs  {st[:60]:12}  {url}", flush=True)
 
@@ -213,23 +216,25 @@ def main():
         if st.startswith(("error", "skipped")) or res is None:
             for h in hospitals:
                 tracker.mark_checked(h, st if st.startswith(("error", "skipped")) else "error: no AI result")
-            tracker.log_run(url, st, len(hospitals), n_docs, None)
+            tracker.log_run(url, st, len(hospitals), n_docs, None, why.get(url, ""))
             continue
         already_has_ai = all(tracker.ws.cell(h["row"], tracker.new_col["AI Last Checked"]).value for h in hospitals)
         if st == "unchanged" and already_has_ai and not args.reapply:
             # Nothing changed online: keep the sheet as-is (including human fixes).
             for h in hospitals:
                 tracker.mark_checked(h, "website unchanged")
-            tracker.log_run(url, "unchanged", len(hospitals), n_docs, None)
+            tracker.log_run(url, "unchanged", len(hospitals), n_docs, None, "documents unchanged")
             continue
         decisions, text, warnings = decide(site, res)
+        tracker.record_details(url, site, decisions, res.get("model", ""))
         fpl_val = max_fpl_cell(decisions["max_fpl_400"], res["result"].get("max_fpl_percent"))
+        from hfal.spreadsheet import psa_listed
         for h in hospitals:
-            tracker.apply(h, decisions, text, warnings, site, fpl_val)
+            tracker.apply(h, decisions, text, warnings, site, fpl_val, psa_listed(res["result"]), why.get(url, ""))
         if st == "grade":
             usage_total.update(res["usage"])
         tracker.log_run(url, "graded" if st == "grade" else "applied cached result", len(hospitals), n_docs,
-                        res["usage"] if st == "grade" else None)
+                        res["usage"] if st == "grade" else None, why.get(url, ""))
 
     out = tracker.save()
 

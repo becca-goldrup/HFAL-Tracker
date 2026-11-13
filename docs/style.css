@@ -378,3 +378,30 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .ds-actions { display: flex; gap: 10px; align-items: center; }
 .preview-banner { background: var(--gold); color: #0b0b0b; font-size: 0.9rem; padding: 10px 0; }
 .preview-banner .text-btn { color: #0b0b0b; margin-left: 10px; font-weight: 600; }
+
+/* ---------- service area ---------- */
+.psa-verdict { margin: 0 0 8px; font-weight: 600; font-size: 0.9rem; }
+.psa-verdict.psa-yes { color: var(--st-yes); }
+.psa-verdict.psa-no { color: var(--st-no); }
+.psa-verdict.psa-review { color: var(--st-review); }
+
+/* ---------- language switch ---------- */
+.lang-toggle { margin-left: 10px; background: transparent; border: 1px solid var(--rule-strong); border-radius: 999px;
+  padding: 2px 10px; font-size: 0.78rem; font-weight: 600; color: var(--ink); vertical-align: 1px; }
+.lang-toggle:hover { background: var(--surface-2); }
+
+/* ---------- Staff: dataset picker, what changed ---------- */
+.staff-ds { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 16px 0 0; padding: 12px 14px;
+  background: var(--surface-2); border-left: 3px solid var(--gold); }
+.staff-ds label { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.staff-ds select { font: inherit; padding: 5px 8px; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--surface); color: inherit; }
+.staff-ds .hint { flex-basis: 100%; margin: 2px 0 0; }
+.changes-sum { max-width: 760px; font-size: 0.93rem; color: var(--ink-2); }
+.feed details.item summary { cursor: pointer; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.chg-list { list-style: none; margin: 8px 0; padding: 0 0 0 4px; font-size: 0.88rem; }
+.chg-list li { padding: 3px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.chg-list li > span:first-child { min-width: 260px; color: var(--ink-2); }
+.sub-h { margin: 26px 0 4px; font-size: 1rem; }
+.hist { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 8px; }
+.hist th, .hist td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.hist th { font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--rule-strong); }

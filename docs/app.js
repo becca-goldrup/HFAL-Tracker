@@ -11,6 +11,7 @@ const state = {
   sort: { key: "name", dir: 1 },
   map: null, markers: null, mapFitted: false,
   lastFocus: null,
+  lang: (() => { try { return localStorage.getItem("hfal-lang") || "en"; } catch { return "en"; } })(),
 };
 
 /* ---------------------------------------------------------------- helpers */
@@ -24,6 +25,13 @@ const gradeClass = (h) => (isRange(h) ? "g-R" : `g-${h.grade}`);
 const gradeRank = (h) => GRADES.indexOf(h.grade_worst) + (isRange(h) ? 0.5 : 0);
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const criterion = (key) => state.data.criteria.find((c) => c.key === key);
+// Language: public tabs can show Spanish (docs/i18n.js); the staff tab stays English.
+const hasES = () => typeof ES_UI !== "undefined";
+const t = (en, vars = {}) => ((state.lang === "es" && hasES() && ES_UI[en]) || en).replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? ""));
+const cLabel = (c) => (state.lang === "es" && hasES() && ES_CRITERIA[c.key] ? ES_CRITERIA[c.key][0] : c.label);
+const cLaw = (c) => (state.lang === "es" && hasES() && ES_CRITERIA[c.key] ? ES_CRITERIA[c.key][1] : c.law);
+
+const nyToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 
 /* ---------------------------------------------------------------- load */
 fetch("data/hospitals.json")
@@ -45,6 +53,8 @@ fetch("data/hospitals.json")
   });
 
 function init() {
+  applyStatic();
+  $("#lang-toggle").addEventListener("click", () => setLang(state.lang === "es" ? "en" : "es"));
   buildFilters();
   renderRubric();
   renderCriteriaGuide();
@@ -57,18 +67,20 @@ function init() {
 function buildFilters() {
   const hs = state.data.hospitals;
   const counties = [...new Set(hs.map((h) => h.county).filter(Boolean))].sort();
-  $("#f-region").innerHTML = `<option value="">All of New York</option>
-    <option value="nyc">New York City</option><option value="non-nyc">Outside New York City</option>
-    <optgroup label="County">${counties.map((c) => `<option value="county:${esc(c)}">${esc(c)}</option>`).join("")}</optgroup>`;
+  $("#f-region").innerHTML = `<option value="">${t("All of New York")}</option>
+    <option value="nyc">${t("New York City")}</option><option value="non-nyc">${t("Outside New York City")}</option>
+    <optgroup label="${t("County")}">${counties.map((c) => `<option value="county:${esc(c)}">${esc(c)}</option>`).join("")}</optgroup>`;
   const systems = [...new Set(hs.map((h) => h.system))].sort((a, b) => a.localeCompare(b));
-  $("#f-system").innerHTML = `<option value="">All systems</option>` +
+  $("#f-system").innerHTML = `<option value="">${t("All systems")}</option>` +
     systems.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
   const hasRanges = hs.some(isRange);
-  $("#f-grade").innerHTML = `<option value="">All grades</option>` +
+  $("#f-grade").innerHTML = `<option value="">${t("All grades")}</option>` +
     GRADES.map((g) => `<option value="${g}">${g}</option>`).join("") +
-    (hasRanges ? `<option value="range">Grade pending review</option>` : "");
-  $("#f-criterion").innerHTML = `<option value="">Any requirement</option>` +
-    state.data.criteria.map((c) => `<option value="${c.key}">${esc(c.label)}</option>`).join("");
+    (hasRanges ? `<option value="range">${t("Grade pending review")}</option>` : "");
+  $("#f-criterion").innerHTML = `<option value="">${t("Any requirement")}</option>` +
+    state.data.criteria.map((c) => `<option value="${c.key}">${esc(cLabel(c))}</option>`).join("");
+  // keep the current choices when the lists are rebuilt (e.g. after switching language)
+  ["region", "system", "grade", "criterion"].forEach((k) => { const el = $(`#f-${k}`); if (el) el.value = state.filters[k] || ""; });
 }
 
 function filtered() {
@@ -148,8 +160,8 @@ function showTab(route) {
 function render() {
   const list = filtered();
   const total = state.data.hospitals.length;
-  $("#f-count").textContent = list.length === total ? `Showing all ${total} hospitals`
-    : `Showing ${list.length} of ${total} hospitals`;
+  $("#f-count").textContent = list.length === total ? t("Showing all {n} hospitals", { n: total })
+    : t("Showing {a} of {b} hospitals", { a: list.length, b: total });
   renderOverview(list);
   renderTable(list);
   if (state.map) renderMap(list);
@@ -164,10 +176,10 @@ function renderOverview(list) {
   const worst = stats.filter((s) => s.yes + s.no > 0).sort((a, b) => a.rate - b.rate)[0];
   const filteredView = n !== state.data.hospitals.length;
   $("#tiles").innerHTML = [
-    tile("Hospitals", n, list.some(isRange) ? `${list.filter(isRange).length} with grades pending review` : (filteredView ? "in this view" : "statewide")),
-    tile("Meet every requirement", countA, `${pct(countA, n)}% of hospitals`),
-    tile("Graded F", countF, `${pct(countF, n)}% of hospitals`),
-    worst ? tile("Biggest gap", esc(worst.label), `only ${worst.rate}% meet it`, true) : tile("Biggest gap", "–", ""),
+    tile(t("Hospitals"), n, list.some(isRange) ? t("{n} with grades pending review", { n: list.filter(isRange).length }) : t(filteredView ? "in this view" : "statewide")),
+    tile(t("Meet every requirement"), countA, t("{p}% of hospitals", { p: pct(countA, n) })),
+    tile(t("Graded F"), countF, t("{p}% of hospitals", { p: pct(countF, n) })),
+    worst ? tile(t("Biggest gap"), esc(cLabel(worst)), t("only {p}% meet it", { p: worst.rate }), true) : tile(t("Biggest gap"), "–", ""),
   ].join("");
 
   // Grades
@@ -191,7 +203,7 @@ function renderOverview(list) {
   $("#criteria-chart").innerHTML = sorted.map((s) => `
       <button class="hbar clickable" data-goto-criterion="${s.key}"
         title="${s.yes} meet it · ${s.no} fall short${s.review ? ` · ${s.review} need review` : ""}. Select to list hospitals that fall short.">
-        <span class="lbl">${esc(s.label)}<span class="sec">${esc(sectionName(s.section))}</span></span>
+        <span class="lbl">${esc(cLabel(s))}<span class="sec">${esc(sectionName(s.section))}</span></span>
         <span class="track"><span class="fill" style="width:${s.rate}%"></span></span>
         <span class="val">${s.rate}% <span class="of">${s.yes}/${s.yes + s.no}</span></span>
       </button>`).join("");
@@ -200,19 +212,19 @@ function renderOverview(list) {
 
 function renderRubric() {
   const total = state.data.criteria.length;
-  const autoF = ["no financial assistance application is posted", "the application is not the full NYS Uniform Application"];
-  if (state.data.policy_statement_auto_fail) autoF.push("the full financial assistance policy is not posted");
+  const autoF = [t("no financial assistance application is posted"), t("the application is not the full NYS Uniform Application")];
+  if (state.data.policy_statement_auto_fail) autoF.push(t("the full financial assistance policy is not posted"));
   const rows = [
-    ["A", `Meets all ${total} requirements.`],
-    ["B", "Falls short on 1 to 3 requirements."],
-    ["C", "Falls short on 4 to 6 requirements."],
-    ["D", "Falls short on 7 to 9 requirements."],
-    ["F", `Falls short on 10 or more requirements, or automatically if ${autoF.join(", or ")}.`],
+    ["A", t("Meets all {n} requirements.", { n: total })],
+    ["B", t("Falls short on 1 to 3 requirements.")],
+    ["C", t("Falls short on 4 to 6 requirements.")],
+    ["D", t("Falls short on 7 to 9 requirements.")],
+    ["F", t("Falls short on 10 or more requirements, or automatically if {clauses}.", { clauses: autoF.join(t(", or ")) })],
   ];
   $("#rubric").innerHTML = rows.map(([g, text]) =>
     `<div class="rubric-row"><dt><span class="badge g-${g}">${g}</span></dt><dd>${text}</dd></div>`).join("") +
     (state.data.hospitals.some(isRange) ? `<div class="rubric-row"><dt><span class="badge g-R">?</span></dt>
-      <dd>Grade pending review: some items couldn't be confirmed automatically, so the grade is shown as a range until a person checks them.</dd></div>` : "");
+      <dd>${t("Grade pending review: some items couldn't be confirmed automatically, so the grade is shown as a range until a person checks them.")}</dd></div>` : "");
 }
 
 function renderCriteriaGuide() {
@@ -225,9 +237,9 @@ function renderCriteriaGuide() {
   $("#criteria-guide").innerHTML = groups.map(([key, title, note]) => {
     const items = state.data.criteria.filter((c) => c.section === key);
     if (!items.length) return "";
-    return `<h3 class="guide-group">${title} <span class="guide-note">${note}</span></h3>
+    return `<h3 class="guide-group">${t(title)} <span class="guide-note">${t(note)}</span></h3>
       <dl class="guide-list">${items.map((c) => `<div class="guide-row">
-        <dt>${esc(c.label)}</dt><dd>${esc(c.law)}</dd></div>`).join("")}</dl>`;
+        <dt>${esc(cLabel(c))}</dt><dd>${esc(cLaw(c))}</dd></div>`).join("")}</dl>`;
   }).join("");
 }
 
@@ -237,7 +249,7 @@ function tile(label, value, note, small = false) {
 }
 
 function sectionName(s) {
-  return { "MATERIALS ON WEBSITE": "Website materials", APPLICATION: "Application", "PLAIN LANGUAGE SUMMARY": "Plain language summary" }[s] || s;
+  return t({ "MATERIALS ON WEBSITE": "Website materials", APPLICATION: "Application", "PLAIN LANGUAGE SUMMARY": "Plain language summary" }[s] || s);
 }
 
 function criteriaStats(list) {
@@ -275,9 +287,13 @@ function initMap() {
   state.map.on("focus", () => state.map.scrollWheelZoom.enable());
   state.map.on("blur", () => state.map.scrollWheelZoom.disable());
   state.markers = L.layerGroup().addTo(state.map);
+  renderLegend();
+}
+
+function renderLegend() {
   $("#legend").innerHTML = GRADES.map((g) => `<span><span class="sw" style="background:${MAP_COLORS[g]}"></span>${g}</span>`).join("") +
-    (state.data.hospitals.some(isRange) ? `<span><span class="sw" style="background:${MAP_COLORS.R};border-style:dashed"></span>Pending review</span>` : "") +
-    `<span style="margin-left:auto">Hover a dot for details · select it for links</span>`;
+    (state.data.hospitals.some(isRange) ? `<span><span class="sw" style="background:${MAP_COLORS.R};border-style:dashed"></span>${t("Pending review")}</span>` : "") +
+    `<span style="margin-left:auto">${t("Hover a dot for details · select it for links")}</span>`;
 }
 
 function renderMap(list) {
@@ -294,11 +310,11 @@ function renderMap(list) {
     });
     const url = safeUrl(h.hfa_url);
     m.bindTooltip(`<strong>${esc(h.name)}</strong><br>${esc(h.address)}, ${esc(h.city)}<br>
-      ${esc(h.system)}<br>Grade <strong>${esc(h.grade)}</strong> · ${h.issues} gap${h.issues === 1 ? "" : "s"}`,
+      ${esc(h.system)}<br>${t("Grade")} <strong>${esc(h.grade)}</strong> · ${h.issues} ${t(h.issues === 1 ? "gap" : "gaps")}`,
       { className: "hosp-tip", direction: "top", offset: [0, -6] });
     m.bindPopup(`<strong>${esc(h.name)}</strong><br>${esc(h.address)}, ${esc(h.city)}<br>${esc(h.system)}
-      <div class="pop-actions">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">Financial assistance page ↗</a>` : ""}
-      <button class="linkbtn" data-open-id="${h.id}">Details</button></div>`);
+      <div class="pop-actions">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${t("Financial assistance page ↗")}</a>` : ""}
+      <button class="linkbtn" data-open-id="${h.id}">${t("Details")}</button></div>`);
     m.addTo(state.markers);
     pts.push([h.lat, h.lon]);
   });
@@ -316,31 +332,34 @@ function openDrawer(id) {
   const n = h.notes || {};
   const fact = (label, v) => (v ? `<dt>${label}</dt><dd>${esc(v)}</dd>` : "");
   const summary = isRange(h)
-    ? `Grade depends on ${h.needs_review} item${h.needs_review === 1 ? "" : "s"} still under review: between <strong>${h.grade_best}</strong> and <strong>${h.grade_worst}</strong>.`
-    : h.grade === "A" ? "Meets every requirement checked."
-    : `Falls short on <strong>${h.issues}</strong> of ${state.data.criteria.length} requirements` +
-      (h.auto_fail ? ", including one that means an automatic F (no application posted, or not the full NYS Uniform Application)." : ".");
+    ? t("Grade depends on {n} item(s) still under review: between {best} and {worst}.",
+        { n: h.needs_review, best: `<strong>${h.grade_best}</strong>`, worst: `<strong>${h.grade_worst}</strong>` })
+    : h.grade === "A" ? t("Meets every requirement checked.")
+    : t("Falls short on {n} of {total} requirements", { n: `<strong>${h.issues}</strong>`, total: state.data.criteria.length }) +
+      (h.auto_fail ? t(", including one that means an automatic F (no application posted, or not the full NYS Uniform Application).") : ".");
   const req = (c, cls, mark) => `<div class="req ${cls}"><div class="req-title"><span class="mark ${cls}" aria-hidden="true">${mark}</span>
-      ${esc(c.label)}</div><p class="law">${esc(c.law)}</p></div>`;
+      ${esc(cLabel(c))}</div><p class="law">${esc(cLaw(c))}</p></div>`;
   $("#d-body").innerHTML = `
     <div class="d-head"><span class="badge lg ${gradeClass(h)}" aria-label="Grade ${esc(h.grade)}">${esc(isRange(h) ? "?" : h.grade)}</span>
       <div><h2 id="d-name">${esc(h.name)}</h2>
       <div class="d-meta">${esc(h.address)}${h.address ? ", " : ""}${esc(h.city)}, NY ${esc(h.zip)}<br>
         ${esc(h.system)}${h.county ? ` · ${esc(h.county)}` : ""}</div></div></div>
     <p class="d-summary">${summary}</p>
-    ${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Hospital's financial assistance page ↗</a>` : ""}
-    ${no.length ? `<div class="d-section"><h3>Where it falls short (${no.length})</h3>${no.map((c) => req(c, "no", "✕")).join("")}</div>` : ""}
-    ${review.length ? `<div class="d-section"><h3>Needs review (${review.length})</h3>${review.map((c) => req(c, "review", "?")).join("")}</div>` : ""}
-    ${yes.length ? `<div class="d-section"><details class="met"><summary>Requirements met (${yes.length})</summary>
-      <ul>${yes.map((c) => `<li><span class="mark yes" aria-hidden="true">✓</span>${esc(c.label)}</li>`).join("")}</ul></details></div>` : ""}
-    ${unknown.length ? `<p class="hint">${unknown.length} requirement(s) have no data.</p>` : ""}
-    <div class="d-section"><h3>Details</h3><dl class="facts">
-      ${fact("Languages", n.languages_available)}${fact("Help line", n.contact_phone)}
-      ${fact("Income limit (application)", h.max_fpl ? `${h.max_fpl} of the Federal Poverty Level` : "")}
-      ${fact("Time limit", n.timeframe_notes)}${fact("Inconsistencies", n.inconsistency_notes)}
-      ${fact("Application notes", n.application_notes)}${fact("Summary notes", n.summary_notes)}
-      ${fact("Notes", n.general_notes)}${fact("Other notes", n.other_notes)}
-      ${fact("Last checked", h.last_checked || state.data.source)}</dl></div>`;
+    ${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">${t("Hospital's financial assistance page ↗")}</a>` : ""}
+    ${no.length ? `<div class="d-section"><h3>${t("Where it falls short ({n})", { n: no.length })}</h3>${no.map((c) => req(c, "no", "✕")).join("")}</div>` : ""}
+    ${review.length ? `<div class="d-section"><h3>${t("Needs review ({n})", { n: review.length })}</h3>${review.map((c) => req(c, "review", "?")).join("")}</div>` : ""}
+    ${yes.length ? `<div class="d-section"><details class="met"><summary>${t("Requirements met ({n})", { n: yes.length })}</summary>
+      <ul>${yes.map((c) => `<li><span class="mark yes" aria-hidden="true">✓</span>${esc(cLabel(c))}</li>`).join("")}</ul></details></div>` : ""}
+    ${unknown.length ? `<p class="hint">${t("{n} requirement(s) have no data.", { n: unknown.length })}</p>` : ""}
+    ${serviceArea(h)}
+    <div class="d-section"><h3>${t("Details")}</h3><dl class="facts">
+      ${fact(t("Languages"), n.languages_available)}${fact(t("Help line"), n.contact_phone)}
+      ${fact(t("Income limit (application)"), h.max_fpl ? t("{x} of the Federal Poverty Level", { x: h.max_fpl }) : "")}
+      ${fact(t("Time limit"), n.timeframe_notes)}${fact(t("Inconsistencies"), n.inconsistency_notes)}
+      ${fact(t("Application notes"), n.application_notes)}${fact(t("Summary notes"), n.summary_notes)}
+      ${fact(t("Notes"), n.general_notes)}${fact(t("Other notes"), n.other_notes)}
+      ${fact(t("Last checked"), h.last_checked || state.data.source)}</dl></div>`;
+  state.openId = id;
   $("#drawer").hidden = false;
   $("#drawer-backdrop").hidden = false;
   $("#d-close").focus();
@@ -366,30 +385,13 @@ function storageSet(k, v) {
 }
 
 function initStaff() {
-  const d = state.data;
-  const repo = d.repo || "becca-goldrup/HFAL-Tracker";
+  const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
   $("#run-btn").href = `https://github.com/${repo}/actions/workflows/check.yml`;
   $("#rv-upload").href = `https://github.com/${repo}/upload/main/data/reviews`;
-  const lr = d.last_run;
-  $("#run-status").innerHTML = lr
-    ? `Last check: <strong>${esc(lr.date)}</strong> with ${esc(lr.model.replace(/^us\.(amazon|anthropic)\./, "").replace(/-v\d.*$/, ""))}.
-       ${lr.websites} websites: ${lr.graded} graded, ${lr.unchanged} unchanged${lr.problems ? `, ${lr.problems} couldn't be checked` : ""}.
-       Estimated cost about $${Number(lr.cost).toFixed(2)}.`
-    : "No AI check has run yet. The dashboard currently shows CSS's September 2025 review.";
-
-  staff.key = `hfal-review:${d.generated}`;
-  staff.decisions = storageGet(staff.key, {});
   $("#rv-name").value = storageGet("hfal-reviewer", "");
   $("#rv-name").addEventListener("input", (e) => storageSet("hfal-reviewer", e.target.value));
-
-  const items = d.review || [];
-  const systems = [...new Set(items.map((i) => i.system))].sort((a, b) => a.localeCompare(b));
-  $("#rv-system").innerHTML = `<option value="">All systems</option>` +
-    systems.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
-  const reqs = [...new Set(items.map((i) => i.requirement))].sort();
-  $("#rv-req").innerHTML = `<option value="">All requirements</option>` +
-    reqs.map((r) => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
   ["#rv-system", "#rv-req", "#rv-show"].forEach((s) => $(s).addEventListener("change", renderReview));
+  $("#staff-ds").addEventListener("change", (e) => selectStaffDataset(e.target.value));
 
   $("#review-list").addEventListener("click", (e) => {
     const b = e.target.closest("[data-decide]");
@@ -409,11 +411,34 @@ function initStaff() {
   });
   $("#rv-download").addEventListener("click", downloadDecisions);
   $("#rv-clear").addEventListener("click", () => {
-    if (!confirm("Clear all the decisions saved in this browser?")) return;
+    if (!confirm("Clear all the decisions saved in this browser for this check?")) return;
     staff.decisions = {};
     storageSet(staff.key, {});
     renderReview();
+    if (health.data) renderHealthSites();
   });
+}
+
+// Fill the staff sections from the selected AI check's data.
+function applyStaff() {
+  const d = state.data;
+  const lr = d.last_run;
+  const newest = state.staffKey && state.staffKey === state.pub.latest_ai;
+  $("#run-status").innerHTML = lr
+    ? `${newest ? "Newest check" : "This check"}: <strong>${esc(lr.date)}</strong> with ${esc(lr.model.replace(/^us\.(amazon|anthropic)\./, "").replace(/-v\d.*$/, ""))}.
+       ${lr.websites} websites: ${lr.graded} graded, ${lr.unchanged} unchanged${lr.problems ? `, ${lr.problems} couldn't be checked` : ""}.
+       Estimated cost about $${Number(lr.cost).toFixed(2)}.`
+    : "No AI check has run yet. The dashboard currently shows CSS's September 2025 review.";
+
+  staff.key = `hfal-review:${state.staffKey || "none"}`;
+  staff.decisions = storageGet(staff.key, {});
+  const items = d.review || [];
+  const systems = [...new Set(items.map((i) => i.system))].sort((a, b) => a.localeCompare(b));
+  $("#rv-system").innerHTML = `<option value="">All systems</option>` +
+    systems.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  const reqs = [...new Set(items.map((i) => i.requirement))].sort();
+  $("#rv-req").innerHTML = `<option value="">All requirements</option>` +
+    reqs.map((r) => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
   renderReview();
 }
 
@@ -497,10 +522,10 @@ function reviewItem(i) {
 function issueUrl(batch, part, parts) {
   const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
   const name = ($("#rv-name").value || "").trim();
-  const today = new Date().toISOString().slice(0, 10);
-  const payload = { reviewer: name, submitted: today, data_generated: state.data.generated,
+  const today = nyToday();
+  const payload = { reviewer: name, submitted: today, dataset: state.staffKey, data_generated: state.data.generated,
     decisions: batch.map((x) => Object.assign({ id: x.id, d: x.decision }, x.note ? { n: x.note } : {}, x.override ? { o: 1 } : {})) };
-  const title = `[Review decisions] ${batch.length} decision${batch.length === 1 ? "" : "s"} from ${name || "CSS staff"} (${today})` +
+  const title = `[Review decisions] ${batch.length} decision${batch.length === 1 ? "" : "s"} on the ${staffDatasetName()} from ${name || "CSS staff"}` +
     (parts > 1 ? ` part ${part} of ${parts}` : "");
   const body = "These decisions were made in the Equity Lens dashboard. Submitting this issue applies them " +
     "automatically; please don't edit the block below.\n\n```json\n" + JSON.stringify(payload) + "\n```";
@@ -544,8 +569,8 @@ function savedDecisions() {
 function downloadDecisions() {
   const name = ($("#rv-name").value || "").trim();
   const decisions = savedDecisions();
-  const today = new Date().toISOString().slice(0, 10);
-  const blob = new Blob([JSON.stringify({ reviewer: name, submitted: today, data_generated: state.data.generated,
+  const today = nyToday();
+  const blob = new Blob([JSON.stringify({ reviewer: name, submitted: today, dataset: state.staffKey, data_generated: state.data.generated,
     decisions }, null, 1)], { type: "application/json" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -559,7 +584,7 @@ function downloadDecisions() {
 
 
 /* ================================================================ Data health
-   How each AI answer was decided (docs/data/health.json, made by tools/build_dashboard.py).
+   How each AI answer was decided (docs/data/health-<check>.json, made by tools/build_dashboard.py).
    Loaded only when the tab is opened. */
 const BASIS = {
   quote:   { label: "Verified by a quote", short: "Quote verified", color: "#0080a0",
@@ -574,17 +599,29 @@ const BASIS = {
              about: "The AI couldn't check this website (it blocks automated access), so the value from CSS's 2025 review is kept." },
 };
 const BASIS_ORDER = ["quote", "absence", "review", "staff", "carried"];
-const health = { data: null, loading: false, filter: { status: "all", cause: "", req: "" }, open: new Set(), editing: new Set() };
+const health = { data: null, key: "", loading: "", filter: { status: "all", cause: "", req: "" }, open: new Set(), editing: new Set() };
 
 function showHealth() {
-  if (health.data) return renderHealth();
-  if (health.loading) return;
-  health.loading = true;
-  fetch("data/health.json")
+  const key = state.staffKey;
+  if (health.data && health.key === key) return renderHealth();
+  if (health.loading === key) return;
+  health.loading = key;
+  $("#health-root").innerHTML = `<p class="empty">Loading…</p>`;
+  if (!key) {
+    $("#health-root").innerHTML = `<p class="empty">Data health details appear here after the first AI check.</p>`;
+    return;
+  }
+  fetch(`data/health-${key}.json`)
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then((d) => { health.data = d; renderHealth(); })
+    .then((d) => {
+      if (state.staffKey !== key) return;
+      Object.assign(health, { data: d, key, loading: "" });
+      health.open.clear(); health.editing.clear();
+      renderHealth();
+    })
     .catch(() => {
-      $("#health-root").innerHTML = `<p class="empty">Data health details appear here after the first AI check.</p>`;
+      health.loading = "";
+      $("#health-root").innerHTML = `<p class="empty">No data health details for this check.</p>`;
     });
 }
 
@@ -835,8 +872,10 @@ function useDataset(key) {
   const ds = pub.datasets[k];
   state.datasetKey = k;
   Object.assign(state.data, { hospitals: ds.hospitals, source: ds.source, generated: ds.generated });
-  $("#source-line").textContent = `Data: ${ds.source} · Updated ${ds.generated}`;
-  document.querySelectorAll(".src-name").forEach((el) => (el.textContent = ds.source));
+  const m = /^AI-assisted check \((.*)\)$/.exec(ds.source || "");
+  const source = m ? t("AI-assisted check ({date})", { date: m[1] }) : t(ds.source);
+  $("#source-line").textContent = t("Data: {source} · Updated {date}", { source, date: ds.generated });
+  document.querySelectorAll(".src-name").forEach((el) => (el.textContent = source));
   const banner = $("#preview-banner");
   const previewing = k !== pub.published.dataset;
   banner.hidden = !previewing;
@@ -861,22 +900,57 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("[data-stop-preview]")) setPreview(state.pub.published.dataset);
 });
 
-let staffLoading = null;
+const STAFF_KEY = "hfal-staff-dataset";
+const staffCache = {};
+const aiKeys = () => Object.keys(state.pub.datasets).filter((k) => state.pub.datasets[k].kind === "ai");
+const staffDatasetName = () => (state.staffKey ? `AI check of ${state.pub.datasets[state.staffKey].date}` : "AI check");
+
 function ensureStaff() {
-  if (state.staffLoaded) return Promise.resolve();
-  if (!staffLoading) {
-    staffLoading = fetch("data/staff.json")
-      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .catch(() => ({ review: [], last_run: null, changes: [] }))
-      .then((s) => {
-        Object.assign(state.data, { review: s.review || [], last_run: s.last_run, changes: s.changes || [] });
-        state.staffLoaded = true;
-        initStaff();
-        renderPublish();
-        renderFeed();
-      });
+  if (!state.staffInit) { initStaff(); state.staffInit = true; }
+  let key = state.staffKey;
+  if (key === undefined) {
+    let saved = "";
+    try { saved = sessionStorage.getItem(STAFF_KEY) || ""; } catch { /* ignore */ }
+    const keys = aiKeys();
+    key = keys.includes(saved) ? saved : keys.includes(state.datasetKey) ? state.datasetKey : (state.pub.latest_ai || keys[0] || "");
   }
-  return staffLoading;
+  return state.staffLoadedKey === key ? Promise.resolve() : selectStaffDataset(key);
+}
+
+// Pick which AI check the staff sections (status, review, data health) work on. The public tabs don't change.
+function selectStaffDataset(key) {
+  state.staffKey = key;
+  try { sessionStorage.setItem(STAFF_KEY, key); } catch { /* ignore */ }
+  renderStaffPicker();
+  const load = !key ? Promise.resolve({}) : staffCache[key] ? Promise.resolve(staffCache[key])
+    : fetch(`data/staff-${key}.json`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).catch(() => ({}));
+  return load.then((s) => {
+    if (state.staffKey !== key) return;
+    if (key) staffCache[key] = s;
+    Object.assign(state.data, { review: s.review || [], last_run: s.last_run || null,
+                                since_baseline: s.since_baseline || null, history: s.history || [] });
+    state.staffLoaded = true;
+    state.staffLoadedKey = key;
+    applyStaff();
+    renderPublish();
+    renderChanges();
+    if (!$("#staff-health").hidden) showHealth();
+  });
+}
+
+function renderStaffPicker() {
+  const keys = aiKeys();
+  const live = state.pub.published.dataset;
+  const sel = $("#staff-ds");
+  sel.innerHTML = keys.length
+    ? keys.map((k) => `<option value="${k}"${k === state.staffKey ? " selected" : ""}>AI check of ${esc(state.pub.datasets[k].date)}${
+        k === state.pub.latest_ai ? " (newest)" : ""}${k === live ? " · published" : ""}</option>`).join("")
+    : `<option value="">No AI checks yet</option>`;
+  sel.disabled = keys.length < 2;
+  $("#staff-ds-note").textContent = keys.length
+    ? "Status, Review and Data health below all show this check, including any staff decisions already applied to it. " +
+      "The public tabs only change when you publish."
+    : "";
 }
 
 function showStaffSection(sub) {
@@ -891,13 +965,41 @@ document.addEventListener("click", (e) => {
   if (b) location.hash = `staff/${b.dataset.sub}`;
 });
 
-function renderFeed() {
-  const changes = state.data.changes || [];
-  $("#feed").innerHTML = changes.length
-    ? changes.slice(0, 100).map((c) => `<div class="item"><div class="date">${esc(c.date)}</div>
-        <strong>${esc(c.hospital)}</strong>: ${esc(c.field)} changed
-        ${c.old ? `from "${esc(c.old)}" ` : ""}to "${esc(c.new)}"</div>`).join("")
-    : `<p class="empty-feed">No changes recorded yet. Changes appear here after each automated check.</p>`;
+const ANSWER = { yes: "Meets", no: "Falls short", review: "Needs review", unknown: "No data" };
+
+function renderChanges() {
+  const sb = state.data.since_baseline;
+  const hist = state.data.history || [];
+  const ans = (v) => `<span class="h-ans h-${esc(v)}">${ANSWER[v] || esc(v)}</span>`;
+  let html = "";
+  if (!sb) {
+    html = `<p class="empty-feed">Changes appear here after the first AI check.</p>`;
+  } else if (!sb.items.length) {
+    html = `<p class="empty-feed">Every answer in this check matches CSS's September 2025 review.</p>`;
+  } else {
+    const c = sb.counts;
+    html = `<p class="changes-sum"><strong>${c.answers.toLocaleString()}</strong> answers at ${c.websites} websites
+        (${c.hospitals} hospitals) differ from CSS's September 2025 review.
+        ${c.now_review ? `${c.now_review.toLocaleString()} of them are differences only because the AI couldn't confirm the answer and it now waits for review.` : ""}
+        The rest are real disagreements: either the hospital changed its documents, the rules changed (for example the ${state.data.fpl_year} poverty guidelines), or one of the two reviews is wrong.</p>
+      <div class="feed">${sb.items.map((g) => {
+        const names = g.hospitals.length > 3 ? `${g.hospitals.slice(0, 3).join(", ")} and ${g.hospitals.length - 3} more` : g.hospitals.join(", ");
+        return `<details class="item"><summary><strong>${esc(names)}</strong>
+            <span class="hint">${g.changes.length} answer${g.changes.length === 1 ? "" : "s"} differ</span></summary>
+          <ul class="chg-list">${g.changes.map((ch) => `<li><span>${esc(ch.label)}</span> ${ans(ch.before)} → ${ans(ch.after)}</li>`).join("")}</ul>
+          <a class="text-btn" href="${esc(g.hfa_url)}" target="_blank" rel="noopener">Financial assistance page ↗</a></details>`;
+      }).join("")}</div>`;
+  }
+  if (hist.length) {
+    html += `<h4 class="sub-h">Check history</h4>
+      <p class="hint">Each AI check compares a website with the one before it. If a hospital's documents haven't changed, the earlier answers are kept.</p>
+      <table class="hist"><thead><tr><th>Date</th><th>Websites</th><th>What happened</th><th>Compared with</th></tr></thead><tbody>
+      ${hist.map((h) => `<tr><td>${esc(h.date)}</td><td>${h.websites}</td>
+        <td>${Object.entries(h.why).map(([w, n]) => `${n} ${esc(w)}`).join("; ") ||
+              `${h.graded} graded, ${h.unchanged} unchanged`}${h.problems ? `; ${h.problems} couldn't be checked` : ""}</td>
+        <td>${esc(h.compared_with || "")}</td></tr>`).join("")}</tbody></table>`;
+  }
+  $("#feed").innerHTML = html;
 }
 
 function renderPublish() {
@@ -905,8 +1007,8 @@ function renderPublish() {
   const live = pub.published.dataset;
   const viewing = state.datasetKey;
   const pendingNote = (key) => {
-    if (key !== "latest") return "Verified by CSS staff by hand.";
-    const hs = pub.datasets.latest.hospitals;
+    if (pub.datasets[key].kind !== "ai") return "Verified by CSS staff by hand.";
+    const hs = pub.datasets[key].hospitals;
     const pending = hs.filter((h) => h.grade_best !== h.grade_worst).length;
     return pending ? `${pending} of ${hs.length} hospitals still have items waiting for review; their grades show as ranges (for example "B to D").`
       : "Every hospital has a final grade.";
@@ -932,7 +1034,7 @@ function renderPublish() {
 function publishUrl(key, label) {
   const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
   const name = ($("#rv-name") && $("#rv-name").value || "").trim();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = nyToday();
   const payload = { reviewer: name, submitted: today, publish: key, decisions: [] };
   const title = `[Review decisions] Publish: ${label}`;
   const body = `Switch the dashboard's public tabs (Overview, Hospitals, Map) to show: ${label}.\n\n` +
@@ -944,3 +1046,57 @@ document.addEventListener("click", (e) => {
   const p = e.target.closest("[data-preview]");
   if (p) { setPreview(p.dataset.preview); location.hash = "overview"; }
 });
+
+
+/* Service area: what the hospital lists vs. the legal minimum (its county + every bordering county,
+   from the US Census Bureau's county adjacency file). */
+function serviceArea(h) {
+  const req = h.psa_required || [];
+  if (!req.length && !h.psa_listed) return "";
+  const listed = (h.psa_listed || "").trim();
+  const m = listed.match(/^(.*?)(?:\s*\|\s*)?"(.*)"$/s);
+  const summary = m ? m[1].trim() : listed;
+  const quote = m ? m[2].trim() : "";
+  const status = h.criteria && h.criteria.psa_compliant_2007;
+  const verdict = t({ yes: "Meets the requirement", no: "Falls short of the requirement", review: "Needs review", unknown: "" }[status] || "");
+  return `<div class="d-section"><h3>${t("Service area")}</h3>
+    ${verdict ? `<p class="psa-verdict psa-${esc(status)}">${verdict}</p>` : ""}
+    <dl class="facts">
+      <dt>${t("The hospital's wording")}</dt><dd>${quote ? `<q>${esc(quote)}</q>` : `<span class="hint">${t(listed ? "No sentence cited." : "Not recorded in this dataset.")}</span>`}</dd>
+      ${summary && summary !== "Not described in the documents" ? `<dt>${t("Areas the AI read")}</dt><dd>${esc(summary)} <span class="hint">${t("(AI summary, not verified)")}</span></dd>` : ""}
+      ${summary === "Not described in the documents" ? `<dt>${t("Areas listed")}</dt><dd>${t("Not described in the hospital's documents")}</dd>` : ""}
+      ${req.length ? `<dt>${t("Required at minimum")}</dt><dd><strong>${esc(req[0])}</strong> ${t("and every bordering county:")}
+        ${req.slice(1).map(esc).join(", ")} <span class="hint">${t("(US Census county adjacency)")}</span></dd>` : ""}
+    </dl></div>`;
+}
+
+
+/* ---------------------------------------------------------------- language */
+function applyStatic() {
+  const es = state.lang === "es" && hasES();
+  document.documentElement.lang = es ? "es" : "en";
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    if (el.dataset.en === undefined) el.dataset.en = el.innerHTML;
+    el.innerHTML = es && ES_STATIC[el.dataset.i18n] ? ES_STATIC[el.dataset.i18n] : el.dataset.en;
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    if (el.dataset.enPlaceholder === undefined) el.dataset.enPlaceholder = el.placeholder;
+    el.placeholder = es && ES_PLACEHOLDER[el.dataset.i18nPlaceholder] ? ES_PLACEHOLDER[el.dataset.i18nPlaceholder] : el.dataset.enPlaceholder;
+  });
+  const btn = $("#lang-toggle");
+  btn.textContent = es ? "English" : "Español";
+  btn.lang = es ? "en" : "es";
+}
+
+function setLang(lang) {
+  state.lang = lang;
+  try { localStorage.setItem("hfal-lang", lang); } catch { /* ignore */ }
+  applyStatic();
+  useDataset(state.datasetKey);  // also refreshes the source line
+  buildFilters();
+  renderRubric();
+  renderCriteriaGuide();
+  render();
+  if (state.map) renderLegend();
+  if (!$("#drawer").hidden && state.openId != null) openDrawer(state.openId);
+}
