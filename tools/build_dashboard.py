@@ -375,6 +375,42 @@ def since_baseline(base: Tracker, ai: Tracker) -> dict:
     return {"counts": counts, "items": items}
 
 
+def staff_decisions(t: Tracker) -> list[dict]:
+    """Every CSS staff decision applied to this check (from the AI Change Log), one entry per website and
+    requirement, newest first, with the GitHub issue it came from when it can be matched."""
+    import re
+    if "AI Change Log" not in t.wb.sheetnames:
+        return []
+    # (reviewer, date) -> issue numbers, from the decision files the GitHub workflow saved
+    issues: dict[tuple, list] = {}
+    for f in sorted((config.ROOT / "data" / "reviews" / "applied").glob("*.json")):
+        try:
+            b = json.loads(f.read_text())
+        except Exception:
+            continue
+        m = re.search(r"#(\d+)", str(b.get("source") or ""))
+        if m:
+            issues.setdefault((str(b.get("reviewer") or "").strip(), str(b.get("submitted") or "")[:10]), []).append(int(m[1]))
+    url_of = {h["name"]: h["hfa_url"] for h in t.hospitals()}
+    groups: dict[tuple, dict] = {}
+    for row in t.wb["AI Change Log"].iter_rows(min_row=2, values_only=True):
+        row = list(row) + [None] * 9
+        if str(row[8] or "") != "CSS staff decision":
+            continue
+        m = re.match(r"Human review by (.+?)(?:: (.*))?$", str(row[6] or ""), re.S)
+        reviewer, note = (m[1].strip(), (m[2] or "").strip()) if m else ("CSS reviewer", "")
+        date, hospital, url = str(row[0])[:10], row[1], url_of.get(row[1], "")
+        by_hand = note.startswith("Website blocks automated access")
+        key = (date, reviewer, url or hospital, "*" if by_hand else row[2], "" if by_hand else _status(row[5]), note)
+        g = groups.setdefault(key, {"date": date, "reviewer": reviewer, "hfa_url": url, "hospitals": [],
+                                    "requirement": "All answers (checked by hand)" if by_hand else str(row[3] or row[2]),
+                                    "old": "" if by_hand else _status(row[4]), "new": "confirmed" if by_hand else _status(row[5]),
+                                    "note": note, "issues": issues.get((reviewer, date), [])})
+        if hospital not in g["hospitals"]:
+            g["hospitals"].append(hospital)
+    return sorted(groups.values(), key=lambda g: (g["date"], g["reviewer"]), reverse=True)
+
+
 def unreachable_entry(site: dict, check_date: str) -> dict:
     """A website the AI couldn't reach in this check: where its current answers came from, and whether
     CSS staff confirmed them by hand for THIS check (a confirmation from an earlier check doesn't count)."""
@@ -443,6 +479,7 @@ def main():
         unreachable = [unreachable_entry(x, day) for x in health["sites"] if x["status"] != "checked"]
         staff = {"key": key, "label": datasets[key]["label"], "generated": d["generated"], "repo": config.GITHUB_REPO,
                  "review": d["review"], "last_run": d["last_run"], "unreachable": unreachable,
+                 "decisions": staff_decisions(t),
                  "since_baseline": since_baseline(base_t, t), "history": check_history(t)}
         (data_dir / f"staff-{key}.json").write_text(json.dumps(staff, ensure_ascii=False, separators=(",", ":")))
         (data_dir / f"health-{key}.json").write_text(json.dumps(health, ensure_ascii=False, separators=(",", ":")))

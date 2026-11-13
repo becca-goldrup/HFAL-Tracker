@@ -126,6 +126,7 @@
         <button role="tab" type="button" data-sub="status">Overview</button>
         <button role="tab" type="button" data-sub="review">Review <span id="sub-review-count" class="sub-count"></span></button>
         <button role="tab" type="button" data-sub="health">Data health</button>
+        <button role="tab" type="button" data-sub="log">Decision log <span id="sub-log-count" class="sub-count"></span></button>
       </nav>
 
       <div id="staff-status" class="staff-sub">
@@ -187,6 +188,15 @@
         </ol>
         <p><button id="rv-clear" class="text-btn" type="button">Clear my saved decisions</button></p>
       </section>
+      </div>
+
+      <div id="staff-log" class="staff-sub" hidden>
+        <p class="fig-sub">Every decision CSS staff have submitted for this check and that has been applied: flagged items settled
+          in Review, answers corrected in Data health, and blocked websites confirmed by hand. Newest first.</p>
+        <div class="filters review-filters">
+          <label><span>Search</span><input id="log-q" type="search" placeholder="Hospital, requirement or reviewer"></label>
+        </div>
+        <div id="log-root"></div>
       </div>
 
       <div id="staff-health" class="staff-sub" hidden>

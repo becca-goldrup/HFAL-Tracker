@@ -434,3 +434,10 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .h-detail-box .send-actions { flex-wrap: wrap; }
 .h-item > div, .h-item > *:not(.h-sw) { min-width: 0; flex: 1 1 auto; }
 .h-reason, .h-quote, .h-how { white-space: normal; overflow-wrap: anywhere; }
+
+/* ---------- Decision log ---------- */
+.log-table { width: 100%; border-collapse: collapse; border-top: 2px solid var(--rule-strong); font-size: 0.9rem; }
+.log-table td { vertical-align: top; overflow-wrap: anywhere; }
+.log-table .nowrap { white-space: nowrap; }
+.log-table .log-note { color: var(--ink-2); max-width: 320px; }
+.log-old { color: var(--muted); text-decoration: line-through; }

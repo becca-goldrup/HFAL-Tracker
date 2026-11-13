@@ -391,6 +391,7 @@ function initStaff() {
   $("#rv-name").addEventListener("input", (e) => storageSet("hfal-reviewer", e.target.value));
   ["#rv-system", "#rv-req", "#rv-show"].forEach((s) => $(s).addEventListener("change", renderReview));
   $("#staff-ds").addEventListener("change", (e) => selectStaffDataset(e.target.value));
+  $("#log-q").addEventListener("input", renderLog);
 
   $("#review-list").addEventListener("click", (e) => {
     const b = e.target.closest("[data-decide]");
@@ -978,12 +979,14 @@ function selectStaffDataset(key) {
     if (state.staffKey !== key) return;
     if (key) staffCache[key] = s;
     Object.assign(state.data, { review: s.review || [], last_run: s.last_run || null, unreachable: s.unreachable || [],
+                                decisions: s.decisions || [],
                                 since_baseline: s.since_baseline || null, history: s.history || [] });
     state.staffLoaded = true;
     state.staffLoadedKey = key;
     applyStaff();
     renderPublish();
     renderChanges();
+    renderLog();
     if (!$("#staff-health").hidden) showHealth();
   });
 }
@@ -1005,7 +1008,7 @@ function renderStaffPicker() {
 }
 
 function showStaffSection(sub) {
-  if (!["status", "review", "health"].includes(sub)) sub = "status";
+  if (!["status", "review", "health", "log"].includes(sub)) sub = "status";
   document.querySelectorAll(".subnav button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.sub === sub)));
   document.querySelectorAll(".staff-sub").forEach((el) => (el.hidden = el.id !== `staff-${sub}`));
   if (sub === "health") showHealth();
@@ -1050,6 +1053,35 @@ function renderChanges() {
         <td>${Object.entries(h.why).map(([w, n]) => `${n} ${esc(w)}`).join("; ") ||
               `${h.graded} graded, ${h.unchanged} unchanged`}${h.problems ? `; ${h.problems} couldn't be checked` : ""}</td>
         <td>${esc(h.compared_with || "")}</td></tr>`).join("")}</tbody></table></details>`;
+}
+
+// Decision log: every staff decision applied to the selected check (from the spreadsheet's AI Change Log).
+function renderLog() {
+  const all = state.data.decisions || [];
+  $("#sub-log-count").textContent = all.length ? String(all.length) : "";
+  const q = ($("#log-q").value || "").trim().toLowerCase();
+  const rows = all.filter((x) => !q || `${x.hospitals.join(" ")} ${x.requirement} ${x.reviewer} ${x.note}`.toLowerCase().includes(q));
+  const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
+  const word = (v) => ({ yes: "Meets", no: "Falls short", review: "Needs review", unknown: "No data", confirmed: "Confirmed" }[v] || v || "");
+  if (!all.length) {
+    $("#log-root").innerHTML = `<p class="empty">No staff decisions have been applied to this check yet. They appear here a few minutes after someone selects Submit.</p>`;
+    return;
+  }
+  $("#log-root").innerHTML = !rows.length ? `<p class="empty">No decisions match.</p>` : `
+    <table class="log-table"><thead><tr><th scope="col">Date</th><th scope="col">Reviewer</th><th scope="col">Hospital</th>
+      <th scope="col">Requirement</th><th scope="col">Decision</th><th scope="col">Note</th><th scope="col">Source</th></tr></thead><tbody>
+    ${rows.map((x) => {
+      const names = x.hospitals.length > 2 ? `${x.hospitals.slice(0, 2).join(", ")} and ${x.hospitals.length - 2} more` : x.hospitals.join(", ");
+      const change = x.new === "confirmed" ? `<span class="h-ans h-yes">Confirmed</span>`
+        : `${x.old && x.old !== x.new ? `<span class="log-old">${esc(word(x.old))}</span> → ` : ""}<span class="h-ans h-${esc(x.new)}">${esc(word(x.new))}</span>`;
+      const src = x.issues.length
+        ? x.issues.map((n) => `<a href="https://github.com/${esc(repo)}/issues/${n}" target="_blank" rel="noopener">#${n}</a>`).join(" ")
+        : `<span class="hint">spreadsheet</span>`;
+      return `<tr><td class="nowrap">${esc(x.date)}</td><td>${esc(x.reviewer)}</td>
+        <td>${x.hfa_url ? `<a href="${esc(x.hfa_url)}" target="_blank" rel="noopener">${esc(names)}</a>` : esc(names)}</td>
+        <td>${esc(x.requirement)}</td><td class="nowrap">${change}</td><td class="log-note">${esc(x.note)}</td><td>${src}</td></tr>`;
+    }).join("")}</tbody></table>
+    <p class="hint">Showing ${rows.length} of ${all.length}. The spreadsheet’s “AI Change Log” tab has the same record, hospital by hospital.</p>`;
 }
 
 function renderPublish() {
