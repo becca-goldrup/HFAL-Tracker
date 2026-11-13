@@ -350,6 +350,7 @@ def since_baseline(base: Tracker, ai: Tracker) -> dict:
     """Which requirement answers differ between CSS's 2025 review and this AI check, per website."""
     base_rows = {h["name"]: h["row"] for h in base.hospitals()}
     groups: dict[str, dict] = {}
+    pending = 0
     for h in ai.hospitals():
         if h["name"] not in base_rows:
             continue
@@ -357,7 +358,9 @@ def since_baseline(base: Tracker, ai: Tracker) -> dict:
         for c in GRADED:
             before = _status(base.ws.cell(base_rows[h["name"]], col(c.column)).value)
             after = _status(ai.ws.cell(h["row"], col(c.column)).value)
-            if before != after:
+            if after == "review":
+                pending += 1
+            elif before != after:
                 diffs.append({"key": c.key, "label": LABELS[c.key], "before": before, "after": after})
         if not diffs:
             continue
@@ -368,7 +371,7 @@ def since_baseline(base: Tracker, ai: Tracker) -> dict:
     items = sorted(groups.values(), key=lambda g: (-len(g["changes"]), g["hospitals"][0]))
     counts = {"websites": len({g["hfa_url"] for g in items}), "hospitals": sum(len(g["hospitals"]) for g in items),
               "answers": sum(len(g["changes"]) * len(g["hospitals"]) for g in items),
-              "now_review": sum(sum(ch["after"] == "review" for ch in g["changes"]) * len(g["hospitals"]) for g in items)}
+              "now_review": pending}
     return {"counts": counts, "items": items}
 
 

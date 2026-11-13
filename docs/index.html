@@ -118,12 +118,12 @@
       <p class="fig-sub">Pick an AI check, settle what it couldn't confirm, and choose what the public tabs show.
         Making changes requires access to the project's GitHub repository.</p>
       <div class="staff-ds">
-        <label for="staff-ds">Working on</label>
+        <label id="staff-ds-label" for="staff-ds">Working on</label>
         <select id="staff-ds"></select>
         <p id="staff-ds-note" class="hint"></p>
       </div>
       <nav class="subnav" role="tablist" aria-label="Staff sections">
-        <button role="tab" type="button" data-sub="status">Status &amp; publishing</button>
+        <button role="tab" type="button" data-sub="status">Overview</button>
         <button role="tab" type="button" data-sub="review">Review <span id="sub-review-count" class="sub-count"></span></button>
         <button role="tab" type="button" data-sub="health">Data health</button>
       </nav>
@@ -135,9 +135,10 @@
         <a id="run-btn" class="btn" target="_blank" rel="noopener">Run a full check on GitHub ↗</a>
         <ol class="steps">
           <li>On the page that opens, select <strong>Run workflow</strong>, then the green <strong>Run workflow</strong> button.</li>
-          <li>The check takes about 30 to 45 minutes. When it finishes, this dashboard updates on its own.</li>
+          <li>The check takes about 30 to 45 minutes. When it finishes, its results appear here in the staff tab
+            (Review, Data health and What this check changed). The public tabs keep showing the published dataset until you publish the new check below.</li>
         </ol>
-        <p class="hint">A check also runs automatically on the 1st of every month.</p>
+        <p class="hint">A check also runs automatically on the 1st of every month. Avoid running two at once; the second can't save.</p>
       </section>
 
 
@@ -183,15 +184,7 @@
           <li>On that page, select <strong>Submit new issue</strong>. (You need to be signed in to GitHub with access to this project.)</li>
           <li>Within a few minutes, the spreadsheet and this dashboard update, and GitHub replies on the issue with a summary.</li>
         </ol>
-        <details class="alt-send">
-          <summary>Other options</summary>
-          <p class="hint">If the Submit button doesn't work for you, download the decisions as a file and upload it to GitHub instead.</p>
-          <div class="send-actions">
-            <button id="rv-download" class="btn btn-secondary" type="button">Download decisions file</button>
-            <a id="rv-upload" class="text-btn" target="_blank" rel="noopener">Open the GitHub upload page ↗</a>
-            <button id="rv-clear" class="text-btn" type="button">Clear my decisions</button>
-          </div>
-        </details>
+        <p><button id="rv-clear" class="text-btn" type="button">Clear my saved decisions</button></p>
       </section>
       </div>
 
@@ -200,6 +193,7 @@
           backed by a sentence the tool pulled from the hospital's own documents, accepted because nothing problematic was found,
           or sent to a person to check. Open a website and choose <strong>Edit</strong> to correct any answer.</p>
         <div id="health-root"><p class="empty">Loading…</p></div>
+        <div id="history-box"></div>
       </div>
     </section>
   </main>

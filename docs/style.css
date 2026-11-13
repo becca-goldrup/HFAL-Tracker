@@ -407,3 +407,9 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .hist { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 8px; }
 .hist th, .hist td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
 .hist th { font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--rule-strong); }
+
+.h-explain { margin: 14px 0 0; border-top: 1px solid var(--rule); padding-top: 10px; }
+.h-explain summary { cursor: pointer; font-weight: 600; color: var(--heading); }
+.h-explain[open] summary { margin-bottom: 10px; }
+#history-box { margin-top: 28px; }
+.staff-ds label:empty { display: none; }

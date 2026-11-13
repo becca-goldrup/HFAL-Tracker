@@ -387,7 +387,6 @@ function storageSet(k, v) {
 function initStaff() {
   const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
   $("#run-btn").href = `https://github.com/${repo}/actions/workflows/check.yml`;
-  $("#rv-upload").href = `https://github.com/${repo}/upload/main/data/reviews`;
   $("#rv-name").value = storageGet("hfal-reviewer", "");
   $("#rv-name").addEventListener("input", (e) => storageSet("hfal-reviewer", e.target.value));
   ["#rv-system", "#rv-req", "#rv-show"].forEach((s) => $(s).addEventListener("change", renderReview));
@@ -409,7 +408,6 @@ function initStaff() {
     staff.decisions[id] = { ...(staff.decisions[id] || {}), note: e.target.value };
     storageSet(staff.key, staff.decisions);
   });
-  $("#rv-download").addEventListener("click", downloadDecisions);
   $("#rv-clear").addEventListener("click", () => {
     if (!confirm("Clear all the decisions saved in this browser for this check?")) return;
     staff.decisions = {};
@@ -459,7 +457,6 @@ function renderReview() {
     ? `Ready to send: ${all.length - fixes} review decision${all.length - fixes === 1 ? "" : "s"}` +
       `${fixes ? ` and ${fixes} correction${fixes === 1 ? "" : "s"} from the Data health tab` : ""}. Submit them to GitHub below.`
     : "Decide at least one item above (or correct an answer in the Data health tab), then send your decisions here.";
-  $("#rv-download").disabled = !all.length;
   renderSubmit(all);
 
   if (!state.data.last_run) {
@@ -566,23 +563,6 @@ function savedDecisions() {
   }).filter((x) => x.hfa_url && x.column);
 }
 
-function downloadDecisions() {
-  const name = ($("#rv-name").value || "").trim();
-  const decisions = savedDecisions();
-  const today = nyToday();
-  const blob = new Blob([JSON.stringify({ reviewer: name, submitted: today, dataset: state.staffKey, data_generated: state.data.generated,
-    decisions }, null, 1)], { type: "application/json" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  link.download = `reviews-${today}${slug ? "-" + slug : ""}.json`;
-  document.body.appendChild(link);
-  link.click();
-  link.parentNode.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-}
-
-
 /* ================================================================ Data health
    How each AI answer was decided (docs/data/health-<check>.json, made by tools/build_dashboard.py).
    Loaded only when the tab is opened. */
@@ -666,8 +646,11 @@ function renderHealth() {
     </div>
 
     <section class="fig">
-      <h2 class="fig-title">How an AI grade is made</h2>
-      <ol class="pipeline">
+      <h2 class="fig-title">How certain the answers are</h2>
+      ${hBar(t, total)}
+      <div class="h-legend-inline">${BASIS_ORDER.map((b) => `<span><span class="h-sw" style="background:${BASIS[b].color}"></span>${BASIS[b].short} (${t[b] || 0})</span>`).join("")}</div>
+      <details class="h-explain"><summary>How answers are decided</summary>
+        <ol class="pipeline">
         <li><strong>Download.</strong> A browser visits each hospital's financial assistance page and saves the linked documents
           (applications, summaries, policies). ${p.downloaded} of ${p.websites} websites downloaded; ${p.blocked} block automated access.</li>
         <li><strong>AI reads.</strong> ${esc(models.join(", ") || "The AI")} read each website's documents and answered the 17 questions,
@@ -679,14 +662,10 @@ function renderHealth() {
         <li><strong>People decide.</strong> CSS staff settle flagged items in the For CSS staff tab${t.staff ? `; ${t.staff} settled so far` : ""}.
           A hospital's grade is final only when nothing is left to review.</li>
       </ol>
-    </section>
-
-    <section class="fig">
-      <h2 class="fig-title">How certain the answers are</h2>
-      ${hBar(t, total)}
-      <dl class="h-legend">${BASIS_ORDER.map((b) => `<div class="h-legend-row">
+        <dl class="h-legend">${BASIS_ORDER.map((b) => `<div class="h-legend-row">
         <dt><span class="h-sw" style="background:${BASIS[b].color}"></span>${BASIS[b].label}
           <span class="h-num">${t[b] || 0} (${pct(t[b] || 0, total)}%)</span></dt><dd>${BASIS[b].about}</dd></div>`).join("")}</dl>
+      </details>
     </section>
 
     <div class="h-two">
@@ -946,11 +925,12 @@ function renderStaffPicker() {
     ? keys.map((k) => `<option value="${k}"${k === state.staffKey ? " selected" : ""}>AI check of ${esc(state.pub.datasets[k].date)}${
         k === state.pub.latest_ai ? " (newest)" : ""}${k === live ? " · published" : ""}</option>`).join("")
     : `<option value="">No AI checks yet</option>`;
-  sel.disabled = keys.length < 2;
-  $("#staff-ds-note").textContent = keys.length
-    ? "Status, Review and Data health below all show this check, including any staff decisions already applied to it. " +
-      "The public tabs only change when you publish."
-    : "";
+  const many = keys.length > 1;
+  sel.hidden = !many;
+  $("#staff-ds-label").textContent = many ? "Working on" : "";
+  $("#staff-ds-note").innerHTML = !keys.length ? "No AI check has run yet."
+    : many ? "Overview, Review and Data health all show this check. The public tabs only change when you publish."
+    : `Showing the <strong>AI check of ${esc(state.pub.datasets[keys[0]].date)}</strong>. Overview, Review and Data health all use it; the public tabs only change when you publish.`;
 }
 
 function showStaffSection(sub) {
@@ -975,13 +955,14 @@ function renderChanges() {
   if (!sb) {
     html = `<p class="empty-feed">Changes appear here after the first AI check.</p>`;
   } else if (!sb.items.length) {
-    html = `<p class="empty-feed">Every answer in this check matches CSS's September 2025 review.</p>`;
+    html = `<p class="empty-feed">No settled answer in this check disagrees with CSS's September 2025 review.
+      ${sb.counts.now_review ? `(${sb.counts.now_review.toLocaleString()} answers are waiting in the Review tab instead.)` : ""}</p>`;
   } else {
     const c = sb.counts;
-    html = `<p class="changes-sum"><strong>${c.answers.toLocaleString()}</strong> answers at ${c.websites} websites
-        (${c.hospitals} hospitals) differ from CSS's September 2025 review.
-        ${c.now_review ? `${c.now_review.toLocaleString()} of them are differences only because the AI couldn't confirm the answer and it now waits for review.` : ""}
-        The rest are real disagreements: either the hospital changed its documents, the rules changed (for example the ${state.data.fpl_year} poverty guidelines), or one of the two reviews is wrong.</p>
+    html = `<p class="changes-sum"><strong>${c.answers.toLocaleString()}</strong> settled answers at ${c.websites} websites
+        (${c.hospitals} hospitals) disagree with CSS's September 2025 review. Either the hospital changed its documents,
+        the rules changed (for example the ${state.data.fpl_year} poverty guidelines), or one of the two reviews is wrong.
+        ${c.now_review ? `Answers the AI couldn't confirm aren't listed; they're in the <a href="#staff/review">Review</a> tab.` : ""}</p>
       <div class="feed">${sb.items.map((g) => {
         const names = g.hospitals.length > 3 ? `${g.hospitals.slice(0, 3).join(", ")} and ${g.hospitals.length - 3} more` : g.hospitals.join(", ");
         return `<details class="item"><summary><strong>${esc(names)}</strong>
@@ -990,16 +971,14 @@ function renderChanges() {
           <a class="text-btn" href="${esc(g.hfa_url)}" target="_blank" rel="noopener">Financial assistance page ↗</a></details>`;
       }).join("")}</div>`;
   }
-  if (hist.length) {
-    html += `<h4 class="sub-h">Check history</h4>
+  $("#feed").innerHTML = html;
+  $("#history-box").innerHTML = !hist.length ? "" : `<details class="h-explain"><summary>Check history</summary>
       <p class="hint">Each AI check compares a website with the one before it. If a hospital's documents haven't changed, the earlier answers are kept.</p>
       <table class="hist"><thead><tr><th>Date</th><th>Websites</th><th>What happened</th><th>Compared with</th></tr></thead><tbody>
       ${hist.map((h) => `<tr><td>${esc(h.date)}</td><td>${h.websites}</td>
         <td>${Object.entries(h.why).map(([w, n]) => `${n} ${esc(w)}`).join("; ") ||
               `${h.graded} graded, ${h.unchanged} unchanged`}${h.problems ? `; ${h.problems} couldn't be checked` : ""}</td>
-        <td>${esc(h.compared_with || "")}</td></tr>`).join("")}</tbody></table>`;
-  }
-  $("#feed").innerHTML = html;
+        <td>${esc(h.compared_with || "")}</td></tr>`).join("")}</tbody></table></details>`;
 }
 
 function renderPublish() {
