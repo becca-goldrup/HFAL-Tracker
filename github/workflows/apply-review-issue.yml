@@ -1,0 +1,79 @@
+# Applies review decisions submitted from the dashboard's "Submit to GitHub" button.
+# The button opens a pre-filled issue titled "[Review decisions] ..."; when someone
+# with access to this repository submits it, this workflow saves the decisions,
+# applies them to the newest spreadsheet, refreshes the dashboard, and closes the issue.
+name: Apply submitted review decisions
+
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  group: hfal-check
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    # Only issues from the dashboard, and only from people with access to the repository.
+    if: >-
+      startsWith(github.event.issue.title, '[Review decisions]') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the tool
+        run: pip install -r requirements.txt
+
+      - name: Restore saved documents (for the Data health tab)
+        uses: actions/cache/restore@v4
+        with:
+          path: data/cache
+          key: hfal-cache-none
+          restore-keys: hfal-cache-
+
+      - name: Save the decisions from the issue
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: python tools/issue_to_reviews.py
+
+      - name: Apply them to the spreadsheet
+        id: apply
+        run: |
+          python tools/apply_reviews.py | tee apply.log
+          echo "summary=$(tail -1 apply.log)" >> "$GITHUB_OUTPUT"
+
+      - name: Rebuild the dashboard data
+        run: python tools/build_dashboard.py
+
+      - name: Save the results to the repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/output data/reviews docs/data
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "Apply review decisions from issue #${{ github.event.issue.number }}"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Reply and close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.apply.outputs.summary }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --repo "${{ github.repository }}" \
+            --body "Thanks! $SUMMARY The dashboard will show the update within a few minutes."
+          gh issue close ${{ github.event.issue.number }} --repo "${{ github.repository }}"
