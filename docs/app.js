@@ -524,7 +524,7 @@ function issueUrl(batch, part, parts) {
     decisions: batch.map((x) => Object.assign({ id: x.id, d: x.decision }, x.note ? { n: x.note } : {}, x.override ? { o: 1 } : {})) };
   const title = `[Review decisions] ${batch.length} decision${batch.length === 1 ? "" : "s"} on the ${staffDatasetName()} from ${name || "CSS staff"}` +
     (parts > 1 ? ` part ${part} of ${parts}` : "");
-  const body = "These decisions were made in the Equity Lens dashboard. Submitting this issue applies them " +
+  const body = "These decisions were made in the EquityLens dashboard. Submitting this issue applies them " +
     "automatically; please don't edit the block below.\n\n```json\n" + JSON.stringify(payload) + "\n```";
   return `https://github.com/${repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
 }
