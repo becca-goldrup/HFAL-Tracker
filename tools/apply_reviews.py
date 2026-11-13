@@ -74,6 +74,20 @@ def main():
                      "decision": d.get("decision") or d.get("d"), "note": d.get("note") or d.get("n"),
                      "override": d.get("override") or d.get("o")}
             value, column = str(d.get("decision", "")).lower(), str(d.get("column", ""))
+            if value == "confirm" and column == "*":
+                # A website the AI couldn't reach: staff confirmed its earlier answers still hold.
+                note = ("Website blocks automated access; CSS checked it by hand and confirmed this answer still holds."
+                        + (f" {str(d.get('note'))[:400]}" if d.get("note") else ""))
+                changed = False
+                for h in by_site.get(d.get("hfa_url"), []):
+                    for c in GRADED:
+                        current = str(tracker.ws.cell(h["row"], _col(c.column)).value or "").strip().lower()
+                        if current in (YES, NO):
+                            tracker.apply_decision(h, c.column, current, reviewer, when, note)
+                            changed = True
+                applied += changed
+                skipped += not changed
+                continue
             if value not in (YES, NO) or column not in COLUMNS:
                 skipped += 1
                 continue

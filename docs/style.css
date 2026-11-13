@@ -413,3 +413,12 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .h-explain[open] summary { margin-bottom: 10px; }
 #history-box { margin-top: 28px; }
 .staff-ds label:empty { display: none; }
+
+/* ---------- Couldn't be checked automatically ---------- */
+.unreachable { margin: 8px 0 24px; padding: 4px 18px 14px; border-left: 3px solid var(--gold); background: var(--surface-2); }
+.unreach { display: flex; flex-direction: column; }
+.unreach-item { padding: 12px 0; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.unreach-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.unreach-done { margin: 0; font-weight: 600; color: var(--st-yes); }
+.unreach-manual summary { cursor: pointer; font-size: 0.88rem; color: var(--ink-2); }
+.unreach-manual code { font-size: 0.82rem; overflow-wrap: anywhere; }

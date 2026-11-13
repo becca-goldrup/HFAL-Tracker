@@ -358,7 +358,7 @@ function openDrawer(id) {
       ${fact(t("Time limit"), n.timeframe_notes)}${fact(t("Inconsistencies"), n.inconsistency_notes)}
       ${fact(t("Application notes"), n.application_notes)}${fact(t("Summary notes"), n.summary_notes)}
       ${fact(t("Notes"), n.general_notes)}${fact(t("Other notes"), n.other_notes)}
-      ${fact(t("Last checked"), h.last_checked || state.data.source)}</dl></div>`;
+      ${fact(t("Last checked"), state.data.checkedLabel || h.last_checked)}</dl></div>`;
   state.openId = id;
   $("#drawer").hidden = false;
   $("#drawer-backdrop").hidden = false;
@@ -453,11 +453,15 @@ function renderReview() {
   $("#sub-review-count").textContent = items.length ? String(items.length - done) : "";
   const all = savedDecisions();
   const fixes = all.filter((x) => x.override).length;
+  const confirms = all.filter((x) => x.decision === "confirm").length;
+  const plain = all.length - fixes - confirms;
   $("#send-summary").textContent = all.length
-    ? `Ready to send: ${all.length - fixes} review decision${all.length - fixes === 1 ? "" : "s"}` +
-      `${fixes ? ` and ${fixes} correction${fixes === 1 ? "" : "s"} from the Data health tab` : ""}. Submit them to GitHub below.`
+    ? `Ready to send: ${[plain && `${plain} review decision${plain === 1 ? "" : "s"}`,
+        confirms && `${confirms} website${confirms === 1 ? "" : "s"} confirmed by hand`,
+        fixes && `${fixes} correction${fixes === 1 ? "" : "s"} from the Data health tab`].filter(Boolean).join(", ")}. Submit them to GitHub below.`
     : "Decide at least one item above (or correct an answer in the Data health tab), then send your decisions here.";
   renderSubmit(all);
+  renderUnreachable();
 
   if (!state.data.last_run) {
     $("#review-list").innerHTML = `<p class="empty">Flagged items appear here after the first AI check.</p>`;
@@ -552,10 +556,62 @@ function renderSubmit(all) {
     (batches.length > 1 ? `<p class="hint">Your decisions are split into ${batches.length} parts so each fits in one GitHub page. Submit each part.</p>` : "");
 }
 
+// Websites the AI couldn't reach: one entry each. Staff either confirm CSS's earlier answers still
+// hold (checked by hand) or save the documents into data/manual/ so the next check can grade them.
+function renderUnreachable() {
+  const box = $("#unreachable-box");
+  const sites = state.data.unreachable || [];
+  if (!sites.length) { box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
+  const open = sites.filter((x) => !x.confirmed).length;
+  box.innerHTML = `<h4 class="sub-h">Couldn’t be checked automatically (${sites.length})</h4>
+    <p class="hint">These websites block automated access, so they still show the answers from CSS’s September 2025 review.
+      For each one, open the hospital’s page and either confirm those answers still hold, or save its documents so the next check can grade them.
+      ${open ? "" : "All confirmed."}</p>
+    <div class="unreach">${sites.map((x) => {
+      const id = `${x.id}|*`;
+      const mine = staff.decisions[id];
+      const names = x.hospitals.length > 2 ? `${x.hospitals.slice(0, 2).join(", ")} and ${x.hospitals.length - 2} more` : x.hospitals.join(", ");
+      return `<div class="unreach-item" data-unreach="${esc(id)}">
+        <div class="unreach-head"><strong>${esc(names)}</strong> <span class="hint">${esc(x.system)}</span></div>
+        <a class="text-btn" href="${esc(x.hfa_url)}" target="_blank" rel="noopener">Open the hospital’s financial assistance page ↗</a>
+        ${x.confirmed ? `<p class="unreach-done">✓ Confirmed by CSS staff. These answers are now staff decisions.</p>` : `
+        <div class="unreach-actions">
+          ${mine ? `<span class="unreach-done">✓ Marked as confirmed (send it below)</span>
+                    <button type="button" class="text-btn" data-unreach-undo>Undo</button>`
+                 : `<button type="button" class="btn btn-secondary" data-unreach-confirm>Confirm the 2025 answers still hold</button>`}
+        </div>
+        <details class="unreach-manual"><summary>Or save the documents by hand</summary>
+          <ol class="steps">
+            <li>On the hospital’s page, download its financial assistance application, plain language summary and full policy.</li>
+            <li><a href="https://github.com/${esc(repo)}/upload/main/${esc(x.folder)}" target="_blank" rel="noopener">Upload them to GitHub ↗</a>
+              into the folder <code>${esc(x.folder)}</code>.</li>
+            <li>The next check grades them like any other website.</li>
+          </ol></details>`}
+      </div>`;
+    }).join("")}</div>`;
+}
+
+document.addEventListener("click", (e) => {
+  const item = e.target.closest("[data-unreach]");
+  if (!item) return;
+  const id = item.dataset.unreach;
+  const site = (state.data.unreachable || []).find((x) => `${x.id}|*` === id);
+  if (e.target.closest("[data-unreach-confirm]") && site) {
+    staff.decisions[id] = { decision: "confirm", hfa_url: site.hfa_url, column: "*",
+      requirement: "All answers (checked by hand)", hospitals: site.hospitals };
+  } else if (e.target.closest("[data-unreach-undo]")) {
+    delete staff.decisions[id];
+  } else return;
+  storageSet(staff.key, staff.decisions);
+  renderReview();
+});
+
 // Every saved decision: flagged items settled in this tab, plus corrections made in the Data health tab.
 function savedDecisions() {
   const byId = Object.fromEntries((state.data.review || []).map((i) => [i.id, i]));
-  return Object.entries(staff.decisions).filter(([, x]) => x.decision === "yes" || x.decision === "no").map(([id, x]) => {
+  return Object.entries(staff.decisions).filter(([, x]) => ["yes", "no", "confirm"].includes(x.decision)).map(([id, x]) => {
     const item = byId[id] || {};
     return { id, hfa_url: x.hfa_url || item.hfa_url, column: x.column || item.column,
              requirement: x.requirement || item.requirement, decision: x.decision, note: x.note || "",
@@ -845,15 +901,25 @@ function previewChoice() {
   try { return sessionStorage.getItem(PREVIEW_KEY) || ""; } catch { return ""; }
 }
 
+// "Review of November 13, 2026" for an AI check; the CSS 2025 review keeps its own name.
+function datasetName(ds) {
+  if (ds.kind !== "ai" || !ds.date) return t(ds.source);
+  const when = new Date(`${ds.date}T12:00:00`).toLocaleDateString(state.lang === "es" ? "es-US" : "en-US",
+    { month: "long", day: "numeric", year: "numeric" });
+  return t("Review of {date}", { date: when });
+}
+
 function useDataset(key) {
   const pub = state.pub;
   const k = pub.datasets[key] ? key : pub.published.dataset;
   const ds = pub.datasets[k];
   state.datasetKey = k;
   Object.assign(state.data, { hospitals: ds.hospitals, source: ds.source, generated: ds.generated });
-  const m = /^AI-assisted check \((.*)\)$/.exec(ds.source || "");
-  const source = m ? t("AI-assisted check ({date})", { date: m[1] }) : t(ds.source);
-  $("#source-line").textContent = t("Data: {source} · Updated {date}", { source, date: ds.generated });
+  const source = datasetName(ds);
+  state.data.checkedLabel = source;
+  $("#source-line").textContent = ds.kind === "ai"
+    ? t("Data: {source} (AI check, plus CSS staff review of anything it couldn't confirm)", { source })
+    : t("Data: {source}", { source });
   document.querySelectorAll(".src-name").forEach((el) => (el.textContent = source));
   const banner = $("#preview-banner");
   const previewing = k !== pub.published.dataset;
@@ -906,7 +972,7 @@ function selectStaffDataset(key) {
   return load.then((s) => {
     if (state.staffKey !== key) return;
     if (key) staffCache[key] = s;
-    Object.assign(state.data, { review: s.review || [], last_run: s.last_run || null,
+    Object.assign(state.data, { review: s.review || [], last_run: s.last_run || null, unreachable: s.unreachable || [],
                                 since_baseline: s.since_baseline || null, history: s.history || [] });
     state.staffLoaded = true;
     state.staffLoadedKey = key;

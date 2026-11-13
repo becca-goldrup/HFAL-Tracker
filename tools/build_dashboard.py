@@ -423,11 +423,16 @@ def main():
         t = Tracker(f)
         datasets[key] = {"label": f"AI check of {day} (with staff decisions)", "kind": "ai", "date": day,
                          "source": d["source"], "generated": d["generated"], "hospitals": d["hospitals"]}
+        health = build_health(t)
+        # Websites the AI couldn't reach: staff confirm the 2025 answers or save the documents by hand.
+        unreachable = [{"id": x["id"], "hfa_url": x["hfa_url"], "system": x["system"], "hospitals": x["hospitals"],
+                        "confirmed": all(i["basis"] == "staff" for i in x["items"] if i["value"] in ("yes", "no")),
+                        "folder": f"data/manual/{x['id']}"}
+                       for x in health["sites"] if x["status"] != "checked"]
         staff = {"key": key, "label": datasets[key]["label"], "generated": d["generated"], "repo": config.GITHUB_REPO,
-                 "review": d["review"], "last_run": d["last_run"],
+                 "review": d["review"], "last_run": d["last_run"], "unreachable": unreachable,
                  "since_baseline": since_baseline(base_t, t), "history": check_history(t)}
         (data_dir / f"staff-{key}.json").write_text(json.dumps(staff, ensure_ascii=False, separators=(",", ":")))
-        health = build_health(t)
         (data_dir / f"health-{key}.json").write_text(json.dumps(health, ensure_ascii=False, separators=(",", ":")))
         print(f"{key}: {len(d['review'])} review items, {staff['since_baseline']['counts']['answers']} answers differ "
               f"from the 2025 review, health {health['totals']}")

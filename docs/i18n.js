@@ -37,7 +37,10 @@ const ES_PLACEHOLDER = { f_search: "Hospital, ciudad o sistema" };
 const ES_UI = {
   "Data: {source} · Updated {date}": "Datos: {source} · Actualizado {date}",
   "CSS manual review, September 2025": "Revisión manual de CSS, septiembre de 2025",
-  "AI-assisted check ({date})": "Revisión asistida por IA ({date})",
+  "Review of {date}": "Revisión del {date}",
+  "Data: {source}": "Datos: {source}",
+  "Data: {source} (AI check, plus CSS staff review of anything it couldn't confirm)":
+    "Datos: {source} (revisión con IA, más la revisión del personal de CSS de lo que no pudo confirmar)",
   "Showing all {n} hospitals": "Mostrando los {n} hospitales",
   "Showing {a} of {b} hospitals": "Mostrando {a} de {b} hospitales",
   "All of New York": "Todo Nueva York", "New York City": "Ciudad de Nueva York",
