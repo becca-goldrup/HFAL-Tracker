@@ -24,7 +24,17 @@ def main():
     if not m:
         sys.exit("No decisions block found in the issue.")
     data = json.loads(m.group(1))
-    decisions = data.get("decisions")
+    decisions = data.get("decisions") or []
+    publish = data.get("publish")
+    if publish in ("baseline", "latest"):
+        # A staff member chose which dataset the public tabs show.
+        (REVIEWS_DIR).mkdir(parents=True, exist_ok=True)
+        (REVIEWS_DIR / "publish.json").write_text(json.dumps(
+            {"dataset": publish, "by": (str(data.get("reviewer") or "").strip() or author)[:80],
+             "date": str(data.get("submitted") or date.today().isoformat())[:10], "issue": number}, indent=1))
+        print(f"Public tabs set to show: {publish}")
+        if not decisions:
+            return
     if not isinstance(decisions, list) or not decisions or len(decisions) > 500:
         sys.exit("The decisions block is empty or too large.")
     data["reviewer"] = (str(data.get("reviewer") or "").strip() or author)[:80]

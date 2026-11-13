@@ -24,11 +24,12 @@
         <button role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview">Overview</button>
         <button role="tab" id="tab-hospitals" aria-controls="panel-hospitals" data-tab="hospitals">Hospitals</button>
         <button role="tab" id="tab-map" aria-controls="panel-map" data-tab="map">Map</button>
-        <button role="tab" id="tab-health" aria-controls="panel-health" data-tab="health" class="tab-staff">Data health</button>
-        <button role="tab" id="tab-staff" aria-controls="panel-staff" data-tab="staff">For CSS staff</button>
+        <button role="tab" id="tab-staff" aria-controls="panel-staff" data-tab="staff" class="tab-staff">CSS staff</button>
       </nav>
     </div>
   </header>
+
+  <div id="preview-banner" class="preview-banner" hidden></div>
 
   <section class="filters wrap" aria-label="Filters">
     <label class="f-search"><span>Search</span>
@@ -58,11 +59,6 @@
         <figcaption class="src">Source: <span class="src-name"></span>. Hospitals with items still under review are left out of that requirement's share.</figcaption>
       </figure>
 
-      <section class="fig">
-        <h2 class="fig-title">Recent updates</h2>
-        <p class="fig-sub">Changes found in hospitals' financial assistance materials since the last check.</p>
-        <div id="feed" class="feed"></div>
-      </section>
 
       <section class="fig">
         <h2 class="fig-title">What each grade means</h2>
@@ -114,23 +110,20 @@
       <p class="src">Source: <span class="src-name"></span>. Locations: US Census Bureau and OpenStreetMap.</p>
     </section>
 
-    <!-- ======================== DATA HEALTH ======================== -->
-    <section id="panel-health" role="tabpanel" aria-labelledby="tab-health" class="panel" hidden>
-      <h2 class="fig-title">Data health</h2>
-      <p class="fig-sub">How the AI reached each answer, and how much weight each one can bear. Every answer is either
-        backed by a quote the tool found in the hospital's own documents, accepted because nothing problematic was found,
-        or sent to a person to check.</p>
-      <div id="health-root"><p class="empty">Loading…</p></div>
-    </section>
-
     <!-- ======================== CSS STAFF ======================== -->
     <section id="panel-staff" role="tabpanel" aria-labelledby="tab-staff" class="panel" hidden>
       <h2 class="fig-title">For the CSS team</h2>
-      <p class="fig-sub">Run a new compliance check, and settle the items the AI couldn't confirm on its own.
+      <p class="fig-sub">Check the latest AI review, settle what it couldn't confirm, and choose what the public tabs show.
         Making changes requires access to the project's GitHub repository.</p>
+      <nav class="subnav" role="tablist" aria-label="Staff sections">
+        <button role="tab" type="button" data-sub="status">Status &amp; publishing</button>
+        <button role="tab" type="button" data-sub="review">Review <span id="sub-review-count" class="sub-count"></span></button>
+        <button role="tab" type="button" data-sub="health">Data health</button>
+      </nav>
 
+      <div id="staff-status" class="staff-sub">
       <section class="staff-step">
-        <h3 class="step-title"><span class="step-num">1</span>Run a new check</h3>
+        <h3 class="step-title">Run a new check</h3>
         <p id="run-status" class="run-status"></p>
         <a id="run-btn" class="btn" target="_blank" rel="noopener">Run a full check on GitHub ↗</a>
         <ol class="steps">
@@ -140,11 +133,27 @@
         <p class="hint">A check also runs automatically on the 1st of every month.</p>
       </section>
 
+
+        <section class="staff-step">
+          <h3 class="step-title">What the public tabs show</h3>
+          <p class="hint">The Overview, Hospitals and Map tabs show one dataset for everyone. Preview a dataset first (only you
+            see the preview), then publish it.</p>
+          <div id="publish-box"></div>
+        </section>
+
+        <section class="staff-step">
+          <h3 class="step-title">Recent updates</h3>
+          <p class="hint">Changes the latest AI check found in hospitals' financial assistance materials, newest first.</p>
+          <div id="feed" class="feed"></div>
+        </section>
+      </div>
+
+      <div id="staff-review" class="staff-sub" hidden>
       <section class="staff-step">
-        <h3 class="step-title"><span class="step-num">2</span>Review flagged items</h3>
+        <h3 class="step-title"><span class="step-num">1</span>Review flagged items</h3>
         <p class="hint">For each item, read why it was flagged and the quoted text, open the document if needed, and decide.
           A decision applies to every hospital that shares that financial assistance page. Your decisions are saved in this browser as you go.
-          To correct an answer that <em>wasn't</em> flagged, open the website in the <a href="#health">Data health</a> tab and choose <strong>Edit</strong>.</p>
+          To correct an answer that <em>wasn't</em> flagged, open the website in the <a href="#staff/health">Data health</a> tab and choose <strong>Edit</strong>.</p>
         <div class="progress" aria-hidden="true"><span id="progress-fill"></span></div>
         <p id="progress-text" class="count" aria-live="polite"></p>
         <div class="filters review-filters">
@@ -158,7 +167,7 @@
       </section>
 
       <section class="staff-step">
-        <h3 class="step-title"><span class="step-num">3</span>Send your decisions</h3>
+        <h3 class="step-title"><span class="step-num">2</span>Send your decisions</h3>
         <p id="send-summary"></p>
         <div id="submit-batches" class="send-actions"></div>
         <ol class="steps">
@@ -176,6 +185,14 @@
           </div>
         </details>
       </section>
+      </div>
+
+      <div id="staff-health" class="staff-sub" hidden>
+        <p class="fig-sub">How the AI reached each answer, and how much weight each one can bear. Every answer is either
+          backed by a sentence the tool pulled from the hospital's own documents, accepted because nothing problematic was found,
+          or sent to a person to check. Open a website and choose <strong>Edit</strong> to correct any answer.</p>
+        <div id="health-root"><p class="empty">Loading…</p></div>
+      </div>
     </section>
   </main>
 

@@ -30,7 +30,7 @@ COLUMNS = {c.column for c in GRADED}
 
 
 def main():
-    files = sorted(REVIEWS_DIR.glob("*.json"))
+    files = sorted(f for f in REVIEWS_DIR.glob("*.json") if f.name != "publish.json")  # publish.json is a setting
     if not files:
         print("No review files in data/reviews/. Nothing to apply.")
         return
@@ -80,6 +80,9 @@ def main():
         f.replace(dest)
         print(f"  {f.name}: {len(decisions)} decision(s) from {reviewer}")
 
+    if not applied and not skipped:
+        print("No decisions to apply.")
+        return
     tracker.run_date = date.fromisoformat(src.stem.replace("hfal-tracker-", "")).isoformat() \
         if src.stem.startswith("hfal-tracker-") else tracker.run_date  # keep the same dated file
     out = tracker.save()

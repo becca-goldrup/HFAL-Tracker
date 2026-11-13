@@ -353,29 +353,59 @@ def build_health(t: Tracker) -> dict:
             "totals": totals, "pipeline": pipeline, "sites": out}
 
 
+PUBLISH_FILE = config.ROOT / "data" / "reviews" / "publish.json"
+
+
+def published_choice(has_latest: bool) -> dict:
+    """Which dataset the public tabs show: set by staff (Publish button), else config.PUBLIC_DATA."""
+    choice = {"dataset": config.PUBLIC_DATA, "by": "", "date": ""}
+    if PUBLISH_FILE.exists():
+        try:
+            saved = json.loads(PUBLISH_FILE.read_text())
+            if saved.get("dataset") in ("baseline", "latest"):
+                choice.update({k: saved.get(k, "") for k in ("dataset", "by", "date")})
+        except Exception:
+            pass
+    if not has_latest:
+        choice["dataset"] = "baseline"
+    return choice
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--input", help="spreadsheet to use (default: newest in data/output, else data/input)")
+    ap.add_argument("--input", help="build only from this spreadsheet (skips the two-dataset setup)")
     args = ap.parse_args()
     from run import pick_input
-    src = pick_input(args.input)
-    data = build(src)
-    is_ai = src.parent.resolve() == config.OUTPUT_DIR.resolve()
-    if is_ai and config.PUBLIC_DATA == "baseline" and not args.input:
-        # Public tabs keep CSS's verified spreadsheet; staff tabs get the latest AI check.
-        baseline = build(pick_input(str(sorted(config.INPUT_DIR.glob("*.xlsx"))[0])))
-        baseline.update({k: data[k] for k in ("review", "last_run")})
-        baseline["latest_check"] = data["source"]
-        data = baseline
     (DOCS / "data").mkdir(parents=True, exist_ok=True)
-    (DOCS / "data" / "hospitals.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
-    if src.parent.resolve() == config.OUTPUT_DIR.resolve():
-        health = build_health(Tracker(src))
+    baseline_src = pick_input(args.input) if args.input else sorted(config.INPUT_DIR.glob("*.xlsx"))[0]
+    outputs = [] if args.input else sorted(p for p in config.OUTPUT_DIR.glob("*.xlsx") if not p.name.startswith("~$"))
+    latest_src = outputs[-1] if outputs else None
+
+    base = build(baseline_src)
+    latest = build(latest_src) if latest_src else None
+    pub = published_choice(latest is not None)
+
+    def dataset(d, label):
+        return {"label": label, "source": d["source"], "generated": d["generated"], "hospitals": d["hospitals"]}
+
+    datasets = {"baseline": dataset(base, "CSS manual review (September 2025)")}
+    if latest:
+        datasets["latest"] = dataset(latest, f"AI check ({latest_src.stem.replace('hfal-tracker-', '')}) with staff decisions")
+    public = {k: base[k] for k in ("repo", "generated", "fpl_year", "policy_statement_auto_fail", "criteria")}
+    public.update({"published": pub, "datasets": datasets})
+    (DOCS / "data" / "hospitals.json").write_text(json.dumps(public, ensure_ascii=False, separators=(",", ":")))
+
+    # Staff-only data (loaded only by the CSS staff tab).
+    staff = {"generated": base["generated"], "repo": config.GITHUB_REPO, "published": pub,
+             "review": latest["review"] if latest else [], "last_run": latest["last_run"] if latest else None,
+             "changes": latest["changes"] if latest else []}
+    (DOCS / "data" / "staff.json").write_text(json.dumps(staff, ensure_ascii=False, separators=(",", ":")))
+    if latest_src:
+        health = build_health(Tracker(latest_src))
         (DOCS / "data" / "health.json").write_text(json.dumps(health, ensure_ascii=False, separators=(",", ":")))
         print(f"Wrote docs/data/health.json: {len(health['sites'])} websites, answers by basis {health['totals']}")
-    located = sum(1 for h in data["hospitals"] if h["lat"] is not None)
-    print(f"From: {src}\nWrote docs/data/hospitals.json: {len(data['hospitals'])} hospitals, "
-          f"{located} on the map, {len(data['changes'])} recent changes")
+    print(f"Wrote docs/data/hospitals.json: datasets {list(datasets)}, published: {pub['dataset']}")
+    print(f"Wrote docs/data/staff.json: {len(staff['review'])} review items, {len(staff['changes'])} changes")
 
 
 if __name__ == "__main__":

@@ -205,7 +205,7 @@ The site appears at `https://becca-goldrup.github.io/HFAL-Tracker/`.
 
 ## For the CSS team: running checks and reviewing flagged items
 
-The dashboard's **For CSS staff** tab has three steps:
+The dashboard's **CSS staff** tab has three sections: **Status & publishing** (run a check, choose what the public tabs show, recent updates), **Review**, and **Data health**. The steps:
 
 1. **Run a new check.** The button opens this repository's *Run compliance check* workflow on GitHub; select
    **Run workflow**. GitHub downloads every website, grades it, writes a new dated spreadsheet to `data/output/`,
@@ -246,9 +246,12 @@ the evidence shown to reviewers is always the hospital's own wording. A citation
 a scanned PDF that can't be machine-read, an "unclear" answer, or wording found by the tool's own red-flag scan
 sends the item to human review.
 
-**What the public tabs show:** `PUBLIC_DATA` in `config.py`. `"baseline"` (default) keeps the Overview, Hospitals
-and Map tabs on CSS's verified spreadsheet while staff review the latest AI check; switch to `"latest"` once the
-review is done.
+**What the public tabs show:** staff choose in **CSS staff → Status & publishing**. *Preview* switches the public
+tabs for that person only (with a banner); *Publish* opens a pre-filled GitHub issue that, once submitted, switches
+the public tabs for everyone and records who published (`data/reviews/publish.json`). The two datasets are CSS's
+verified spreadsheet (`data/input`) and the latest AI check with staff decisions (`data/output`). Without a publish
+choice, `PUBLIC_DATA` in `config.py` decides (default `"baseline"`). The review queue and change log live in
+`docs/data/staff.json`, loaded only by the staff tab.
 
 ## Questions for CSS (judgment calls built into the tool)
 

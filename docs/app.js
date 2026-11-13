@@ -28,20 +28,22 @@ const criterion = (key) => state.data.criteria.find((c) => c.key === key);
 /* ---------------------------------------------------------------- load */
 fetch("data/hospitals.json")
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then((data) => { state.data = data; init(); })
+  .then((pub) => {
+    state.pub = pub;
+    state.data = { repo: pub.repo, generated: pub.generated, fpl_year: pub.fpl_year, criteria: pub.criteria,
+                   policy_statement_auto_fail: pub.policy_statement_auto_fail };
+    useDataset(previewChoice() || pub.published.dataset);
+    init();
+  })
   .catch((e) => {
     $("main").innerHTML = `<div class="card">Could not load the data (${esc(e.message)}).
       If you opened this file directly, serve the docs/ folder instead (see README).</div>`;
   });
 
 function init() {
-  const d = state.data;
-  $("#source-line").textContent = `Data: ${d.source} · Updated ${d.generated}`;
-  document.querySelectorAll(".src-name").forEach((el) => (el.textContent = d.source));
   buildFilters();
   renderRubric();
   renderCriteriaGuide();
-  initStaff();
   bindEvents();
   showTab((location.hash || "#overview").slice(1));
   render();
@@ -125,15 +127,17 @@ function bindEvents() {
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").hidden) closeDrawer(); });
 }
 
-function showTab(tab) {
-  if (!["overview", "hospitals", "map", "health", "staff"].includes(tab)) tab = "overview";
-  // The public filters don't apply to the staff tabs.
-  document.querySelector('section.filters[aria-label="Filters"]').hidden = tab === "staff" || tab === "health";
+function showTab(route) {
+  let [tab, sub] = String(route || "").split("/");
+  if (tab === "health") { tab = "staff"; sub = "health"; }  // old links
+  if (!["overview", "hospitals", "map", "staff"].includes(tab)) tab = "overview";
+  // The public filters don't apply to the staff tab.
+  document.querySelector('section.filters[aria-label="Filters"]').hidden = tab === "staff";
   document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
   document.querySelectorAll(".panel").forEach((p) => (p.hidden = p.id !== `panel-${tab}`));
   window.scrollTo(0, 0);
   if (tab === "map") { initMap(); state.map.invalidateSize(); renderMap(filtered()); }
-  if (tab === "health") showHealth();
+  if (tab === "staff") ensureStaff().then(() => showStaffSection(sub));
 }
 
 /* ---------------------------------------------------------------- render */
@@ -188,14 +192,6 @@ function renderOverview(list) {
         <span class="val">${s.rate}% <span class="of">${s.yes}/${s.yes + s.no}</span></span>
       </button>`).join("");
 
-  // Feed
-  const changes = state.data.changes || [];
-  $("#feed").innerHTML = changes.length
-    ? changes.slice(0, 60).map((c) => `<div class="item"><div class="date">${esc(c.date)}</div>
-        <strong>${esc(c.hospital)}</strong>: ${esc(c.field)} changed
-        ${c.old ? `from "${esc(c.old)}" ` : ""}to "${esc(c.new)}"</div>`).join("")
-    : `<p class="empty-feed">None yet. This tracker currently shows the baseline from ${esc(state.data.source)};
-       changes will appear here after each automated check.</p>`;
 }
 
 function renderRubric() {
@@ -427,6 +423,7 @@ function renderReview() {
   const done = items.filter((i) => decided(i.id)).length;
   $("#progress-fill").style.width = items.length ? `${(100 * done) / items.length}%` : "0%";
   $("#progress-text").textContent = items.length ? `${done} of ${items.length} flagged items reviewed` : "";
+  $("#sub-review-count").textContent = items.length ? String(items.length - done) : "";
   const all = savedDecisions();
   const fixes = all.filter((x) => x.override).length;
   $("#send-summary").textContent = all.length
@@ -765,7 +762,7 @@ function healthDetail(s) {
     }).join("")}</ul>
     <div class="send-actions">
       ${nrev ? `<button type="button" class="btn btn-secondary" data-h-review="${esc(s.system)}">Review this system's flagged items →</button>` : ""}
-      <a href="#staff" class="text-btn h-send-link">Send your changes (For CSS staff, step 3) →</a>
+      <a href="#staff/review" class="text-btn h-send-link">Send your changes (Review, step 2) →</a>
     </div>
   </div>`;
 }
@@ -801,7 +798,7 @@ document.addEventListener("click", (e) => {
     return;
   }
   const rv = e.target.closest("[data-h-review]");
-  if (rv) { location.hash = "staff"; $("#rv-system").value = rv.dataset.hReview; $("#rv-show").value = "todo"; renderReview(); return; }
+  if (rv) { location.hash = "staff/review"; $("#rv-system").value = rv.dataset.hReview; $("#rv-show").value = "todo"; renderReview(); return; }
   const row = e.target.closest("tr[data-h-site]");
   if (row && !e.target.closest("a")) {
     const id = row.dataset.hSite;
@@ -817,3 +814,129 @@ function scrollToSites() {
   const el = document.querySelector(".h-sites-fig");
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+
+/* ================================================================ datasets & staff shell
+   hospitals.json holds every public dataset; staff.json (review queue, last run, changes)
+   loads only when the CSS staff tab opens. */
+const PREVIEW_KEY = "hfal-preview-dataset";
+
+function previewChoice() {
+  try { return sessionStorage.getItem(PREVIEW_KEY) || ""; } catch { return ""; }
+}
+
+function useDataset(key) {
+  const pub = state.pub;
+  const k = pub.datasets[key] ? key : pub.published.dataset;
+  const ds = pub.datasets[k];
+  state.datasetKey = k;
+  Object.assign(state.data, { hospitals: ds.hospitals, source: ds.source, generated: ds.generated });
+  $("#source-line").textContent = `Data: ${ds.source} · Updated ${ds.generated}`;
+  document.querySelectorAll(".src-name").forEach((el) => (el.textContent = ds.source));
+  const banner = $("#preview-banner");
+  const previewing = k !== pub.published.dataset;
+  banner.hidden = !previewing;
+  if (previewing) {
+    banner.innerHTML = `<div class="wrap"><strong>Preview only:</strong> the public tabs are showing
+      <em>${esc(ds.label)}</em>. Everyone else sees <em>${esc(pub.datasets[pub.published.dataset].label)}</em>.
+      <button type="button" class="text-btn" data-stop-preview>Stop preview</button>
+      <a class="text-btn" href="#staff/status">Publish it</a></div>`;
+  }
+}
+
+function setPreview(key) {
+  try { key === state.pub.published.dataset ? sessionStorage.removeItem(PREVIEW_KEY) : sessionStorage.setItem(PREVIEW_KEY, key); } catch { /* ignore */ }
+  useDataset(key);
+  state.map && state.markers && (state.mapFitted = true);
+  buildFilters();
+  render();
+  if (state.staffLoaded) renderPublish();
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-stop-preview]")) setPreview(state.pub.published.dataset);
+});
+
+let staffLoading = null;
+function ensureStaff() {
+  if (state.staffLoaded) return Promise.resolve();
+  if (!staffLoading) {
+    staffLoading = fetch("data/staff.json")
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .catch(() => ({ review: [], last_run: null, changes: [] }))
+      .then((s) => {
+        Object.assign(state.data, { review: s.review || [], last_run: s.last_run, changes: s.changes || [] });
+        state.staffLoaded = true;
+        initStaff();
+        renderPublish();
+        renderFeed();
+      });
+  }
+  return staffLoading;
+}
+
+function showStaffSection(sub) {
+  if (!["status", "review", "health"].includes(sub)) sub = "status";
+  document.querySelectorAll(".subnav button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.sub === sub)));
+  document.querySelectorAll(".staff-sub").forEach((el) => (el.hidden = el.id !== `staff-${sub}`));
+  if (sub === "health") showHealth();
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".subnav [data-sub]");
+  if (b) location.hash = `staff/${b.dataset.sub}`;
+});
+
+function renderFeed() {
+  const changes = state.data.changes || [];
+  $("#feed").innerHTML = changes.length
+    ? changes.slice(0, 100).map((c) => `<div class="item"><div class="date">${esc(c.date)}</div>
+        <strong>${esc(c.hospital)}</strong>: ${esc(c.field)} changed
+        ${c.old ? `from "${esc(c.old)}" ` : ""}to "${esc(c.new)}"</div>`).join("")
+    : `<p class="empty-feed">No changes recorded yet. Changes appear here after each automated check.</p>`;
+}
+
+function renderPublish() {
+  const pub = state.pub;
+  const live = pub.published.dataset;
+  const viewing = state.datasetKey;
+  const pendingNote = (key) => {
+    if (key !== "latest") return "Verified by CSS staff by hand.";
+    const hs = pub.datasets.latest.hospitals;
+    const pending = hs.filter((h) => h.grade_best !== h.grade_worst).length;
+    return pending ? `${pending} of ${hs.length} hospitals still have items waiting for review; their grades show as ranges (for example "B to D").`
+      : "Every hospital has a final grade.";
+  };
+  $("#publish-box").innerHTML = `<div class="ds-list">${Object.entries(pub.datasets).map(([key, ds]) => `
+    <div class="ds-row${key === live ? " is-live" : ""}">
+      <div class="ds-main">
+        <div class="ds-name">${esc(ds.label)}
+          ${key === live ? `<span class="ds-tag live">Published</span>` : ""}
+          ${key === viewing && key !== live ? `<span class="ds-tag">You're previewing this</span>` : ""}</div>
+        <div class="ds-note">${esc(pendingNote(key))}
+          ${key === live && pub.published.by ? ` Published by ${esc(pub.published.by)} on ${esc(pub.published.date)}.` : ""}</div>
+      </div>
+      <div class="ds-actions">
+        ${key === viewing ? "" : `<button type="button" class="btn btn-secondary" data-preview="${key}">Preview</button>`}
+        ${key === live ? "" : `<a class="btn" target="_blank" rel="noopener" href="${esc(publishUrl(key, ds.label))}">Publish ↗</a>`}
+      </div>
+    </div>`).join("")}</div>
+    ${Object.keys(pub.datasets).length < 2 ? `<p class="hint">The AI-check dataset appears here after the first AI check.</p>` : ""}
+    <p class="hint">Publish opens a pre-filled GitHub issue; select <strong>Submit new issue</strong> and the public tabs switch for everyone within a few minutes.</p>`;
+}
+
+function publishUrl(key, label) {
+  const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
+  const name = ($("#rv-name") && $("#rv-name").value || "").trim();
+  const today = new Date().toISOString().slice(0, 10);
+  const payload = { reviewer: name, submitted: today, publish: key, decisions: [] };
+  const title = `[Review decisions] Publish: ${label}`;
+  const body = `Switch the dashboard's public tabs (Overview, Hospitals, Map) to show: ${label}.\n\n` +
+    "Submitting this issue applies it automatically; please don't edit the block below.\n\n```json\n" + JSON.stringify(payload) + "\n```";
+  return `https://github.com/${repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+}
+
+document.addEventListener("click", (e) => {
+  const p = e.target.closest("[data-preview]");
+  if (p) { setPreview(p.dataset.preview); location.hash = "overview"; }
+});

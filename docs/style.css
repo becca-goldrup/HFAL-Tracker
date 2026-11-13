@@ -358,3 +358,23 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .alt-send { margin-top: 18px; }
 .alt-send summary { cursor: pointer; font-size: 0.88rem; color: var(--accent-ink); }
 #submit-batches .hint { flex-basis: 100%; margin: 4px 0 0; }
+
+/* ---------- staff shell: sections, datasets, preview ---------- */
+.subnav { display: flex; gap: 6px; margin: 18px 0 4px; flex-wrap: wrap; }
+.subnav button { background: transparent; border: 1px solid var(--rule-strong); border-radius: 999px; padding: 6px 14px;
+  font-weight: 600; font-size: 0.88rem; color: var(--ink); }
+.subnav button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sub-count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 999px; background: var(--gold);
+  color: #0b0b0b; font-size: 0.75rem; line-height: 18px; }
+.sub-count:empty { display: none; }
+.ds-list { border-top: 1px solid var(--rule); }
+.ds-row { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.ds-row.is-live { box-shadow: inset 3px 0 0 var(--g-B); padding-left: 12px; }
+.ds-name { font-weight: 700; color: var(--heading); }
+.ds-note { font-size: 0.88rem; color: var(--ink-2); margin-top: 2px; max-width: 60ch; }
+.ds-tag { display: inline-block; margin-left: 8px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 3px; border: 1px solid var(--rule-strong); color: var(--ink-2); vertical-align: 2px; }
+.ds-tag.live { background: var(--g-B); border-color: var(--g-B); color: #fff; }
+.ds-actions { display: flex; gap: 10px; align-items: center; }
+.preview-banner { background: var(--gold); color: #0b0b0b; font-size: 0.9rem; padding: 10px 0; }
+.preview-banner .text-btn { color: #0b0b0b; margin-left: 10px; font-weight: 600; }
