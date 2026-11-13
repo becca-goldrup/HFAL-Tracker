@@ -1,0 +1,121 @@
+[
+ {
+  "key": "application_posted",
+  "column": "R",
+  "header": "Application Posted",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "Hospitals must post their financial assistance application on their website so patients can apply."
+ },
+ {
+  "key": "policy_summary_posted",
+  "column": "S",
+  "header": "Policy Summary Posted (as PDF, or on landing page)",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "Hospitals must post a plain-language summary of their financial assistance policy."
+ },
+ {
+  "key": "policy_statement_posted",
+  "column": "T",
+  "header": "Policy Statement Posted",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "Hospitals must post their full financial assistance policy."
+ },
+ {
+  "key": "consistent_across_documents",
+  "column": "U",
+  "header": "Consistent across posted documents (Y/N)",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "All of a hospital's financial assistance documents should give patients the same, correct information."
+ },
+ {
+  "key": "psa_compliant_2007",
+  "column": "V",
+  "header": "Primary Service Area boundaries compliant with 2007 guidelines?",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "A hospital's financial assistance must cover patients who live in at least the hospital's county and all neighboring counties (its 'primary service area')."
+ },
+ {
+  "key": "no_time_limit",
+  "column": "W",
+  "header": "No time limit to submit?",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "There is no deadline to apply for hospital financial assistance. Patients can apply at any time."
+ },
+ {
+  "key": "no_asset_checks",
+  "column": "Y",
+  "header": "No evidence of asset checks",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "Hospitals cannot consider a patient's assets (savings, property, bank accounts) when deciding financial assistance."
+ },
+ {
+  "key": "no_immigration_barrier",
+  "column": "Z",
+  "header": "No mention of immigration status as a barrier",
+  "section": "MATERIALS ON WEBSITE",
+  "plain_language": "Patients cannot be denied financial assistance because of their immigration status."
+ },
+ {
+  "key": "entire_uniform_application",
+  "column": "AD",
+  "header": "ENTIRE Uniform Application",
+  "section": "APPLICATION",
+  "plain_language": "Hospitals must use the full New York State Uniform Financial Assistance Application, not their own version."
+ },
+ {
+  "key": "contact_info_in_application",
+  "column": "AE",
+  "header": "Contact information included in application",
+  "section": "APPLICATION",
+  "plain_language": "The application must tell patients who to contact for help with financial assistance."
+ },
+ {
+  "key": "income_tables_in_application",
+  "column": "AG",
+  "header": "Income & Discount Tables Incuded in Application",
+  "section": "APPLICATION",
+  "plain_language": "The application must show the income levels and the discount a patient gets at each level."
+ },
+ {
+  "key": "fpl_current_year",
+  "column": "AH",
+  "header": "2025 FPL Guidelines",
+  "section": "APPLICATION",
+  "plain_language": "Income limits must be based on the current year's Federal Poverty Level guidelines."
+ },
+ {
+  "key": "max_fpl_400",
+  "column": "AI",
+  "header": "Max FPL (compliant is =/>400%)",
+  "section": "APPLICATION",
+  "plain_language": "Patients with incomes up to 400% of the Federal Poverty Level qualify for financial assistance."
+ },
+ {
+  "key": "installments_capped_5pct",
+  "column": "AJ",
+  "header": "Installments capped at 5% of monthly income",
+  "section": "APPLICATION",
+  "plain_language": "Monthly payment plans cannot be more than 5% of a patient's gross monthly income."
+ },
+ {
+  "key": "psa_in_summary",
+  "column": "AL",
+  "header": "Primary Service Area described in summary?",
+  "section": "PLAIN LANGUAGE SUMMARY",
+  "plain_language": "The plain-language summary must say which geographic area the hospital's financial assistance covers."
+ },
+ {
+  "key": "how_to_apply_in_summary",
+  "column": "AM",
+  "header": "Means of applying for assistance explained",
+  "section": "PLAIN LANGUAGE SUMMARY",
+  "plain_language": "The plain-language summary must explain how to apply for financial assistance."
+ },
+ {
+  "key": "income_levels_in_summary",
+  "column": "AN",
+  "header": "Income levels used to determine assistance",
+  "section": "PLAIN LANGUAGE SUMMARY",
+  "plain_language": "The plain-language summary must list the income levels used to decide who qualifies."
+ }
+]
