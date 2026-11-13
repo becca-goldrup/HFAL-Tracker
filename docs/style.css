@@ -427,3 +427,5 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .h-table th.num, .h-table td.num { white-space: nowrap; padding-right: 28px; padding-left: 16px; }
 .h-table th:last-child, .h-table td:last-child { white-space: nowrap; width: 1%; padding-right: 0; }
 .h-table .badge { white-space: nowrap; }
+.unreach-wrap > summary { cursor: pointer; padding: 10px 0; }
+.unreach-wrap:not([open]) > summary { margin-bottom: 0; }

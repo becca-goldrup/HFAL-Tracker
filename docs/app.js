@@ -565,7 +565,10 @@ function renderUnreachable() {
   box.hidden = false;
   const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
   const open = sites.filter((x) => !x.confirmed).length;
-  box.innerHTML = `<h4 class="sub-h">Couldn’t be checked automatically (${sites.length})</h4>
+  // Collapsible; starts open while something still needs confirming, and remembers the choice.
+  const isOpen = state.unreachOpen ?? open > 0;
+  box.innerHTML = `<details class="unreach-wrap"${isOpen ? " open" : ""}>
+    <summary class="sub-h">Couldn’t be checked automatically (${sites.length})${open ? ` · ${open} to confirm` : " · all confirmed"}</summary>
     <p class="hint">These websites block automated access, so the AI couldn’t re-check them and they keep their most recent answers.
       For each one, open the hospital’s page and either confirm those answers still hold, or save its documents so the next check can grade them.
       ${open ? "" : "All confirmed for this check."}</p>
@@ -591,7 +594,8 @@ function renderUnreachable() {
             <li>The next check grades them like any other website.</li>
           </ol></details>`}
       </div>`;
-    }).join("")}</div>`;
+    }).join("")}</div></details>`;
+  box.querySelector("details").addEventListener("toggle", (e) => { state.unreachOpen = e.target.open; });
 }
 
 document.addEventListener("click", (e) => {
