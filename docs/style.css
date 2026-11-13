@@ -423,3 +423,7 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
 .unreach-manual summary { cursor: pointer; font-size: 0.88rem; color: var(--ink-2); }
 .unreach-manual code { font-size: 0.82rem; overflow-wrap: anywhere; }
 .unreach-from { margin: 0; }
+/* Data health table: keep "To review" on one line and give the count room before the grade */
+.h-table th.num, .h-table td.num { white-space: nowrap; padding-right: 28px; padding-left: 16px; }
+.h-table th:last-child, .h-table td:last-child { white-space: nowrap; width: 1%; padding-right: 0; }
+.h-table .badge { white-space: nowrap; }
