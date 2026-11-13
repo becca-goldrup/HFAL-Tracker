@@ -24,15 +24,14 @@ from hfal.fetch import SiteFetch, site_slug
 
 
 # ---------------------------------------------------------------- answer shape
-class Quote(BaseModel):
-    doc_id: str = Field(description="Document id, e.g. D3")
-    quote: str = Field(description="Exact words copied from that document (1-3 sentences). Never paraphrase.")
+class Citation(BaseModel):
+    sentence_id: str = Field(description='A numbered sentence from the documents, e.g. "D3.12" (or "D4" for a scanned PDF)')
 
 
 class Finding(BaseModel):
     answer: Literal["yes", "no", "unclear", "not_found"]
     confidence: Literal["high", "medium", "low"]
-    evidence: List[Quote]
+    evidence: List[Citation] = Field(description="1-3 sentence ids that directly state the fact behind the answer")
     reasoning: str = Field(description="One or two sentences explaining the answer, citing doc ids.")
 
 
@@ -58,7 +57,7 @@ class GradingResult(BaseModel):
     fpl_year_used: Optional[int] = Field(description="FPL year used in the APPLICATION")
     contact_phone: Optional[str] = Field(description="Primary HFA help phone number on the APPLICATION")
     languages_available: List[str] = Field(description="Languages the application / summary / policy are posted in")
-    psa_definition_quote: Optional[str] = Field(description="Exact wording that defines the primary service area, if any")
+    psa_definition_sentence: Optional[str] = Field(description="Sentence id that defines the primary service area, if any")
     psa_counties: List[str] = Field(description="Counties/areas the hospital says its PSA covers")
     timeframe_notes: str = Field(description="Deadline wording if any; 'N/A' if none")
     inconsistency_notes: str = Field(description="Differences between the hospital's own documents; 'N/A' if none")
@@ -88,7 +87,7 @@ def _reference_application() -> str:
 
 SYSTEM = f"""You are auditing a New York hospital's compliance with the reformed NY Hospital Financial Assistance Law (HFAL) for the Community Service Society of New York. Your answers feed a public compliance tracker used by advocates, regulators and lawmakers.
 
-You will receive every document we could download from the hospital's financial assistance web page: the landing page text, linked pages, PDFs and Word files. Each has an id (D1, D2, ...).
+You will receive every document we could download from the hospital's financial assistance web page: the landing page text, linked pages, PDFs and Word files. Each has an id (D1, D2, ...), and its text is split into numbered sentences: [D3.12] is the 12th sentence of document D3.
 
 How to work (this follows the CSS manual methodology):
 1. First classify every document (application, policy_summary, policy_statement, landing_page, supplemental, not_relevant) and note its language. A document can have more than one role, e.g. a landing page that is also the plain language summary. Translations of the same document share its role.
@@ -98,12 +97,12 @@ How to work (this follows the CSS manual methodology):
 5. For every criterion, YES always means COMPLIANT.
 
 Answer values:
-- "yes" / "no": you found clear support. Give 1-3 short VERBATIM quotes (exact words, copied character for character from the document text you were given) with the doc_id. For a "yes" that rests on something being absent (e.g. no time limit anywhere), evidence may be empty, but say so in reasoning.
+- "yes" / "no": you found clear support. Cite the 1-3 sentence ids (e.g. "D3.12") that directly state it. Do NOT copy or retype any text: reviewers are shown the exact sentences you cite. For a "yes" that rests on something being absent (e.g. no time limit anywhere), evidence may be empty, but say so in reasoning. Scanned PDFs attached as files have no sentence numbers; cite them by document id alone (e.g. "D4"), and a person will check those.
 - "not_found": the document needed to answer (e.g. the application) is not among the documents.
 - "unclear": the documents are ambiguous, contradict each other in a way that matters, are unreadable, or you are unsure. Explain why.
 
 Accuracy rules -- these matter more than finishing:
-- Never invent or paraphrase quotes. Every quote is checked by a program against the source text; a quote that cannot be found sends the item to human review.
+- Cite only sentences that actually say what you claim. A program shows reviewers the cited sentences, and a citation that doesn't exist sends the item to human review.
 - Never guess. A wrong answer could lead a patient to think they qualify for assistance when they don't, or the reverse. When in doubt, answer "unclear" with low confidence.
 - Do not use outside knowledge about this hospital. Only the documents count. You MAY use general knowledge of NY geography (counties and which counties border each other) for the primary service area question, and you should state the counties you relied on.
 - Documents in other languages count. Translations that are truncated previews are only there to show which languages are posted.
@@ -125,9 +124,78 @@ Also fill in the note fields. Use "N/A" for a note when there is nothing to say.
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 
+_SPLIT = re.compile(r'(?<=[.!?])\s+(?=[A-Z0-9"\u201c(\[])')
+
+
+def _paragraphs(text: str):
+    """Rejoin lines that PDF extraction wrapped mid-sentence; keep headings and table rows separate."""
+    buf = ""
+    for line in text.split("\n"):
+        line = line.strip()
+        if not line or re.fullmatch(r"\[page \d+\]", line):
+            if buf:
+                yield buf
+            buf = ""
+            continue
+        if buf and not re.search(r"[.!?:;]$", buf) and "|" not in line and "|" not in buf and (
+                line[:1].islower() or len(buf) > 60 or re.match(r"^[\d$(]", line)):
+            buf += " " + line
+        else:
+            if buf:
+                yield buf
+            buf = line
+    if buf:
+        yield buf
+
+
+def _sentences(text: str):
+    """Sentences of a document, in order (page markers are skipped)."""
+    for line in _paragraphs(text):
+        for part in _SPLIT.split(line):
+            part = part.strip()
+            while len(part) > 500:  # very long runs (tables flattened into one line) are cut into pieces
+                cut = part.rfind(" ", 0, 400)
+                cut = cut if cut > 0 else 400
+                yield part[:cut]
+                part = part[cut:].strip()
+            if part:
+                yield part
+
+
+def number_sentences(doc_id: str, text: str) -> tuple[str, dict]:
+    """Text with each sentence labeled [D3.12], plus a map from label to the exact sentence."""
+    lines, smap = [], {}
+    for n, sent in enumerate(_sentences(text), 1):
+        sid = f"{doc_id}.{n}"
+        smap[sid] = sent
+        lines.append(f"[{sid}] {sent}")
+    return "\n".join(lines), smap
+
+
+def resolve_citations(result: dict, smap: dict, scanned: set) -> dict:
+    """Replace the AI's sentence ids with the exact sentences, so evidence can't be invented."""
+    for f in result["findings"].values():
+        ev = []
+        for e in f.get("evidence") or []:
+            sid = str(e.get("sentence_id", "")).strip().strip("[]")
+            doc = sid.split(".")[0]
+            if sid in smap:
+                quote = smap[sid]
+            elif "." not in sid and doc in scanned:
+                quote = "[scanned document: see the attached PDF]"
+            else:
+                quote = f"[cited sentence {sid} does not exist]"
+            ev.append({"doc_id": doc, "quote": quote, "sentence_id": sid})
+        f["evidence"] = ev
+    sid = result.pop("psa_definition_sentence", None)
+    result["psa_definition_quote"] = smap.get(str(sid).strip("[] ")) if sid else None
+    return result
+
+
 def _documents_content(site: SiteFetch, hospitals: list[dict]) -> tuple[list[dict], list[str]]:
-    """Build the user message. Returns (content blocks, warnings)."""
+    """Build the user message. Returns (content blocks, warnings); the sentence map is on site._smap."""
     warnings: list[str] = []
+    smap: dict = {}
     names = "\n".join(f"- {h['name']} ({h['address']}, {h['city']} NY {h['zip']}); system: {h['system']}"
                       for h in hospitals)
     header = (f"Hospital(s) that use this financial assistance page:\n{names}\n\n"
@@ -158,12 +226,15 @@ def _documents_content(site: SiteFetch, hospitals: list[dict]) -> tuple[list[dic
         text = _CONTROL_CHARS.sub(" ", d.text)
         if d.language_hint and d.language_hint != "English" and len(text) > config.TRANSLATION_PREVIEW_CHARS:
             text = text[:config.TRANSLATION_PREVIEW_CHARS] + "\n[... translation preview truncated ...]"
-        if len(text) > budget:
+        numbered, doc_map = number_sentences(d.doc_id, text)
+        if len(numbered) > budget:
             warnings.append(f"{d.doc_id} was cut short because this hospital's documents exceeded the size cap")
-            text = text[:max(0, budget)] + "\n[... TRUNCATED: size cap reached ...]"
-        budget -= len(text)
-        text_parts.append(f"<document {meta}>\n{text}\n</document>\n")
-    text_parts.append("Grade this hospital against every criterion.")
+            numbered = numbered[:max(0, budget)] + "\n[... TRUNCATED: size cap reached ...]"
+        budget -= len(numbered)
+        smap.update(doc_map)
+        text_parts.append(f"<document {meta}>\n{numbered}\n</document>\n")
+    text_parts.append("Grade this hospital against every criterion. Cite sentence ids; never retype text.")
+    site._smap = smap
     return blocks + [{"type": "text", "text": "\n".join(text_parts)}], warnings
 
 
@@ -202,8 +273,9 @@ def grade_site(site: SiteFetch, hospitals: list[dict]) -> dict:
         from hfal import nova
         result, usage, model = nova.grade(SYSTEM, content, GradingResult)
         return {"fingerprint": site.fingerprint(), "model": model, "graded_at": site.fetched_at,
-                "fpl_year_setting": config.FPL_YEAR, "warnings": warnings, "usage": usage,
-                "result": json.loads(result.model_dump_json())}
+                "fpl_year_setting": config.FPL_YEAR, "warnings": warnings, "usage": usage, "citations": "sentence-ids",
+                "result": resolve_citations(json.loads(result.model_dump_json()), site._smap,
+                                            {d.doc_id for d in site.documents if d.scanned})}
     extra = {}
     if config.PROVIDER == "anthropic":
         # If a safety filter wrongly declines, the API retries on another model.
@@ -236,7 +308,9 @@ def grade_site(site: SiteFetch, hospitals: list[dict]) -> dict:
         "usage": {"input": u.input_tokens, "output": u.output_tokens,
                   "cache_read": u.cache_read_input_tokens or 0,
                   "cache_write": u.cache_creation_input_tokens or 0},
-        "result": json.loads(result.model_dump_json()),
+        "citations": "sentence-ids",
+        "result": resolve_citations(json.loads(result.model_dump_json()), site._smap,
+                                    {d.doc_id for d in site.documents if d.scanned}),
     }
 
 

@@ -40,7 +40,7 @@ CAUSES = {
     "ai_unsure": "The AI wasn't sure",
     "doc_not_found": "Document not found on the website",
     "absence": "A missing document needs confirming",
-    "quote_mismatch": "Quote not found in the document",
+    "quote_mismatch": "Cited text not found in the document",
     "weak_evidence": "No usable quote as evidence",
     "scanned": "Scanned PDF can't be machine-checked",
     "wrong_doc": "Evidence came from the wrong document",
@@ -151,6 +151,8 @@ def decide(site: SiteFetch, graded: dict) -> tuple[dict[str, Decision], dict[str
                 bad.append(f"cited {q['doc_id']}, which doesn't exist")
             elif d.scanned:
                 unverifiable.append(q["doc_id"])
+            elif q["quote"].startswith("[cited sentence"):
+                bad.append(f"cited sentence {q.get('sentence_id')}, which doesn't exist")
             elif not quote_found(q["quote"], d.text):
                 bad.append(f"quote not found in {q['doc_id']}")
             elif len(_norm(q["quote"]).split()) < MIN_QUOTE_WORDS:

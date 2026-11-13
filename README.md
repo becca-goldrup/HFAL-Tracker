@@ -213,8 +213,12 @@ The dashboard's **For CSS staff** tab has three steps:
 2. **Review flagged items.** Every REVIEW item, grouped by hospital website, with the AI's reason, the quoted text,
    and links to the documents. Choose **Meets requirement** or **Falls short** (plus an optional note). A decision
    applies to all hospitals sharing that page. Decisions are saved in the reviewer's browser as they go.
-3. **Send decisions.** Download the decisions file and upload it to `data/reviews/` on GitHub. The workflow applies
-   it to the newest spreadsheet (`tools/apply_reviews.py`), records it in the AI Change Log, and refreshes the dashboard.
+3. **Send decisions.** Select **Submit to GitHub**: a GitHub issue opens with the decisions filled in; select
+   **Submit new issue**. The *Apply submitted review decisions* workflow (`.github/workflows/apply-review-issue.yml`)
+   checks that the author has access to the repository, saves the decisions (`tools/issue_to_reviews.py`), applies
+   them to the newest spreadsheet (`tools/apply_reviews.py`), refreshes the dashboard, replies, and closes the issue.
+   Large sets are split into several submissions automatically. Backup option: download the decisions file and
+   upload it to `data/reviews/`.
 
 **Correcting any AI answer, not just flagged ones:** in the **Data health** tab, open a hospital website and choose
 **Edit** on any of its 17 answers (this also works for websites the AI couldn't check, to enter values by hand).
@@ -233,6 +237,18 @@ checks or upload decisions.
 The sprint's AWS sandbox keys expire within hours and the sandbox is deleted when the lease ends, so for ongoing
 use CSS needs its own AWS account or Anthropic API key. Downloaded documents are cached between runs, so websites
 that haven't changed aren't paid for again.
+
+## How the AI cites evidence
+
+Every document's text is split into numbered sentences (`[D3.12]` is the 12th sentence of document D3). The AI
+answers by citing sentence numbers, never by typing quotes, and the tool fills in the exact sentence itself, so
+the evidence shown to reviewers is always the hospital's own wording. A citation to a sentence that doesn't exist,
+a scanned PDF that can't be machine-read, an "unclear" answer, or wording found by the tool's own red-flag scan
+sends the item to human review.
+
+**What the public tabs show:** `PUBLIC_DATA` in `config.py`. `"baseline"` (default) keeps the Overview, Hospitals
+and Map tabs on CSS's verified spreadsheet while staff review the latest AI check; switch to `"latest"` once the
+review is done.
 
 ## Questions for CSS (judgment calls built into the tool)
 

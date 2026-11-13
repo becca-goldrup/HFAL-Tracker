@@ -9,6 +9,14 @@ ROOT = Path(__file__).parent
 # ---- GitHub -------------------------------------------------------------------
 GITHUB_REPO = "becca-goldrup/HFAL-Tracker"   # used by the dashboard's "For CSS staff" tab
 
+# ---- What the public dashboard shows -------------------------------------------
+# "baseline": the public tabs (Overview, Hospitals, Map) keep showing CSS's verified
+#             spreadsheet in data/input while CSS staff review the latest AI check
+#             (the staff tabs always use the latest check).
+# "latest":   the public tabs show the latest AI check, with grades marked
+#             provisional where items still need review. Switch once review is done.
+PUBLIC_DATA = "baseline"
+
 # ---- Files -------------------------------------------------------------------
 INPUT_DIR = ROOT / "data" / "input"     # put the CSS spreadsheet here
 OUTPUT_DIR = ROOT / "data" / "output"   # updated spreadsheets + CSV land here

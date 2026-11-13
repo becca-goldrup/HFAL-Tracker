@@ -97,7 +97,8 @@ def _fill_gaps(data: dict, result_cls) -> None:
             f["confidence"] = "low"
         if not isinstance(f.get("evidence"), list):
             f["evidence"] = []
-        f["evidence"] = [e for e in f["evidence"] if isinstance(e, dict) and "doc_id" in e and "quote" in e]
+        f["evidence"] = [e if isinstance(e, dict) else {"sentence_id": str(e)} for e in f["evidence"]]
+        f["evidence"] = [e for e in f["evidence"] if e.get("sentence_id")]
         f.setdefault("reasoning", "The model gave no explanation.")
     # Document list: fill fields the model left out (they only describe documents; they don't grade anything).
     docs = data.get("documents")

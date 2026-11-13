@@ -431,9 +431,10 @@ function renderReview() {
   const fixes = all.filter((x) => x.override).length;
   $("#send-summary").textContent = all.length
     ? `Ready to send: ${all.length - fixes} review decision${all.length - fixes === 1 ? "" : "s"}` +
-      `${fixes ? ` and ${fixes} correction${fixes === 1 ? "" : "s"} from the Data health tab` : ""}. Download them and upload the file to apply them.`
+      `${fixes ? ` and ${fixes} correction${fixes === 1 ? "" : "s"} from the Data health tab` : ""}. Submit them to GitHub below.`
     : "Decide at least one item above (or correct an answer in the Data health tab), then send your decisions here.";
   $("#rv-download").disabled = !all.length;
+  renderSubmit(all);
 
   if (!state.data.last_run) {
     $("#review-list").innerHTML = `<p class="empty">Flagged items appear here after the first AI check.</p>`;
@@ -488,6 +489,44 @@ function reviewItem(i) {
     </div>
     <textarea data-note rows="1" placeholder="Add a note (optional)">${esc(note)}</textarea>
   </div>`;
+}
+
+// "Submit to GitHub": a pre-filled issue that a GitHub workflow applies automatically
+// (.github/workflows/apply-review-issue.yml). Large sets are split so each link stays short enough.
+function issueUrl(batch, part, parts) {
+  const repo = state.data.repo || "becca-goldrup/HFAL-Tracker";
+  const name = ($("#rv-name").value || "").trim();
+  const today = new Date().toISOString().slice(0, 10);
+  const payload = { reviewer: name, submitted: today, data_generated: state.data.generated,
+    decisions: batch.map((x) => Object.assign({ id: x.id, d: x.decision }, x.note ? { n: x.note } : {}, x.override ? { o: 1 } : {})) };
+  const title = `[Review decisions] ${batch.length} decision${batch.length === 1 ? "" : "s"} from ${name || "CSS staff"} (${today})` +
+    (parts > 1 ? ` part ${part} of ${parts}` : "");
+  const body = "These decisions were made in the Equity Lens dashboard. Submitting this issue applies them " +
+    "automatically; please don't edit the block below.\n\n```json\n" + JSON.stringify(payload) + "\n```";
+  return `https://github.com/${repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+}
+
+function submitBatches(all) {
+  const batches = [];
+  let cur = [];
+  for (const x of all) {
+    if (cur.length && issueUrl(cur.concat([x]), 1, 1).length > 7000) { batches.push(cur); cur = []; }
+    cur.push(x);
+  }
+  if (cur.length) batches.push(cur);
+  return batches;
+}
+
+function renderSubmit(all) {
+  const box = $("#submit-batches");
+  if (!all.length) {
+    box.innerHTML = `<button class="btn" type="button" disabled>Submit to GitHub ↗</button>`;
+    return;
+  }
+  const batches = submitBatches(all);
+  box.innerHTML = batches.map((b, i) => `<a class="btn" target="_blank" rel="noopener" data-batch="${i}"
+      href="${esc(issueUrl(b, i + 1, batches.length))}">${batches.length > 1 ? `Submit part ${i + 1} of ${batches.length} (${b.length})` : "Submit to GitHub"} ↗</a>`).join("") +
+    (batches.length > 1 ? `<p class="hint">Your decisions are split into ${batches.length} parts so each fits in one GitHub page. Submit each part.</p>` : "");
 }
 
 // Every saved decision: flagged items settled in this tab, plus corrections made in the Data health tab.

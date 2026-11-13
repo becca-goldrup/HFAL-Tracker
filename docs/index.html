@@ -160,16 +160,21 @@
       <section class="staff-step">
         <h3 class="step-title"><span class="step-num">3</span>Send your decisions</h3>
         <p id="send-summary"></p>
-        <div class="send-actions">
-          <button id="rv-download" class="btn" type="button">Download decisions file</button>
-          <a id="rv-upload" class="btn btn-secondary" target="_blank" rel="noopener">Open the GitHub upload page ↗</a>
-          <button id="rv-clear" class="text-btn" type="button">Clear my decisions</button>
-        </div>
+        <div id="submit-batches" class="send-actions"></div>
         <ol class="steps">
-          <li>Download the decisions file.</li>
-          <li>Open the GitHub upload page, drag the file in, and select <strong>Commit changes</strong>.</li>
-          <li>Within a few minutes, the spreadsheet and this dashboard update with your decisions.</li>
+          <li>Select <strong>Submit to GitHub</strong>. A GitHub page opens with your decisions already filled in.</li>
+          <li>On that page, select <strong>Submit new issue</strong>. (You need to be signed in to GitHub with access to this project.)</li>
+          <li>Within a few minutes, the spreadsheet and this dashboard update, and GitHub replies on the issue with a summary.</li>
         </ol>
+        <details class="alt-send">
+          <summary>Other options</summary>
+          <p class="hint">If the Submit button doesn't work for you, download the decisions as a file and upload it to GitHub instead.</p>
+          <div class="send-actions">
+            <button id="rv-download" class="btn btn-secondary" type="button">Download decisions file</button>
+            <a id="rv-upload" class="text-btn" target="_blank" rel="noopener">Open the GitHub upload page ↗</a>
+            <button id="rv-clear" class="text-btn" type="button">Clear my decisions</button>
+          </div>
+        </details>
       </section>
     </section>
   </main>

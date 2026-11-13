@@ -353,3 +353,8 @@ button.btn { border: none; cursor: pointer; font: inherit; font-weight: 600; fon
   background: transparent; border: none; border-bottom: 1px solid var(--rule-strong); padding: 5px 2px; }
 .h-edit-state { margin: 6px 0 0; font-size: 0.86rem; color: var(--ink); }
 .h-item.is-edited { box-shadow: inset 3px 0 0 var(--gold); padding-left: 8px; }
+
+/* ---------- send step ---------- */
+.alt-send { margin-top: 18px; }
+.alt-send summary { cursor: pointer; font-size: 0.88rem; color: var(--accent-ink); }
+#submit-batches .hint { flex-basis: 100%; margin: 4px 0 0; }

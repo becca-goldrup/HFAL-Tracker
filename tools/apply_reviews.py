@@ -21,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import config  # noqa: E402
 from hfal.criteria import GRADED, NO, REVIEW, YES  # noqa: E402
+from hfal.fetch import site_slug  # noqa: E402
 from hfal.spreadsheet import Tracker, _col  # noqa: E402
 from run import pick_input  # noqa: E402
 
@@ -38,9 +39,10 @@ def main():
         print("No AI-checked spreadsheet in data/output yet; decisions will be applied after the first check.")
         return
     tracker = Tracker(src)
-    by_site = {}
+    by_site, by_slug = {}, {}
     for h in tracker.hospitals():
         by_site.setdefault(h["hfa_url"], []).append(h)
+        by_slug[site_slug(h["hfa_url"])] = h["hfa_url"]
 
     applied = skipped = 0
     for f in files:
@@ -53,6 +55,12 @@ def main():
         reviewer = str(batch.get("reviewer") or "CSS reviewer")[:80]
         when = str(batch.get("submitted") or date.today().isoformat())[:10]
         for d in decisions:
+            # Compact form from the Submit to GitHub button: {"id": "<site>|<column>", "d": ..., "n": ..., "o": 1}
+            if "id" in d and "|" in str(d["id"]) and not d.get("hfa_url"):
+                slug, col = str(d["id"]).split("|", 1)
+                d = {"hfa_url": by_slug.get(slug), "column": d.get("column") or col,
+                     "decision": d.get("decision") or d.get("d"), "note": d.get("note") or d.get("n"),
+                     "override": d.get("override") or d.get("o")}
             value, column = str(d.get("decision", "")).lower(), str(d.get("column", ""))
             if value not in (YES, NO) or column not in COLUMNS:
                 skipped += 1

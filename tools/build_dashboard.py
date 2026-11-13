@@ -270,12 +270,35 @@ def build_health(t: Tracker) -> dict:
     for h in t.hospitals():
         if h["hfa_url"]:
             sites.setdefault(h["hfa_url"], []).append(h)
+    # Where downloaded documents aren't available (e.g. GitHub applying review decisions),
+    # keep each website's previous details and only refresh the staff decisions.
+    previous = {}
+    prev_path = DOCS / "data" / "health.json"
+    if prev_path.exists():
+        try:
+            previous = {s["hfa_url"]: s for s in json.loads(prev_path.read_text()).get("sites", [])}
+        except Exception:
+            previous = {}
     out, totals = [], {"quote": 0, "absence": 0, "review": 0, "staff": 0, "carried": 0}
     pipeline = {"websites": len(sites), "downloaded": 0, "graded": 0, "blocked": 0}
     for url, hs in sites.items():
         first = hs[0]
         site, res = load_site(url), load_result(url)
         checked = bool(site and site.landing_ok and res)
+        prev = previous.get(url)
+        if not checked and site is None and prev and prev.get("status") == "checked":
+            entry = json.loads(json.dumps(prev))
+            for item in entry["items"]:
+                cell = t.ws.cell(first["row"], col(item["column"])) if item.get("column") else None
+                if cell is not None and cell.comment is not None and cell.comment.text.startswith("Reviewed by"):
+                    item.update(value=_status(cell.value), basis="staff", cause="", reason=cell.comment.text[:320])
+            entry["grade"] = grade_row(t.last_values(first["row"]))["grade"]
+            pipeline["downloaded"] += 1
+            pipeline["graded"] += 1
+            for item in entry["items"]:
+                totals[item["basis"]] += 1
+            out.append(entry)
+            continue
         if site and site.landing_ok:
             pipeline["downloaded"] += 1
         decisions = {}
@@ -337,6 +360,13 @@ def main():
     from run import pick_input
     src = pick_input(args.input)
     data = build(src)
+    is_ai = src.parent.resolve() == config.OUTPUT_DIR.resolve()
+    if is_ai and config.PUBLIC_DATA == "baseline" and not args.input:
+        # Public tabs keep CSS's verified spreadsheet; staff tabs get the latest AI check.
+        baseline = build(pick_input(str(sorted(config.INPUT_DIR.glob("*.xlsx"))[0])))
+        baseline.update({k: data[k] for k in ("review", "last_run")})
+        baseline["latest_check"] = data["source"]
+        data = baseline
     (DOCS / "data").mkdir(parents=True, exist_ok=True)
     (DOCS / "data" / "hospitals.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
     if src.parent.resolve() == config.OUTPUT_DIR.resolve():
