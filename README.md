@@ -266,9 +266,8 @@ form (2027, for example):
    FPL_YEAR = 2027
    REFERENCE_APPLICATION = ROOT / "data" / "reference" / "nys-uniform-application-2027.txt"
    ```
-3. Run a full re-check, so every website is compared against the new form, not just the ones whose documents
-   changed: `python run.py --force` on a computer, or delete `data/output/document-fingerprints.json` before the
-   next GitHub check.
+3. Run a full re-check on a computer, so every website is compared against the new form, not just the ones whose
+   documents changed: `python run.py --force`. (The GitHub check button skips unchanged websites.)
 
 Expect a bigger review that month: hospitals that haven't switched to the new form yet will be flagged or marked
 as falling short on the application requirements. Keep the old form's text file; it records what earlier checks
